@@ -1,58 +1,41 @@
 ﻿using System;
-using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
 namespace AtomosZ.OhBehave.Editor
 {
 	[Serializable]
-	public class NodeWindow
+	public abstract class NodeWindow
 	{
-		public Rect rect;
+		public enum NodeType { Selector, Sequence, Leaf }
 
-		private List<NodeWindow> nodes = new List<NodeWindow>();
-		private int windowID;
+		protected Rect rect;
+		protected int windowID;
+		protected Color bgColor;
+		/// <summary>
+		/// Warning: if this is null it is the topmost node.
+		/// </summary>
+		protected NodeWindow parent;
 
 
-		public NodeWindow(Rect rct)
+		public NodeWindow(NodeWindow parent, Rect rct)
 		{
+			this.parent = parent;
 			this.rect = rct;
-			windowID =  ++OhBehaveEditorWindow.NextWindowID;
+			windowID = ++OhBehaveEditorWindow.NextWindowID;
 		}
 
 
-		internal void OnGUI()
+		internal abstract void OnGUI();
+
+
+		protected abstract void DrawWindow(int id);
+
+
+		protected void DrawNodeCurve(NodeWindow start, NodeWindow end)
 		{
-			GUI.backgroundColor = Color.cyan;
-
-			rect = GUI.Window(windowID, rect, DrawWindow, "Node" + windowID);
-			foreach (NodeWindow node in nodes)
-			{
-				node.OnGUI();
-				DrawNodeCurve(rect, node.rect);
-			}
-		}
-
-
-		private void DrawWindow(int id)
-		{
-			
-
-			GUILayout.Label(new GUIContent("Node Type"));
-			if (GUILayout.Button("Add Node"))
-			{
-				Debug.Log("Hi!");
-				nodes.Add(new NodeWindow(new Rect(40, 40, 150, 250)));
-			}
-
-			GUI.DragWindow();
-		}
-
-
-		void DrawNodeCurve(Rect start, Rect end)
-		{
-			Vector3 startPos = new Vector3(start.x + start.width, start.y + start.height / 2, 0);
-			Vector3 endPos = new Vector3(end.x, end.y + end.height / 2, 0);
+			Vector3 startPos = new Vector3(start.rect.x + start.rect.width / 2, start.rect.y + start.rect.height, 0);
+			Vector3 endPos = new Vector3(end.rect.x + end.rect.width / 2, end.rect.y, 0);
 			Vector3 startTan = startPos + Vector3.right * 50;
 			Vector3 endTan = endPos + Vector3.left * 50;
 			Color shadowCol = new Color(0, 0, 0, 0.06f);

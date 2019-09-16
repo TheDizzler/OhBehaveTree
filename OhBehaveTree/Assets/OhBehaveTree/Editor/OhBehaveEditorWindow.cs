@@ -7,7 +7,9 @@ namespace AtomosZ.OhBehave.Editor
 	public class OhBehaveEditorWindow : EditorWindow
 	{
 		public static int NextWindowID = 0;
-		List<NodeWindow> nodes = new List<NodeWindow>();
+
+		[SerializeField]
+		CompositeNodeWindow startNode;
 
 
 		[MenuItem("Window/OhBehave")]
@@ -18,30 +20,28 @@ namespace AtomosZ.OhBehave.Editor
 			window.Init();
 		}
 
-		public void Init()
+		private void Init()
 		{
-			nodes.Add(new NodeWindow(new Rect(10, 10, 100, 200)));
-			nodes.Add(new NodeWindow(new Rect(30, 30, 150, 250)));
+			startNode = new SelectorNodeWindow(null, new Vector2(position.width/2, 0));
 		}
+
+
+		public void OnEnable()
+		{
+			Debug.Log("OnEnable");
+		}
+
 
 		void OnGUI()
 		{
 			BeginWindows();
-			foreach (NodeWindow node in nodes)
-			{
-				node.OnGUI();
-			}
-
+			startNode.OnGUI();
 			EndWindows();
 		}
 
-		public void OnEnable()
-		{
-
-		}
 
 
-		
+
 
 	}
 }
