@@ -8,24 +8,22 @@ namespace AtomosZ.OhBehave
 	/// A Composite Node that returns Success if any of it's children return Success.
 	/// Evaluates all Nodes in order (or random, if selected) and returns on first child Success.
 	/// </summary>
-	[Serializable]
+	[CreateAssetMenu(fileName = "NewNode", menuName = "Nodes/Selector")]
 	public class SelectorNode : ICompositeNode
 	{
 		[SerializeField]
 		protected bool random = false;
 		[SerializeField]
 		protected List<INode> nodes;
-		protected NodeState state;
 
-
-		public NodeState GetNodeState()
+		public SelectorNode()
 		{
-			return state;
+			nodeType = NodeType.Selector;
 		}
 
-		public NodeState Evaluate()
+		public override NodeState Evaluate()
 		{
-			return NodeState.Failure;
+			throw new NotImplementedException();
 		}
 	}
 }

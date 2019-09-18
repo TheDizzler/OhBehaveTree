@@ -15,15 +15,14 @@ namespace AtomosZ.OhBehave
 		protected List<INode> nodes;
 		protected NodeState state;
 
-
-		public NodeState GetNodeState()
+		public SequenceNode()
 		{
-			return state;
+			nodeType = NodeType.Sequence;
 		}
 
-		public NodeState Evaluate()
+		public override NodeState Evaluate()
 		{
-			return NodeState.Failure;
+			throw new NotImplementedException();
 		}
 	}
 }
