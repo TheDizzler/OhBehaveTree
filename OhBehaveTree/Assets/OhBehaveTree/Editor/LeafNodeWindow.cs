@@ -1,11 +1,11 @@
 ﻿using UnityEngine;
 
-namespace AtomosZ.OhBehave.Editor
+namespace AtomosZ.OhBehave.CustomEditors
 {
 	public class LeafNodeWindow : NodeWindow
 	{
-		public LeafNodeWindow(NodeWindow parent, Vector2 pos)
-			: base(parent, new Rect(pos.x, pos.y, 100, 250))
+		public LeafNodeWindow(NodeWindow parent, Vector2 pos, INode nodeObj)
+			: base(parent, new Rect(pos.x, pos.y, 100, 250), nodeObj)
 		{
 			bgColor = Color.green;
 		}
@@ -22,7 +22,7 @@ namespace AtomosZ.OhBehave.Editor
 		{
 			GUILayout.Label(new GUIContent("Leaf"));
 
-			GUI.DragWindow();
+			//GUI.DragWindow();
 		}
 	}
 }

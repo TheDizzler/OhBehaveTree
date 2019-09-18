@@ -2,12 +2,12 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace AtomosZ.OhBehave.Editor
+namespace AtomosZ.OhBehave.CustomEditors
 {
 	[Serializable]
 	public abstract class NodeWindow
 	{
-		public enum NodeType { Selector, Sequence, Leaf }
+		public INode nodeObject;
 
 		protected Rect rect;
 		protected int windowID;
@@ -17,12 +17,16 @@ namespace AtomosZ.OhBehave.Editor
 		/// </summary>
 		protected NodeWindow parent;
 
+		protected OhBehaveEditorWindow ohBehave;
 
-		public NodeWindow(NodeWindow parent, Rect rct)
+
+		public NodeWindow(NodeWindow parent, Rect rct, INode nodeObj)
 		{
 			this.parent = parent;
 			this.rect = rct;
+			this.nodeObject = nodeObj;
 			windowID = ++OhBehaveEditorWindow.NextWindowID;
+			ohBehave = EditorWindow.GetWindow<OhBehaveEditorWindow>();
 		}
 
 

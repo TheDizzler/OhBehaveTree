@@ -1,28 +1,41 @@
-﻿using System.Collections.Generic;
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
 
-namespace AtomosZ.OhBehave.Editor
+namespace AtomosZ.OhBehave.CustomEditors
 {
 	public class OhBehaveEditorWindow : EditorWindow
 	{
 		public static int NextWindowID = 0;
 
 		[SerializeField]
-		CompositeNodeWindow startNode;
+		CompositeNodeWindow rootNode;
 
 
-		[MenuItem("Window/OhBehave")]
-		static public void ShowWindow()
+		//[MenuItem("Window/OhBehave")]
+		//static public void ShowWindow()
+		//{
+		//	var window = EditorWindow.GetWindow<OhBehaveEditorWindow>();
+		//	window.titleContent = new GUIContent("OhBehave!");
+		//}
+
+		public void Open(SelectorNode node)
 		{
-			var window = EditorWindow.GetWindow<OhBehaveEditorWindow>();
-			window.titleContent = new GUIContent("OhBehave!");
-			window.Init();
+			rootNode = (CompositeNodeWindow)CreateNode(null, new Vector2(position.width / 2, 0), node);
 		}
 
-		private void Init()
+		internal NodeWindow CreateNode(NodeWindow parent, Vector2 pos, INode node)
 		{
-			startNode = new SelectorNodeWindow(null, new Vector2(position.width/2, 0));
+			switch (node.GetNodeType())
+			{
+				case NodeType.Selector:
+					return new SelectorNodeWindow(parent, pos, node);
+				case NodeType.Sequence:
+					return new SequenceNodeWindow(parent, pos, node);
+				case NodeType.Leaf:
+					return new LeafNodeWindow(parent, pos, node);
+			}
+
+			return null;
 		}
 
 
@@ -35,12 +48,9 @@ namespace AtomosZ.OhBehave.Editor
 		void OnGUI()
 		{
 			BeginWindows();
-			startNode.OnGUI();
+			rootNode.OnGUI();
 			EndWindows();
 		}
-
-
-
 
 
 	}

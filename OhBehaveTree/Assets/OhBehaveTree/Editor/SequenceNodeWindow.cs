@@ -3,26 +3,28 @@ using UnityEngine;
 
 namespace AtomosZ.OhBehave.CustomEditors
 {
-	public class SelectorNodeWindow : CompositeNodeWindow
+	public class SequenceNodeWindow : CompositeNodeWindow
 	{
-		public SelectorNodeWindow(NodeWindow parent, Vector2 pos, INode nodeObj)
+		public SequenceNodeWindow(NodeWindow parent, Vector2 pos, INode nodeObj)
 			: base(parent, new Rect(pos.x, pos.y, 100, 200), nodeObj)
 		{
-			bgColor = new Color(1, .65f, 0);
+			bgColor = Color.yellow;
 		}
+
 
 		internal override void OnGUI()
 		{
 			GUI.backgroundColor = bgColor;
 
-			rect = GUI.Window(windowID, rect, DrawWindow, "Selector");
+			rect = GUI.Window(windowID, rect, DrawWindow, "Sequence");
+			EditorGUILayout.BeginHorizontal();
 			foreach (NodeWindow node in children)
 			{
 				node.OnGUI();
 				DrawNodeCurve(this, node);
 			}
+			EditorGUILayout.EndHorizontal();
 		}
-
 
 		protected override void DrawWindow(int id)
 		{
@@ -30,8 +32,6 @@ namespace AtomosZ.OhBehave.CustomEditors
 			{
 				PopupWindow.Show(NodeTypeSelectPopup.PopupRect, new NodeTypeSelectPopup(this));
 			}
-
-			//GUI.DragWindow();
 		}
 	}
 }

@@ -2,16 +2,16 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace AtomosZ.OhBehave.Editor
+namespace AtomosZ.OhBehave.CustomEditors
 {
 	public abstract class CompositeNodeWindow : NodeWindow
 	{
 		[SerializeField]
 		protected List<NodeWindow> children = new List<NodeWindow>();
 
-		public CompositeNodeWindow(NodeWindow parent, Rect rct) : base(parent, rct)
-		{
-		}
+
+		public CompositeNodeWindow(NodeWindow parent, Rect rct, INode nodeObj)
+			: base(parent, rct, nodeObj) { }
 
 
 		private void AddChildNode(NodeType type)
@@ -19,12 +19,22 @@ namespace AtomosZ.OhBehave.Editor
 			switch (type)
 			{
 				case NodeType.Leaf:
-					children.Add(new LeafNodeWindow(this,
-						rect.center + new Vector2(-rect.width - 50 + children.Count * 50, rect.height - 50)));
+					children.Add(ohBehave.CreateNode(
+						this,
+						rect.center + new Vector2(-rect.width - 50 + children.Count * 50, rect.height - 50),
+						(LeafNode)ScriptableObject.CreateInstance(typeof(LeafNode))));
 					break;
 				case NodeType.Selector:
-					children.Add(new SelectorNodeWindow(this,
-						rect.center + new Vector2(-rect.width - 50 + children.Count * 50, rect.height - 50)));
+					children.Add(ohBehave.CreateNode(
+						this,
+						rect.center + new Vector2(-rect.width - 50 + children.Count * 50, rect.height - 50),
+						(SelectorNode)ScriptableObject.CreateInstance(typeof(SelectorNode))));
+					break;
+				case NodeType.Sequence:
+					children.Add(ohBehave.CreateNode(
+						this,
+						rect.center + new Vector2(-rect.width - 50 + children.Count * 50, rect.height - 50),
+						(SequenceNode)ScriptableObject.CreateInstance(typeof(SequenceNode))));
 					break;
 			}
 		}
@@ -63,6 +73,5 @@ namespace AtomosZ.OhBehave.Editor
 				}
 			}
 		}
-
 	}
 }
