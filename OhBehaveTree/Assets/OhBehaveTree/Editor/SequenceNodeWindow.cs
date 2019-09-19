@@ -6,7 +6,7 @@ namespace AtomosZ.OhBehave.CustomEditors
 	public class SequenceNodeWindow : CompositeNodeWindow
 	{
 		public SequenceNodeWindow(NodeWindow parent, Vector2 pos, SequenceNode nodeObj)
-			: base(parent, new Rect(pos.x, pos.y, 100, 200), nodeObj)
+			: base(parent, new Rect(pos.x, pos.y, 100, 50), nodeObj)
 		{
 			bgColor = Color.yellow;
 		}
@@ -32,6 +32,8 @@ namespace AtomosZ.OhBehave.CustomEditors
 			{
 				PopupWindow.Show(NodeTypeSelectPopup.PopupRect, new NodeTypeSelectPopup(this));
 			}
+
+			GUI.DragWindow();
 		}
 	}
 }

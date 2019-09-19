@@ -5,7 +5,7 @@ namespace AtomosZ.OhBehave.CustomEditors
 	public class LeafNodeWindow : NodeWindow
 	{
 		public LeafNodeWindow(NodeWindow parent, Vector2 pos, LeafNode nodeObj)
-			: base(parent, new Rect(pos.x, pos.y, 100, 250), nodeObj)
+			: base(parent, new Rect(pos.x, pos.y, 100, 50), nodeObj)
 		{
 			bgColor = Color.green;
 		}
@@ -22,7 +22,7 @@ namespace AtomosZ.OhBehave.CustomEditors
 		{
 			GUILayout.Label(new GUIContent("Leaf"));
 
-			//GUI.DragWindow();
+			GUI.DragWindow();
 		}
 	}
 }

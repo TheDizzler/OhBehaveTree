@@ -15,43 +15,56 @@ namespace AtomosZ.OhBehave.CustomEditors
 		{
 			foreach (INode node in nodeObj.children)
 			{
-				children.Add(ohBehave.CreateNewNodeWindow(
-						this,
-						rect.center + new Vector2(-rect.width - 50 + children.Count * 50, rect.height - 50),
-						node));
+				children.Add(ohBehave.CreateNewNodeWindow(this,
+					rect.center + new Vector2(-rect.width - 50 + children.Count * 50, rect.height - 50),
+					node));
 			}
 		}
 
 
 		private void CreateChildNode(NodeType type)
 		{
+			INode newnode = CreateNewNode(type);
+			if (newnode == null)
+				return;
+			var newWindow = ohBehave.CreateNewNodeWindow(this,
+				rect.center + new Vector2(-rect.width - 50 + children.Count * 50, rect.height - 50),
+				newnode);
+			if (newWindow != null)
+				children.Add(newWindow);
+		}
+
+		private INode CreateNewNode(NodeType type)
+		{
+			INode node;
 			switch (type)
 			{
 				case NodeType.Leaf:
-					var newWindow = ohBehave.CreateNewNodeWindow(
-						this,
-						rect.center + new Vector2(-rect.width - 50 + children.Count * 50, rect.height - 50),
-						(LeafNode)ScriptableObject.CreateInstance(typeof(LeafNode)));
-					if (newWindow != null)
-						children.Add(newWindow);
+					node = (LeafNode)ScriptableObject.CreateInstance(typeof(LeafNode));
 					break;
 				case NodeType.Selector:
-					newWindow = ohBehave.CreateNewNodeWindow(
-						this,
-						rect.center + new Vector2(-rect.width - 50 + children.Count * 50, rect.height - 50),
-						(SelectorNode)ScriptableObject.CreateInstance(typeof(SelectorNode)));
-					if (newWindow != null)
-						children.Add(newWindow);
+					node = (SelectorNode)ScriptableObject.CreateInstance(typeof(SelectorNode));
 					break;
 				case NodeType.Sequence:
-					newWindow = ohBehave.CreateNewNodeWindow(
-						this,
-						rect.center + new Vector2(-rect.width - 50 + children.Count * 50, rect.height - 50),
-						(SequenceNode)ScriptableObject.CreateInstance(typeof(SequenceNode)));
-					if (newWindow != null)
-						children.Add(newWindow);
+					node = (SequenceNode)ScriptableObject.CreateInstance(typeof(SequenceNode));
 					break;
+				default:
+					Debug.LogError("Code not creat node of type " + type);
+					return null;
 			}
+
+			var path = EditorUtility.SaveFilePanelInProject(
+				"Create New Node Root", "New" + type, "asset", "Where to save node?");
+			if (path.Length != 0)
+			{
+				AssetDatabase.CreateAsset(node, path);
+				node.parent = parent.nodeObject;
+				((ICompositeNode)parent.nodeObject).children.Add(node);
+				//return NewWindow(parent, pos, node);
+				return node;
+			}
+
+			return null;
 		}
 
 

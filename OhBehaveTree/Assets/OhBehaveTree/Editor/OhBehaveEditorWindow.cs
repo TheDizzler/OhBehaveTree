@@ -28,23 +28,6 @@ namespace AtomosZ.OhBehave.CustomEditors
 
 		internal NodeWindow CreateNewNodeWindow(CompositeNodeWindow parent, Vector2 pos, INode node)
 		{
-			if (AssetDatabase.GetAssetPath(node).Length > 0)
-				return NewWindow(parent, pos, node);
-			var path = EditorUtility.SaveFilePanelInProject(
-						"Create New Node Root", "New" + node.GetNodeType(), "asset", "Where to save node?");
-			if (path.Length != 0)
-			{
-				AssetDatabase.CreateAsset(node, path);
-				node.parent = parent.nodeObject;
-				((ICompositeNode)parent.nodeObject).children.Add(node);
-				return NewWindow(parent, pos, node);
-			}
-
-			return null;
-		}
-
-		private NodeWindow NewWindow(CompositeNodeWindow parent, Vector2 pos, INode node)
-		{
 			switch (node.GetNodeType())
 			{
 				case NodeType.Selector:
