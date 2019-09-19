@@ -10,31 +10,46 @@ namespace AtomosZ.OhBehave.CustomEditors
 		protected List<NodeWindow> children = new List<NodeWindow>();
 
 
-		public CompositeNodeWindow(NodeWindow parent, Rect rct, INode nodeObj)
-			: base(parent, rct, nodeObj) { }
+		public CompositeNodeWindow(NodeWindow parent, Rect rct, ICompositeNode nodeObj)
+			: base(parent, rct, nodeObj)
+		{
+			foreach (INode node in nodeObj.children)
+			{
+				children.Add(ohBehave.CreateNewNodeWindow(
+						this,
+						rect.center + new Vector2(-rect.width - 50 + children.Count * 50, rect.height - 50),
+						node));
+			}
+		}
 
 
-		private void AddChildNode(NodeType type)
+		private void CreateChildNode(NodeType type)
 		{
 			switch (type)
 			{
 				case NodeType.Leaf:
-					children.Add(ohBehave.CreateNode(
+					var newWindow = ohBehave.CreateNewNodeWindow(
 						this,
 						rect.center + new Vector2(-rect.width - 50 + children.Count * 50, rect.height - 50),
-						(LeafNode)ScriptableObject.CreateInstance(typeof(LeafNode))));
+						(LeafNode)ScriptableObject.CreateInstance(typeof(LeafNode)));
+					if (newWindow != null)
+						children.Add(newWindow);
 					break;
 				case NodeType.Selector:
-					children.Add(ohBehave.CreateNode(
+					newWindow = ohBehave.CreateNewNodeWindow(
 						this,
 						rect.center + new Vector2(-rect.width - 50 + children.Count * 50, rect.height - 50),
-						(SelectorNode)ScriptableObject.CreateInstance(typeof(SelectorNode))));
+						(SelectorNode)ScriptableObject.CreateInstance(typeof(SelectorNode)));
+					if (newWindow != null)
+						children.Add(newWindow);
 					break;
 				case NodeType.Sequence:
-					children.Add(ohBehave.CreateNode(
+					newWindow = ohBehave.CreateNewNodeWindow(
 						this,
 						rect.center + new Vector2(-rect.width - 50 + children.Count * 50, rect.height - 50),
-						(SequenceNode)ScriptableObject.CreateInstance(typeof(SequenceNode))));
+						(SequenceNode)ScriptableObject.CreateInstance(typeof(SequenceNode)));
+					if (newWindow != null)
+						children.Add(newWindow);
 					break;
 			}
 		}
@@ -58,17 +73,17 @@ namespace AtomosZ.OhBehave.CustomEditors
 				GUILayout.Label("Choose child node type", EditorStyles.boldLabel);
 				if (GUILayout.Button("Leaf"))
 				{
-					parentWindow.AddChildNode(NodeType.Leaf);
+					parentWindow.CreateChildNode(NodeType.Leaf);
 					EditorWindow.GetWindow<PopupWindow>().Close();
 				}
 				else if (GUILayout.Button("Selector"))
 				{
-					parentWindow.AddChildNode(NodeType.Selector);
+					parentWindow.CreateChildNode(NodeType.Selector);
 					EditorWindow.GetWindow<PopupWindow>().Close();
 				}
 				else if (GUILayout.Button("Sequence"))
 				{
-					parentWindow.AddChildNode(NodeType.Sequence);
+					parentWindow.CreateChildNode(NodeType.Sequence);
 					EditorWindow.GetWindow<PopupWindow>().Close();
 				}
 			}

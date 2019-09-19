@@ -5,7 +5,7 @@ namespace AtomosZ.OhBehave.CustomEditors
 {
 	public class SequenceNodeWindow : CompositeNodeWindow
 	{
-		public SequenceNodeWindow(NodeWindow parent, Vector2 pos, INode nodeObj)
+		public SequenceNodeWindow(NodeWindow parent, Vector2 pos, SequenceNode nodeObj)
 			: base(parent, new Rect(pos.x, pos.y, 100, 200), nodeObj)
 		{
 			bgColor = Color.yellow;

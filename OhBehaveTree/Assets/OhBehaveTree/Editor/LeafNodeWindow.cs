@@ -4,7 +4,7 @@ namespace AtomosZ.OhBehave.CustomEditors
 {
 	public class LeafNodeWindow : NodeWindow
 	{
-		public LeafNodeWindow(NodeWindow parent, Vector2 pos, INode nodeObj)
+		public LeafNodeWindow(NodeWindow parent, Vector2 pos, LeafNode nodeObj)
 			: base(parent, new Rect(pos.x, pos.y, 100, 250), nodeObj)
 		{
 			bgColor = Color.green;

@@ -5,7 +5,7 @@ namespace AtomosZ.OhBehave.CustomEditors
 {
 	public class SelectorNodeWindow : CompositeNodeWindow
 	{
-		public SelectorNodeWindow(NodeWindow parent, Vector2 pos, INode nodeObj)
+		public SelectorNodeWindow(NodeWindow parent, Vector2 pos, SelectorNode nodeObj)
 			: base(parent, new Rect(pos.x, pos.y, 100, 200), nodeObj)
 		{
 			bgColor = new Color(1, .65f, 0);

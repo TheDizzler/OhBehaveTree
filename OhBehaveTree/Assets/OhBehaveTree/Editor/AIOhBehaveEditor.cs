@@ -28,25 +28,36 @@ namespace AtomosZ.OhBehave.CustomEditors
 
 
 			EditorGUILayout.PropertyField(aiBehaviourTree);
-			
 
 			if (aiBehaviourTree.objectReferenceValue == null)
 			{
 				if (GUILayout.Button("Create AI Tree"))
 				{
 					var path = EditorUtility.SaveFilePanelInProject(
-						"Create New Node Root", "NewNode", "asset", "Where to save node?");
+						"Create New Node Root", "NewRootNode", "asset", "Where to save node?");
 					if (path.Length != 0)
 					{
-						//var node = new SelectorNode();
 						var node = CreateInstance<SelectorNode>();
 						aiBehaviourTree.objectReferenceValue = node;
 						AssetDatabase.CreateAsset(node, path);
-						//OhBehaveEditorWindow.ShowWindow();
 						EditorWindow.GetWindow<OhBehaveEditorWindow>().Open(node);
 					}
 				}
 			}
+			else if (GUILayout.Button("Open AIOhBehaveEditor"))
+				{
+				EditorWindow.GetWindow<OhBehaveEditorWindow>().Open((SelectorNode)aiBehaviourTree.objectReferenceValue);
+			}
+			//else if (clickArea.Contains(Event.current.mousePosition) && Event.current.type == EventType.MouseDown)
+			//{
+			//	EditorWindow.GetWindow<OhBehaveEditorWindow>().Open((SelectorNode)aiBehaviourTree.objectReferenceValue);
+			//}
+			//else
+			//{
+			//	var picked = EditorGUIUtility.ObjectContent(aiBehaviourTree.objectReferenceValue, typeof(SelectorNode));
+			//	if (Event.current.type == EventType.MouseDown)
+			//		Debug.Log(Event.current.mousePosition);
+			//}
 
 			serializedObject.ApplyModifiedProperties();
 		}
