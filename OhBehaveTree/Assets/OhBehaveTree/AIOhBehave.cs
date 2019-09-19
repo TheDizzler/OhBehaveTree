@@ -4,7 +4,7 @@ namespace AtomosZ.OhBehave
 {
 	public class AIOhBehave : MonoBehaviour
 	{
-		[SerializeField] private ICompositeNode ai = null;
+		[SerializeField] public ICompositeNode ai = null;
 
 
 	}

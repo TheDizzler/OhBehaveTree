@@ -11,10 +11,6 @@ namespace AtomosZ.OhBehave
 	[Serializable]
 	public class SequenceNode : ICompositeNode
 	{
-		[SerializeField]
-		protected List<INode> nodes;
-		protected NodeState state;
-
 		public SequenceNode()
 		{
 			nodeType = NodeType.Sequence;

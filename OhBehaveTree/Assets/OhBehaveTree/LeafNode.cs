@@ -1,24 +1,13 @@
-﻿using UnityEngine;
-
-namespace AtomosZ.OhBehave
+﻿namespace AtomosZ.OhBehave
 {
-	public class LeafNode : ScriptableObject, INode
+	public class LeafNode : INode
 	{
-		protected NodeType nodeType = NodeType.Leaf;
-		protected NodeState nodeState;
-
-
-		public NodeType GetNodeType()
+		public LeafNode()
 		{
-			return nodeType;
+			nodeType = NodeType.Leaf;
 		}
 
-		public NodeState GetNodeState()
-		{
-			return nodeState;
-		}
-
-		public NodeState Evaluate()
+		public override NodeState Evaluate()
 		{
 			throw new System.NotImplementedException();
 		}

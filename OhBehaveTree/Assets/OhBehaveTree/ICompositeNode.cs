@@ -1,14 +1,10 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 namespace AtomosZ.OhBehave
 {
-	public abstract class ICompositeNode : ScriptableObject, INode
+	public abstract class ICompositeNode : INode
 	{
-		protected NodeType nodeType;
-		protected NodeState nodeState;
-
-		public NodeType GetNodeType() { return nodeType; }
-		public NodeState GetNodeState() { return nodeState; }
-		public abstract NodeState Evaluate();
+		public List<INode> children = new List<INode>();
 	}
 }

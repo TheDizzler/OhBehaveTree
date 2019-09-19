@@ -13,8 +13,7 @@ namespace AtomosZ.OhBehave
 	{
 		[SerializeField]
 		protected bool random = false;
-		[SerializeField]
-		protected List<INode> nodes;
+
 
 		public SelectorNode()
 		{
