@@ -17,13 +17,11 @@ namespace AtomosZ.OhBehave.CustomEditors
 			GUI.backgroundColor = bgColor;
 
 			rect = GUI.Window(windowID, rect, DrawWindow, "Sequence");
-			EditorGUILayout.BeginHorizontal();
 			foreach (NodeWindow node in children)
 			{
 				node.OnGUI();
 				DrawNodeCurve(this, node);
 			}
-			EditorGUILayout.EndHorizontal();
 		}
 
 		protected override void DrawWindow(int id)

@@ -45,7 +45,7 @@ namespace AtomosZ.OhBehave.CustomEditors
 				}
 			}
 			else if (GUILayout.Button("Open AIOhBehaveEditor"))
-				{
+			{
 				EditorWindow.GetWindow<OhBehaveEditorWindow>().Open((SelectorNode)aiBehaviourTree.objectReferenceValue);
 			}
 			//else if (clickArea.Contains(Event.current.mousePosition) && Event.current.type == EventType.MouseDown)

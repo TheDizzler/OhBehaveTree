@@ -10,7 +10,7 @@ namespace AtomosZ.OhBehave.CustomEditors
 		[SerializeField]
 		public CompositeNodeWindow rootNode;
 		private OhBehaveEditorWindow window;
-
+		private Vector2 scrollPos;
 
 		//[MenuItem("Window/OhBehave")]
 		//static public void ShowWindow()
@@ -57,11 +57,34 @@ namespace AtomosZ.OhBehave.CustomEditors
 				Open((SelectorNode)ai.ai);
 			}
 
+			scrollPos = EditorGUILayout.BeginScrollView(scrollPos, false, false);
+
 			BeginWindows();
 			rootNode.OnGUI();
 			EndWindows();
+			//float height = 50;
+			//Rect rect = new Rect(0, 0, position.width, height);
+			//GUILayout.BeginArea(rect);
+			//GUIStyle centeredStyle = GUI.skin.GetStyle("Label");
+			//centeredStyle.alignment = TextAnchor.MiddleCenter;
+			//GUILayout.Box(rootNode.nodeObject.GetNodeType() + "", centeredStyle);
+			//GUILayout.EndArea();
+			//rect.y += height;
+			//int childCount = rootNode.children.Count;
+			//rect.width = position.width / childCount;
+			//int i = 0;
 			//EditorGUILayout.BeginHorizontal();
-			//GUILayout.Box(rootNode.nodeObject.GetNodeType() + "");
+			//foreach (NodeWindow node in rootNode.children)
+			//{
+			//	rect.x += i * rect.width;
+			//	GUILayout.BeginArea(rect);
+			//	GUILayout.Box(node.nodeObject.GetNodeType() + "");
+			//	GUILayout.EndArea();
+			//	++i;
+			//}
+			//EditorGUILayout.EndHorizontal();
+
+			EditorGUILayout.EndScrollView();
 		}
 
 

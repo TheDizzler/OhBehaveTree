@@ -14,8 +14,9 @@ namespace AtomosZ.OhBehave.CustomEditors
 		internal override void OnGUI()
 		{
 			GUI.backgroundColor = bgColor;
-
+			GUILayout.BeginArea(new Rect(rect.x - rect.width/2, rect.y, rect.width * 2, rect.height), new GUIContent("test"));
 			rect = GUI.Window(windowID, rect, DrawWindow, "Selector");
+			GUILayout.EndArea();
 			foreach (NodeWindow node in children)
 			{
 				node.OnGUI();
