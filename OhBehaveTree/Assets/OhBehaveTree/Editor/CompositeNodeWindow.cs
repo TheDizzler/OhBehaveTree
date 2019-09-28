@@ -7,7 +7,7 @@ namespace AtomosZ.OhBehave.CustomEditors
 	public abstract class CompositeNodeWindow : NodeWindow
 	{
 		[SerializeField]
-		protected List<NodeWindow> children = new List<NodeWindow>();
+		public List<NodeWindow> children = new List<NodeWindow>();
 
 
 		public CompositeNodeWindow(NodeWindow parent, Rect rct, ICompositeNode nodeObj)
@@ -16,23 +16,12 @@ namespace AtomosZ.OhBehave.CustomEditors
 			foreach (INode node in nodeObj.children)
 			{
 				children.Add(ohBehave.CreateNewNodeWindow(this,
-					rect.center + new Vector2(-rect.width - 50 + children.Count * 50, rect.height - 50),
+					rect.center + new Vector2(-rect.width - 50 + children.Count * 50, rect.height),
 					node));
 			}
 		}
 
 
-		private void CreateChildNode(NodeType type)
-		{
-			INode newnode = CreateNewNode(type);
-			if (newnode == null)
-				return;
-			var newWindow = ohBehave.CreateNewNodeWindow(this,
-				rect.center + new Vector2(-rect.width - 50 + children.Count * 50, rect.height - 50),
-				newnode);
-			if (newWindow != null)
-				children.Add(newWindow);
-		}
 
 		private INode CreateNewNode(NodeType type)
 		{
@@ -53,20 +42,45 @@ namespace AtomosZ.OhBehave.CustomEditors
 					return null;
 			}
 
+			var dir = Path.GetDirectoryName(AssetDatabase.GetAssetPath(nodeObject));
+			string nodename = "New" + type;
+			int num = AssetDatabase.FindAssets(nodename, new string[] { dir }).Length;
+			if (num != 0)
+			{
+				nodename += " (" + num + ")";
+			}
+
 			var path = EditorUtility.SaveFilePanelInProject(
-				"Create New Node Root", "New" + type, "asset", "Where to save node?");
+				"Create New Node Root", nodename, "asset", "Where to save node?", dir);
+
 			if (path.Length != 0)
 			{
 				AssetDatabase.CreateAsset(node, path);
-				node.parent = parent.nodeObject;
-				((ICompositeNode)parent.nodeObject).children.Add(node);
-				//return NewWindow(parent, pos, node);
+				node.parent = nodeObject;
+				((ICompositeNode)nodeObject).children.Add(node);
+				EditorUtility.SetDirty(node);
+				EditorUtility.SetDirty(nodeObject);
 				return node;
 			}
 
 			return null;
 		}
 
+		/// <summary>
+		/// Creates a user generated child node for this node.
+		/// </summary>
+		/// <param name="type"></param>
+		private void CreateChildNode(NodeType type)
+		{
+			INode newnode = CreateNewNode(type);
+			if (newnode == null)
+				return;
+			var newWindow = ohBehave.CreateNewNodeWindow(this,
+				rect.center + new Vector2(-rect.width - 50 + children.Count * 50, rect.height - 50),
+				newnode);
+			if (newWindow != null)
+				children.Add(newWindow);
+		}
 
 		public class NodeTypeSelectPopup : PopupWindowContent
 		{
