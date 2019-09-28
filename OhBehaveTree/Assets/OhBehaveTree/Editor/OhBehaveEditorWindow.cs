@@ -8,7 +8,8 @@ namespace AtomosZ.OhBehave.CustomEditors
 		public static int NextWindowID = 0;
 
 		[SerializeField]
-		public CompositeNodeWindow rootNode;
+		public OhBehaveStateMachineController stateMachine;
+		private CompositeNodeWindow rootNodeWindow;
 		private OhBehaveEditorWindow window;
 		private Vector2 scrollPos;
 
@@ -19,11 +20,22 @@ namespace AtomosZ.OhBehave.CustomEditors
 		//	window.titleContent = new GUIContent("OhBehave!");
 		//}
 
-		public void Open(SelectorNode node)
+		public void Open(OhBehaveStateMachineController stateMachine)
 		{
 			window = EditorWindow.GetWindow<OhBehaveEditorWindow>();
 			window.titleContent = new GUIContent("OhBehave!");
-			rootNode = new SelectorNodeWindow(null, new Vector2(position.width / 2, 0), node);
+			switch (stateMachine.parentNode.GetNodeType())
+			{
+				case NodeType.Leaf:
+					Debug.LogError("Cannot build a Behaviour tree on top of a leaf!");
+					return;
+				case NodeType.Selector:
+					rootNodeWindow = new SelectorNodeWindow(null, new Vector2(position.width / 2, 0), (SelectorNode)stateMachine.parentNode);
+					break;
+				case NodeType.Sequence:
+					rootNodeWindow = new SequenceNodeWindow(null, new Vector2(position.width / 2, 0), (SequenceNode)stateMachine.parentNode);
+					break;
+			}
 		}
 
 		internal NodeWindow CreateNewNodeWindow(CompositeNodeWindow parent, Vector2 pos, INode node)
@@ -44,7 +56,7 @@ namespace AtomosZ.OhBehave.CustomEditors
 
 		void OnGUI()
 		{
-			if (rootNode == null)
+			if (rootNodeWindow == null)
 			{
 				if (Selection.activeGameObject == null)
 					return;
@@ -54,13 +66,13 @@ namespace AtomosZ.OhBehave.CustomEditors
 					return;
 				}
 
-				Open((SelectorNode)ai.ai);
+				Open(ai.ai);
 			}
 
 			scrollPos = EditorGUILayout.BeginScrollView(scrollPos, false, false);
 
 			BeginWindows();
-			rootNode.OnGUI();
+			rootNodeWindow.OnGUI();
 			EndWindows();
 			//float height = 50;
 			//Rect rect = new Rect(0, 0, position.width, height);
