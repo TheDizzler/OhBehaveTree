@@ -1,4 +1,5 @@
-﻿using UnityEditor;
+﻿using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 namespace AtomosZ.OhBehave.CustomEditors
@@ -9,9 +10,16 @@ namespace AtomosZ.OhBehave.CustomEditors
 
 		[SerializeField]
 		public OhBehaveStateMachineController stateMachine;
+		public List<NodeWindow> parentlessNodes = new List<NodeWindow>();
 		private CompositeNodeWindow rootNodeWindow;
 		private OhBehaveEditorWindow window;
 		private Vector2 scrollPos;
+		private GUIStyle defaultStyle;
+		private GUIStyle selectedStyle;
+		private GUIStyle inPointStyle;
+		private GUIStyle outPointStyle;
+		private ConnectionPoint selectedInPoint;
+		private ConnectionPoint selectedOutPoint;
 
 		//[MenuItem("Window/OhBehave")]
 		//static public void ShowWindow()
@@ -20,20 +28,51 @@ namespace AtomosZ.OhBehave.CustomEditors
 		//	window.titleContent = new GUIContent("OhBehave!");
 		//}
 
-		public void Open(OhBehaveStateMachineController stateMachine)
+		private void OnEnable()
 		{
 			window = EditorWindow.GetWindow<OhBehaveEditorWindow>();
 			window.titleContent = new GUIContent("OhBehave!");
+
+			defaultStyle = new GUIStyle();
+			defaultStyle.normal.background = EditorGUIUtility.Load("builtin skins/darkskin/images/node1.png") as Texture2D;
+			defaultStyle.border = new RectOffset(12, 12, 12, 12);
+
+			selectedStyle = new GUIStyle();
+			selectedStyle.normal.background = EditorGUIUtility.Load("builtin skins/darkskin/images/node1 on.png") as Texture2D;
+			selectedStyle.border = new RectOffset(12, 12, 12, 12);
+
+
+			inPointStyle = new GUIStyle();
+			inPointStyle.normal.background = EditorGUIUtility.Load("builtin skins/darkskin/images/btn left.png") as Texture2D;
+			inPointStyle.active.background = EditorGUIUtility.Load("builtin skins/darkskin/images/btn left on.png") as Texture2D;
+			inPointStyle.border = new RectOffset(4, 4, 12, 12);
+
+			outPointStyle = new GUIStyle();
+			outPointStyle.normal.background = EditorGUIUtility.Load("builtin skins/darkskin/images/btn right.png") as Texture2D;
+			outPointStyle.active.background = EditorGUIUtility.Load("builtin skins/darkskin/images/btn right on.png") as Texture2D;
+			outPointStyle.border = new RectOffset(4, 4, 12, 12);
+
+		}
+
+		public void Open(OhBehaveStateMachineController stateMachine)
+		{
+
 			switch (stateMachine.parentNode.GetNodeType())
 			{
 				case NodeType.Leaf:
 					Debug.LogError("Cannot build a Behaviour tree on top of a leaf!");
 					return;
 				case NodeType.Selector:
-					rootNodeWindow = new SelectorNodeWindow(null, new Vector2(position.width / 2, 0), (SelectorNode)stateMachine.parentNode);
+					rootNodeWindow = new SelectorNodeWindow(
+						null, new Vector2(position.width / 2, 0), (SelectorNode)stateMachine.parentNode,
+						defaultStyle, selectedStyle, inPointStyle, outPointStyle,
+						OnClickInPoint, OnClickOutPoint);
 					break;
 				case NodeType.Sequence:
-					rootNodeWindow = new SequenceNodeWindow(null, new Vector2(position.width / 2, 0), (SequenceNode)stateMachine.parentNode);
+					rootNodeWindow = new SequenceNodeWindow(
+						null, new Vector2(position.width / 2, 0), (SequenceNode)stateMachine.parentNode,
+						defaultStyle, selectedStyle, inPointStyle, outPointStyle,
+						OnClickInPoint, OnClickOutPoint);
 					break;
 			}
 		}
@@ -43,18 +82,70 @@ namespace AtomosZ.OhBehave.CustomEditors
 			switch (node.GetNodeType())
 			{
 				case NodeType.Selector:
-					return new SelectorNodeWindow(parent, pos, (SelectorNode)node);
+					return new SelectorNodeWindow(parent, pos, (SelectorNode)node,
+						defaultStyle, selectedStyle, inPointStyle, outPointStyle,
+						OnClickInPoint, OnClickOutPoint);
 				case NodeType.Sequence:
-					return new SequenceNodeWindow(parent, pos, (SequenceNode)node);
+					return new SequenceNodeWindow(parent, pos, (SequenceNode)node,
+						defaultStyle, selectedStyle, inPointStyle, outPointStyle,
+						OnClickInPoint, OnClickOutPoint);
 				case NodeType.Leaf:
-					return new LeafNodeWindow(parent, pos, (LeafNode)node);
+					return new LeafNodeWindow(parent, pos, (LeafNode)node,
+						defaultStyle, selectedStyle, inPointStyle,
+						OnClickInPoint);
 				default:
 					Debug.LogError("Was a NodeType not implemented?");
 					return null;
 			}
 		}
 
-		void OnGUI()
+		private void OnClickInPoint(ConnectionPoint inPoint)
+		{
+			selectedInPoint = inPoint;
+			if (selectedOutPoint != null)
+			{
+				if (selectedOutPoint.node != selectedInPoint.node)
+				{
+					CreateConnection();
+					ClearConnectionSelection();
+				}
+				else
+				{
+					ClearConnectionSelection();
+				}
+			}
+		}
+
+		private void OnClickOutPoint(ConnectionPoint outPoint)
+		{
+			selectedOutPoint = outPoint;
+
+			if (selectedInPoint != null)
+			{
+				if (selectedOutPoint.node != selectedInPoint.node)
+				{
+					CreateConnection();
+					ClearConnectionSelection();
+				}
+				else
+				{
+					ClearConnectionSelection();
+				}
+			}
+		}
+
+		private void CreateConnection()
+		{
+			((CompositeNodeWindow)selectedOutPoint.node).CreateChildConnection(selectedInPoint.node);
+		}
+
+		private void ClearConnectionSelection()
+		{
+			selectedInPoint = null;
+			selectedOutPoint = null;
+		}
+
+		private void OnGUI()
 		{
 			if (rootNodeWindow == null)
 			{
@@ -67,38 +158,54 @@ namespace AtomosZ.OhBehave.CustomEditors
 				}
 
 				Open(ai.ai);
+				return;
 			}
-
-			scrollPos = EditorGUILayout.BeginScrollView(scrollPos, false, false);
 
 			BeginWindows();
 			rootNodeWindow.OnGUI();
 			EndWindows();
-			//float height = 50;
-			//Rect rect = new Rect(0, 0, position.width, height);
-			//GUILayout.BeginArea(rect);
-			//GUIStyle centeredStyle = GUI.skin.GetStyle("Label");
-			//centeredStyle.alignment = TextAnchor.MiddleCenter;
-			//GUILayout.Box(rootNode.nodeObject.GetNodeType() + "", centeredStyle);
-			//GUILayout.EndArea();
-			//rect.y += height;
-			//int childCount = rootNode.children.Count;
-			//rect.width = position.width / childCount;
-			//int i = 0;
-			//EditorGUILayout.BeginHorizontal();
-			//foreach (NodeWindow node in rootNode.children)
-			//{
-			//	rect.x += i * rect.width;
-			//	GUILayout.BeginArea(rect);
-			//	GUILayout.Box(node.nodeObject.GetNodeType() + "");
-			//	GUILayout.EndArea();
-			//	++i;
-			//}
-			//EditorGUILayout.EndHorizontal();
 
-			EditorGUILayout.EndScrollView();
+			ProcessEvents(Event.current);
+			if (GUI.changed)
+				Repaint();
 		}
 
 
+		private void ProcessEvents(Event e)
+		{
+			if (rootNodeWindow != null)
+			{
+				rootNodeWindow.ProcessEvents(e);
+			}
+
+			switch (e.type)
+			{
+				case EventType.MouseDown:
+					if (e.button == 1)
+					{
+						ProcessContextMenu(e.mousePosition);
+					}
+					break;
+			}
+		}
+
+		private void ProcessContextMenu(Vector2 mousePosition)
+		{
+			GenericMenu genericMenu = new GenericMenu();
+			genericMenu.AddItem(new GUIContent("Add Node"), false, () => OnClickAddNode(mousePosition));
+			genericMenu.ShowAsContext();
+		}
+
+		private void OnClickAddNode(Vector2 mousePos)
+		{
+			if (rootNodeWindow == null)
+			{
+				Debug.Log("No root: cannot create nodes");
+			}
+			else
+			{
+				rootNodeWindow.CreateChildNode(NodeType.Selector);
+			}
+		}
 	}
 }

@@ -1,27 +1,18 @@
-﻿using UnityEditor;
+﻿using System;
+using UnityEditor;
 using UnityEngine;
 
 namespace AtomosZ.OhBehave.CustomEditors
 {
 	public class SequenceNodeWindow : CompositeNodeWindow
 	{
-		public SequenceNodeWindow(NodeWindow parent, Vector2 pos, SequenceNode nodeObj)
-			: base(parent, new Rect(pos.x, pos.y, 100, 50), nodeObj)
+		public SequenceNodeWindow(CompositeNodeWindow parent, Vector2 pos, SequenceNode nodeObj,
+			GUIStyle defaultStyle, GUIStyle selectedStyle, GUIStyle inPointStyle, GUIStyle outPointStyle,
+			Action<ConnectionPoint> OnClickInPoint, Action<ConnectionPoint> OnClickOutPoint)
+				: base(parent, new Rect(pos.x, pos.y, 100, 50), nodeObj,
+				  defaultStyle, selectedStyle, inPointStyle, outPointStyle, OnClickInPoint, OnClickOutPoint)
 		{
 			bgColor = Color.yellow;
-		}
-
-
-		internal override void OnGUI()
-		{
-			GUI.backgroundColor = bgColor;
-
-			rect = GUI.Window(windowID, rect, DrawWindow, "Sequence");
-			foreach (NodeWindow node in children)
-			{
-				node.OnGUI();
-				DrawNodeCurve(this, node);
-			}
 		}
 
 		protected override void DrawWindow(int id)
