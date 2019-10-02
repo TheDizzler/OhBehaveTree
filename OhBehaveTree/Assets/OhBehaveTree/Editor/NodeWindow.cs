@@ -9,11 +9,12 @@ namespace AtomosZ.OhBehave.CustomEditors
 		public INode nodeObject;
 		public Rect rect;
 		public ConnectionPoint inPoint;
+		public NodeStyle nodeStyle;
 
 		protected string nodeName;
 		protected int windowID;
-		protected GUIStyle defaultStyle;
-		protected GUIStyle selectedStyle;
+		//protected GUIStyle defaultStyle;
+		//protected GUIStyle selectedStyle;
 		protected GUIStyle currentStyle;
 		protected Color bgColor;
 		/// <summary>
@@ -26,33 +27,32 @@ namespace AtomosZ.OhBehave.CustomEditors
 		protected bool isSelected;
 
 
-		public NodeWindow(CompositeNodeWindow parent, Rect rct, INode nodeObj,
-			GUIStyle nodeStyle, GUIStyle selected, GUIStyle inPointStyle,
+		public NodeWindow(CompositeNodeWindow parent,
+			INode nodeObj,
+			GUIStyle inPointStyle,
 			Action<ConnectionPoint> OnClickInPoint)
 		{
 			this.parent = parent;
-			rect = rct;
 			nodeObject = nodeObj;
-			defaultStyle = nodeStyle;
-			selectedStyle = selected;
-			currentStyle = defaultStyle;
 			inPoint = new ConnectionPoint(this, ConnectionPointType.In, inPointStyle, OnClickInPoint);
 			if (parent != null)
 				connectionToParent = new Connection(parent.outPoint, inPoint, OnClickRemoveConnection);
 			ohBehave = EditorWindow.GetWindow<OhBehaveEditorWindow>();
 			nodeName = nodeObj.GetNodeType().ToString();
-
-			windowID = ++OhBehaveEditorWindow.NextWindowID;
+			//windowID = ++OhBehaveEditorWindow.NextWindowID;
+			//currentStyle = nodeStyle.defaultStyle;
 		}
 
 
 		internal void OnGUI()
 		{
+			//if (currentStyle == null)
+			//	currentStyle = nodeStyle.defaultStyle;
 			inPoint.Draw();
 			OnGUIExtra();
 			if (connectionToParent != null)
 				connectionToParent.Draw();
-			GUI.backgroundColor = bgColor;
+			//GUI.backgroundColor = bgColor;
 			GUI.Box(rect, nodeName, currentStyle);
 		}
 
@@ -111,5 +111,22 @@ namespace AtomosZ.OhBehave.CustomEditors
 		//}
 	}
 
+	public class NodeStyle
+	{
+		public GUIStyle defaultStyle, selectedStyle;
+		//public Rect rect;
 
+		public NodeStyle(Texture2D normal, Texture2D selected)
+		{
+			defaultStyle = new GUIStyle();
+			defaultStyle.normal.background = normal;
+			defaultStyle.border = new RectOffset(12, 12, 12, 12);
+
+			selectedStyle = new GUIStyle();
+			selectedStyle.normal.background = selected;
+			selectedStyle.border = new RectOffset(12, 12, 12, 12);
+
+			//rect = new Rect(0, 0, defaultStyle.normal.background.width, defaultStyle.normal.background.height);
+		}
+	}
 }

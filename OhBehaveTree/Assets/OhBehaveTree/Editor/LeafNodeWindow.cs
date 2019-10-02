@@ -6,12 +6,22 @@ namespace AtomosZ.OhBehave.CustomEditors
 {
 	public class LeafNodeWindow : NodeWindow
 	{
-		public LeafNodeWindow(CompositeNodeWindow parent, Vector2 pos, LeafNode nodeObj,
-			GUIStyle defaultStyle, GUIStyle selectedStyle, GUIStyle inPointStyle,
+		private static NodeStyle LeafNodeStyle = new NodeStyle(
+			EditorGUIUtility.Load("builtin skins/darkskin/images/node1.png") as Texture2D,
+			EditorGUIUtility.Load("builtin skins/darkskin/images/node1 on.png") as Texture2D);
+
+
+		public LeafNodeWindow(CompositeNodeWindow parent,
+			LeafNode nodeObj,
+			GUIStyle inPointStyle,
 			Action<ConnectionPoint> OnClickInPoint)
-				: base(parent, new Rect(pos.x, pos.y, 100, 50), nodeObj, defaultStyle, selectedStyle, inPointStyle, OnClickInPoint)
+				: base(parent, nodeObj, inPointStyle, OnClickInPoint)
 		{
 			bgColor = Color.green;
+			nodeStyle = LeafNodeStyle;
+			currentStyle = nodeStyle.defaultStyle;
+			rect = new Rect(parent.rect.x, parent.rect.y + 50,
+				currentStyle.normal.background.width * 4, currentStyle.normal.background.height);
 		}
 
 		internal override bool ProcessEvents(Event e)
@@ -26,14 +36,14 @@ namespace AtomosZ.OhBehave.CustomEditors
 							isDragged = true;
 							GUI.changed = true;
 							isSelected = true;
-							currentStyle = selectedStyle;
+							currentStyle = nodeStyle.selectedStyle;
 							Selection.SetActiveObjectWithContext(nodeObject, null);
 						}
 						else
 						{
 							GUI.changed = true;
 							isSelected = false;
-							currentStyle = defaultStyle;
+							currentStyle = nodeStyle.defaultStyle;
 						}
 					}
 					break;

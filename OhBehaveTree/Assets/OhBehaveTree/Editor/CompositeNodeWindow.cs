@@ -12,18 +12,17 @@ namespace AtomosZ.OhBehave.CustomEditors
 		public ConnectionPoint outPoint;
 
 
-		public CompositeNodeWindow(CompositeNodeWindow parent, Rect rct, ICompositeNode nodeObj,
-			GUIStyle defaultStyle, GUIStyle selectedStyle, GUIStyle inPointStyle, GUIStyle outPointStyle,
+		public CompositeNodeWindow(CompositeNodeWindow parent,
+			ICompositeNode nodeObj,
+			GUIStyle inPointStyle, GUIStyle outPointStyle,
 			Action<ConnectionPoint> OnClickInPoint, Action<ConnectionPoint> OnClickOutPoint)
-				: base(parent, rct, nodeObj, defaultStyle, selectedStyle, inPointStyle, OnClickInPoint)
+				: base(parent, nodeObj, inPointStyle, OnClickInPoint)
 		{
 			outPoint = new ConnectionPoint(this, ConnectionPointType.Out, outPointStyle, OnClickOutPoint);
 			foreach (INode node in nodeObj.children)
 			{
 				children.Add(
-					ohBehave.CreateNewNodeWindow(this,
-						rect.center + new Vector2(-rect.width - 50 + children.Count * 50, rect.height),
-						node));
+					ohBehave.CreateNewNodeWindow(this, node));
 
 			}
 		}
@@ -46,14 +45,14 @@ namespace AtomosZ.OhBehave.CustomEditors
 							isDragged = true;
 							GUI.changed = true;
 							isSelected = true;
-							currentStyle = selectedStyle;
+							currentStyle = nodeStyle.selectedStyle;
 							Selection.SetActiveObjectWithContext(nodeObject, null);
 						}
 						else
 						{
 							GUI.changed = true;
 							isSelected = false;
-							currentStyle = defaultStyle;
+							currentStyle = nodeStyle.defaultStyle;
 						}
 					}
 					break;
@@ -118,9 +117,8 @@ namespace AtomosZ.OhBehave.CustomEditors
 			INode newnode = CreateNewNode(type);
 			if (newnode == null)
 				return;
-			var newWindow = ohBehave.CreateNewNodeWindow(this,
-				rect.center + new Vector2(-rect.width - 50 + children.Count * 50, rect.height - 50),
-				newnode);
+			var newWindow = ohBehave.CreateNewNodeWindow(
+				this, newnode);
 			if (newWindow != null)
 				children.Add(newWindow);
 		}

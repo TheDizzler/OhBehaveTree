@@ -11,11 +11,12 @@ namespace AtomosZ.OhBehave.CustomEditors
 		[SerializeField]
 		public OhBehaveStateMachineController stateMachine;
 		public List<NodeWindow> parentlessNodes = new List<NodeWindow>();
+		[SerializeField]
 		private CompositeNodeWindow rootNodeWindow;
 		private OhBehaveEditorWindow window;
 		private Vector2 scrollPos;
-		private GUIStyle defaultStyle;
-		private GUIStyle selectedStyle;
+		//private GUIStyle defaultStyle;
+		//private GUIStyle selectedStyle;
 		private GUIStyle inPointStyle;
 		private GUIStyle outPointStyle;
 		private ConnectionPoint selectedInPoint;
@@ -33,24 +34,15 @@ namespace AtomosZ.OhBehave.CustomEditors
 			window = EditorWindow.GetWindow<OhBehaveEditorWindow>();
 			window.titleContent = new GUIContent("OhBehave!");
 
-			defaultStyle = new GUIStyle();
-			defaultStyle.normal.background = EditorGUIUtility.Load("builtin skins/darkskin/images/node1.png") as Texture2D;
-			defaultStyle.border = new RectOffset(12, 12, 12, 12);
-
-			selectedStyle = new GUIStyle();
-			selectedStyle.normal.background = EditorGUIUtility.Load("builtin skins/darkskin/images/node1 on.png") as Texture2D;
-			selectedStyle.border = new RectOffset(12, 12, 12, 12);
-
-
 			inPointStyle = new GUIStyle();
-			inPointStyle.normal.background = EditorGUIUtility.Load("builtin skins/darkskin/images/btn left.png") as Texture2D;
-			inPointStyle.active.background = EditorGUIUtility.Load("builtin skins/darkskin/images/btn left on.png") as Texture2D;
-			inPointStyle.border = new RectOffset(4, 4, 12, 12);
+			inPointStyle.normal.background = EditorGUIUtility.Load("builtin skins/darkskin/images/radio.png") as Texture2D;
+			inPointStyle.active.background = EditorGUIUtility.Load("builtin skins/darkskin/images/radio on.png") as Texture2D;
+			//inPointStyle.border = new RectOffset(4, 4, 12, 12);
 
 			outPointStyle = new GUIStyle();
-			outPointStyle.normal.background = EditorGUIUtility.Load("builtin skins/darkskin/images/btn right.png") as Texture2D;
-			outPointStyle.active.background = EditorGUIUtility.Load("builtin skins/darkskin/images/btn right on.png") as Texture2D;
-			outPointStyle.border = new RectOffset(4, 4, 12, 12);
+			outPointStyle.normal.background = EditorGUIUtility.Load("builtin skins/darkskin/images/radio.png") as Texture2D;
+			outPointStyle.active.background = EditorGUIUtility.Load("builtin skins/darkskin/images/radio on.png") as Texture2D;
+			//outPointStyle.border = new RectOffset(4, 4, 12, 12);
 
 		}
 
@@ -64,35 +56,35 @@ namespace AtomosZ.OhBehave.CustomEditors
 					return;
 				case NodeType.Selector:
 					rootNodeWindow = new SelectorNodeWindow(
-						null, new Vector2(position.width / 2, 0), (SelectorNode)stateMachine.parentNode,
-						defaultStyle, selectedStyle, inPointStyle, outPointStyle,
+						null, (SelectorNode)stateMachine.parentNode,
+						inPointStyle, outPointStyle,
 						OnClickInPoint, OnClickOutPoint);
 					break;
 				case NodeType.Sequence:
 					rootNodeWindow = new SequenceNodeWindow(
-						null, new Vector2(position.width / 2, 0), (SequenceNode)stateMachine.parentNode,
-						defaultStyle, selectedStyle, inPointStyle, outPointStyle,
+						null, (SequenceNode)stateMachine.parentNode,
+						inPointStyle, outPointStyle,
 						OnClickInPoint, OnClickOutPoint);
 					break;
 			}
 		}
 
-		internal NodeWindow CreateNewNodeWindow(CompositeNodeWindow parent, Vector2 pos, INode node)
+		internal NodeWindow CreateNewNodeWindow(CompositeNodeWindow parent, INode node)
 		{
 			switch (node.GetNodeType())
 			{
+				case NodeType.Leaf:
+					return new LeafNodeWindow(parent, (LeafNode)node,
+						inPointStyle,
+						OnClickInPoint);
 				case NodeType.Selector:
-					return new SelectorNodeWindow(parent, pos, (SelectorNode)node,
-						defaultStyle, selectedStyle, inPointStyle, outPointStyle,
+					return new SelectorNodeWindow(parent, (SelectorNode)node,
+						inPointStyle, outPointStyle,
 						OnClickInPoint, OnClickOutPoint);
 				case NodeType.Sequence:
-					return new SequenceNodeWindow(parent, pos, (SequenceNode)node,
-						defaultStyle, selectedStyle, inPointStyle, outPointStyle,
+					return new SequenceNodeWindow(parent, (SequenceNode)node,
+						inPointStyle, outPointStyle,
 						OnClickInPoint, OnClickOutPoint);
-				case NodeType.Leaf:
-					return new LeafNodeWindow(parent, pos, (LeafNode)node,
-						defaultStyle, selectedStyle, inPointStyle,
-						OnClickInPoint);
 				default:
 					Debug.LogError("Was a NodeType not implemented?");
 					return null;
@@ -161,9 +153,9 @@ namespace AtomosZ.OhBehave.CustomEditors
 				return;
 			}
 
-			BeginWindows();
+			//BeginWindows();
 			rootNodeWindow.OnGUI();
-			EndWindows();
+			//EndWindows();
 
 			ProcessEvents(Event.current);
 			if (GUI.changed)
