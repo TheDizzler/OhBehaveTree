@@ -48,6 +48,21 @@ namespace AtomosZ.OhBehave.CustomEditors
 
 		public void Open(OhBehaveStateMachineController stateMachine)
 		{
+			NodeTreeEditor nodeTree = GetNodeTreeFor(stateMachine);
+			if (nodeTree == null)
+			{
+				string path = "Assets/OhBehaveTree/Editor/EditorNodes";
+				Debug.Log(path);
+				if (!AssetDatabase.IsValidFolder(path))
+				{
+					string guid = AssetDatabase.CreateFolder("Assets/OhBehaveTree/Editor", "EditorNodes");
+					path = AssetDatabase.GUIDToAssetPath(guid);
+				}
+
+				nodeTree = ScriptableObject.CreateInstance<NodeTreeEditor>();
+				AssetDatabase.CreateAsset(nodeTree, path + "/NTE_" + nodeTree.GetInstanceID() + ".asset");
+				nodeTree.aiController = stateMachine;
+			}
 
 			switch (stateMachine.parentNode.GetNodeType())
 			{
@@ -67,6 +82,20 @@ namespace AtomosZ.OhBehave.CustomEditors
 						OnClickInPoint, OnClickOutPoint);
 					break;
 			}
+		}
+
+		private NodeTreeEditor GetNodeTreeFor(OhBehaveStateMachineController stateMachine)
+		{
+			string[] guids = AssetDatabase.FindAssets("NTE_", new string[] { "Assets/OhBehaveTree/Editor" });
+			for (int i = 0; i < guids.Length; i++)
+			{
+				string path = AssetDatabase.GUIDToAssetPath(guids[i]);
+				NodeTreeEditor temp = AssetDatabase.LoadAssetAtPath(path, typeof(NodeTreeEditor)) as NodeTreeEditor;
+				if (temp != null && temp.aiController == stateMachine)
+					return temp;
+			}
+
+			return null;
 		}
 
 		internal NodeWindow CreateNewNodeWindow(CompositeNodeWindow parent, INode node)
