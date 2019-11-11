@@ -17,7 +17,7 @@ namespace AtomosZ.OhBehave.CustomEditors
 			Action<ConnectionPoint> OnClickInPoint)
 				: base(parent, nodeObj, inPointStyle, OnClickInPoint)
 		{
-			bgColor = Color.green;
+			bgColor = LeafColor;
 			nodeStyle = LeafNodeStyle;
 			currentStyle = nodeStyle.defaultStyle;
 			rect = new Rect(parent.rect.x, parent.rect.y + 50,

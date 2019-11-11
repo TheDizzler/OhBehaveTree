@@ -18,7 +18,7 @@ namespace AtomosZ.OhBehave.CustomEditors
 					inPointStyle, outPointStyle,
 					OnClickInPoint, OnClickOutPoint)
 		{
-			bgColor = Color.yellow;
+			bgColor = SequenceColor;
 			nodeStyle = SequenceNodeStyle;
 			currentStyle = nodeStyle.defaultStyle;
 			if (parent == null)

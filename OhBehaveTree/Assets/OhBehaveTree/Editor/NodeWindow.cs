@@ -6,6 +6,11 @@ namespace AtomosZ.OhBehave.CustomEditors
 {
 	public abstract class NodeWindow
 	{
+		static protected Color RootColor = new Color(1, .65f, 1, .75f);
+		static protected Color SelectorColor = new Color(1, .65f, 0, .75f);
+		static protected Color LeafColor = new Color(0, 1, 0, .75f);
+		static protected Color SequenceColor = new Color(1, .92f, .016f, .75f);
+
 		public INode nodeObject;
 		public Rect rect;
 		public ConnectionPoint inPoint;
@@ -83,7 +88,7 @@ namespace AtomosZ.OhBehave.CustomEditors
 			parent.RemoveChildConnection(this);
 			if (connection != connectionToParent)
 			{
-				throw new Exception("Huh? Connection and connectionToParen are not equal?");
+				throw new Exception("Huh? Connection and connectionToParent are not equal?");
 			}
 
 			connectionToParent = null;

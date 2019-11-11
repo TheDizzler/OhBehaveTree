@@ -23,7 +23,6 @@ namespace AtomosZ.OhBehave.CustomEditors
 			{
 				children.Add(
 					ohBehave.CreateNewNodeWindow(this, node));
-
 			}
 		}
 
@@ -139,7 +138,7 @@ namespace AtomosZ.OhBehave.CustomEditors
 					node = (SequenceNode)ScriptableObject.CreateInstance(typeof(SequenceNode));
 					break;
 				default:
-					Debug.LogError("Code not creat node of type " + type);
+					Debug.LogError("Could not create node of type " + type);
 					return null;
 			}
 

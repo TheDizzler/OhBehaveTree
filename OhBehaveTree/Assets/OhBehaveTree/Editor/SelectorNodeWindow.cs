@@ -18,15 +18,20 @@ namespace AtomosZ.OhBehave.CustomEditors
 					inPointStyle, outPointStyle,
 					OnClickInPoint, OnClickOutPoint)
 		{
-			bgColor = new Color(1, .65f, 0);
 			nodeStyle = SelectorNodeStyle;
 			currentStyle = nodeStyle.defaultStyle;
 			if (parent == null)
+			{
+				bgColor = RootColor;
 				rect = new Rect(EditorWindow.GetWindow<OhBehaveEditorWindow>().position.width / 2, 0,
 					currentStyle.normal.background.width * 4, currentStyle.normal.background.height);
+			}
 			else
+			{
+				bgColor = SelectorColor;
 				rect = new Rect(parent.rect.x, parent.rect.y + 50,
 					currentStyle.normal.background.width * 4, currentStyle.normal.background.height);
+			}
 		}
 
 
