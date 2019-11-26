@@ -19,12 +19,13 @@ namespace AtomosZ.OhBehave.CustomEditors
 
 		public void Draw()
 		{
-			Handles.DrawBezier(
-				parentPoint.rect.center, childPoint.rect.center,
-				parentPoint.rect.center + Vector2.left * 50f,
-				childPoint.rect.center - Vector2.left * 50f,
-				Color.white, null, 2f
-			);
+			//Handles.DrawBezier(
+			//	parentPoint.rect.center, childPoint.rect.center,
+			//	parentPoint.rect.center + Vector2.left * 50f,
+			//	childPoint.rect.center - Vector2.left * 50f,
+			//	Color.white, null, 2f
+			//);
+			Handles.DrawLine(parentPoint.rect.center, childPoint.rect.center);
 
 			if (Handles.Button(
 					(parentPoint.rect.center + childPoint.rect.center) * 0.5f, 

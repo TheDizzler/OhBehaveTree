@@ -9,8 +9,10 @@ namespace AtomosZ.OhBehave
 	public abstract class INode : ScriptableObject
 	{
 		public INode parent;
+
 		protected NodeType nodeType;
 		protected NodeState nodeState;
+		
 
 		public NodeType GetNodeType() { return nodeType; }
 		public NodeState GetNodeState() { return nodeState; }

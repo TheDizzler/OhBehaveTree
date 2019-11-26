@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEditor;
 using UnityEngine;
 
 namespace AtomosZ.OhBehave.CustomEditors
@@ -14,12 +15,15 @@ namespace AtomosZ.OhBehave.CustomEditors
 		public Action<ConnectionPoint> OnClickConnectionPoint;
 
 
-		public ConnectionPoint(NodeWindow node, ConnectionPointType type,
-			GUIStyle style, Action<ConnectionPoint> OnClickConnectionPoint)
+		public ConnectionPoint(NodeWindow node, ConnectionPointType type, Action<ConnectionPoint> OnClickConnectionPoint)
 		{
+			var ohBehave = EditorWindow.GetWindow<OhBehaveEditorWindow>();
 			this.node = node;
 			this.type = type;
-			this.style = style;
+			if (type == ConnectionPointType.In)
+				style = ohBehave.inPointStyle;
+			else
+				style = ohBehave.outPointStyle;
 			this.OnClickConnectionPoint = OnClickConnectionPoint;
 
 			rect = new Rect(0, 0, style.normal.background.width, style.normal.background.height);
