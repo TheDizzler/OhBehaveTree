@@ -1,21 +1,29 @@
 ﻿using System;
-using UnityEngine;
 
 namespace AtomosZ.OhBehave
 {
-	public enum NodeType { Selector, Sequence, Leaf }
+	/// <summary>
+	/// Basically just for reference.
+	/// This is probably not needed and just increases amount of bookkeeping required.
+	/// </summary>
+	public enum NodeType { Selector, Sequence, Inverter, Leaf }
 	public enum NodeState { Failure, Success, Running }
 
-	public abstract class INode : ScriptableObject
+	[Serializable]
+	public abstract class INode
 	{
-		public INode parent;
+		public IParentNode parent;
 
-		protected NodeType nodeType;
-		protected NodeState nodeState;
-		
+		public NodeType nodeType { get; protected set; }
+		public NodeState nodeState { get; protected set; }
 
-		public NodeType GetNodeType() { return nodeType; }
-		public NodeState GetNodeState() { return nodeState; }
+		/// <summary>
+		/// The way currently implemented, only one leaf node can be evaluated per Update,
+		/// insteading immediately falling through to the next leaf if that one is invalid.
+		/// </summary>
+		/// <returns></returns>
+		public abstract INode Init();
 		public abstract NodeState Evaluate();
+		public abstract INode Exit();
 	}
 }

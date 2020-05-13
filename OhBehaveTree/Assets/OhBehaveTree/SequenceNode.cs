@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace AtomosZ.OhBehave
 {
@@ -8,17 +6,54 @@ namespace AtomosZ.OhBehave
 	/// A Composite Node that evaluates all child nodes and returns Success
 	/// if ALL child nodes return Success.
 	/// </summary>
-	[Serializable]
 	public class SequenceNode : ICompositeNode
 	{
+		private int currentChildIndex;
+
 		public SequenceNode()
 		{
 			nodeType = NodeType.Sequence;
 		}
 
-		public override NodeState Evaluate()
+
+		public override INode Init()
 		{
-			throw new NotImplementedException();
+			Debug.Log("SequenceNode init");
+			nodeState = NodeState.Running;
+			currentChildIndex = 0;
+			return children[currentChildIndex].Init();
+		}
+
+
+		//public override NodeState Evaluate()
+		//{
+		//	return nodeState;
+		//}
+
+		/// <summary>
+		/// If any child returns a failure, then this node returns a failure.
+		/// </summary>
+		/// <returns></returns>
+		public override INode ChildFinished(NodeState childNodeState)
+		{
+			if (childNodeState == NodeState.Failure)
+			{
+				nodeState = NodeState.Failure;
+				return this; // could just call Exit() here? while loop vs tail-end recursion?
+			}
+
+			if (++currentChildIndex >= children.Count)
+			{
+				nodeState = NodeState.Failure;
+				return this; // could just call Exit() here? while loop vs tail-end recursion?
+			}
+
+			return children[currentChildIndex].Init();
+		}
+
+		public override INode Exit()
+		{
+			return parent.ChildFinished(nodeState);
 		}
 	}
 }

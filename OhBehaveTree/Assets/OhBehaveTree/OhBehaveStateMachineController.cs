@@ -5,15 +5,20 @@ namespace AtomosZ.OhBehave
 {
 	public class OhBehaveStateMachineController : ScriptableObject
 	{
-		public ICompositeNode parentNode;
+		public ICompositeNode rootNode;
 
 
 		public void Initialize(string path)
 		{
 			AssetDatabase.CreateAsset(this, path);
 			// add root node to statemachine
-			parentNode = CreateInstance<SelectorNode>();
-			AssetDatabase.AddObjectToAsset(parentNode, path); 
+			//rootNode = CreateInstance<SelectorNode>();
+			//AssetDatabase.AddObjectToAsset(rootNode, path);
+		}
+
+		public void Evaluate()
+		{
+			rootNode.Evaluate();
 		}
 	}
 }

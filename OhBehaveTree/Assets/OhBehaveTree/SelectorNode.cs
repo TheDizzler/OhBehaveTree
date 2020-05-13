@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace AtomosZ.OhBehave
 {
@@ -8,11 +6,11 @@ namespace AtomosZ.OhBehave
 	/// A Composite Node that returns Success if any of it's children return Success.
 	/// Evaluates all Nodes in order (or random, if selected) and returns on first child Success.
 	/// </summary>
-	[CreateAssetMenu(fileName = "NewNode", menuName = "Nodes/Selector")]
 	public class SelectorNode : ICompositeNode
 	{
 		[SerializeField]
 		protected bool random = false;
+		private int currentChildIndex;
 
 
 		public SelectorNode()
@@ -20,9 +18,52 @@ namespace AtomosZ.OhBehave
 			nodeType = NodeType.Selector;
 		}
 
-		public override NodeState Evaluate()
+
+		public override INode Init()
 		{
-			throw new NotImplementedException();
+			Debug.Log("SelectorNode init");
+			nodeState = NodeState.Running;
+			currentChildIndex = 0;
+			INode next = children[currentChildIndex].Init();
+			if (next != null)
+				return next;
+			return null;
+		}
+
+
+		//public override NodeState Evaluate()
+		//{
+		//	return nodeState;
+		//}
+
+		/// <summary>
+		/// If any child reports a success, then this node returns a success.
+		/// Otherwise, returns failure.
+		/// TODO: implement random.
+		/// </summary>
+		/// <returns></returns>
+		public override INode ChildFinished(NodeState childNodeState)
+		{
+			if (childNodeState == NodeState.Success)
+			{
+				nodeState = NodeState.Success;
+				return this; // could just call Exit() here? while loop vs tail-end recursion?
+			}
+
+			// should ONLY be NodeState.Failure at this point or we have some bad implementation problems
+			if (++currentChildIndex >= children.Count)
+			{
+				nodeState = NodeState.Failure;
+				return this; // could just call Exit() here? while loop vs tail-end recursion?
+			}
+
+			return children[currentChildIndex].Init();
+		}
+
+
+		public override INode Exit()
+		{
+			return parent.ChildFinished(nodeState);
 		}
 	}
 }
