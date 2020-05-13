@@ -2,13 +2,13 @@
 
 namespace AtomosZ.OhBehave
 {
-	public class BehaviorStateMachine
+	public class BehaviorStateMachine : MonoBehaviour
 	{
-		private ICompositeNode root;
+		public ICompositeNode root;
 		private INode currentNode;
 
 
-		public BehaviorStateMachine(ICompositeNode rootNode)
+		public void SetRoot(ICompositeNode rootNode)
 		{
 			root = rootNode;
 			currentNode = root.Init();
@@ -29,7 +29,7 @@ namespace AtomosZ.OhBehave
 						throw new System.Exception("Behavior tree stuck in loop - cannot find valid node to run");
 					if (nextNode == root)
 					{
-						Debug.Log("No nodes can run?");
+						Debug.Log("Behaviour start from beginning");
 						nextNode = nextNode.Init();
 						break;
 					}

@@ -9,13 +9,12 @@ namespace AtomosZ.OhBehave
 	public enum NodeType { Selector, Sequence, Inverter, Leaf }
 	public enum NodeState { Failure, Success, Running }
 
-	[Serializable]
 	public abstract class INode
 	{
 		public IParentNode parent;
 
 		public NodeType nodeType { get; protected set; }
-		public NodeState nodeState { get; protected set; }
+		public NodeState nodeState;
 
 		/// <summary>
 		/// The way currently implemented, only one leaf node can be evaluated per Update,

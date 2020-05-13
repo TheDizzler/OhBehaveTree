@@ -8,8 +8,7 @@ namespace AtomosZ.OhBehave
 	/// </summary>
 	public class SelectorNode : ICompositeNode
 	{
-		[SerializeField]
-		protected bool random = false;
+		public bool random = false;
 		private int currentChildIndex;
 
 
