@@ -1,10 +1,10 @@
-﻿using System;
+﻿using UnityEngine;
 
 namespace AtomosZ.OhBehave
 {
 	/// <summary>
-	/// Basically just for reference.
-	/// This is probably not needed and just increases amount of bookkeeping required.
+	/// Used for the Editor.
+	/// Otherwise this is probably not needed and just increases amount of bookkeeping required.
 	/// </summary>
 	public enum NodeType { Selector, Sequence, Inverter, Leaf }
 	public enum NodeState { Failure, Success, Running }
@@ -12,7 +12,13 @@ namespace AtomosZ.OhBehave
 	public abstract class INode
 	{
 		public IParentNode parent;
-
+		/// <summary>
+		/// A descriptive name that represents what this node hopes to accomplish.
+		/// </summary>
+		public string name;
+		/// <summary>
+		/// Used for the editor.
+		/// </summary>
 		public NodeType nodeType { get; protected set; }
 		public NodeState nodeState;
 

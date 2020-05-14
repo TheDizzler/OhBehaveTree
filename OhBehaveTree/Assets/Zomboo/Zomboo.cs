@@ -6,38 +6,38 @@ namespace AtomosZ.Zomboo
 	public class Zomboo : MonoBehaviour
 	{
 
-		public BehaviorStateMachine bsm;
+		public OhBehaveAI bsm;
 
 		void Start()
 		{
-			SequenceNode rootNode = new SequenceNode();
-			LeafNode countNode = new LeafNode();
-			countNode.action.AddListener(MoveRight);
-			countNode.initialize.AddListener(MoveRightStart);
-			rootNode.AddNode(countNode);
+			//SequenceNode rootNode = new SequenceNode();
+			//LeafNode countNode = new LeafNode();
+			//countNode.action.AddListener(MoveRight);
+			//countNode.initialize.AddListener(MoveRightStart);
+			//rootNode.AddNode(countNode);
 
-			SelectorNode selectorNode = new SelectorNode();
-			rootNode.AddNode(selectorNode);
+			//SelectorNode selectorNode = new SelectorNode();
+			//rootNode.AddNode(selectorNode);
 
-			LeafNode countDownNode = new LeafNode();
-			countDownNode.action.AddListener(MoveLeft);
-			countDownNode.initialize.AddListener(MoveLeftStart);
-			rootNode.AddNode(countDownNode);
-
-
-
-			LeafNode timerNode = new LeafNode();
-			timerNode.action.AddListener(TimerUp);
-			timerNode.initialize.AddListener(TimerUpStart);
-			selectorNode.AddNode(timerNode);
-
-			LeafNode timerDownNode = new LeafNode();
-			timerDownNode.action.AddListener(TimerDown);
-			timerDownNode.initialize.AddListener(TimerDownStart);
-			selectorNode.AddNode(timerDownNode);
+			//LeafNode countDownNode = new LeafNode();
+			//countDownNode.action.AddListener(MoveLeft);
+			//countDownNode.initialize.AddListener(MoveLeftStart);
+			//rootNode.AddNode(countDownNode);
 
 
-			bsm.SetRoot(rootNode);
+
+			//LeafNode timerNode = new LeafNode();
+			//timerNode.action.AddListener(TimerUp);
+			//timerNode.initialize.AddListener(TimerUpStart);
+			//selectorNode.AddNode(timerNode);
+
+			//LeafNode timerDownNode = new LeafNode();
+			//timerDownNode.action.AddListener(TimerDown);
+			//timerDownNode.initialize.AddListener(TimerDownStart);
+			//selectorNode.AddNode(timerDownNode);
+
+
+			//bsm.SetRoot(rootNode);
 		}
 
 		void Update()

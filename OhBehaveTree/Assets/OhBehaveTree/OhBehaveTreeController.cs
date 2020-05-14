@@ -3,14 +3,18 @@ using UnityEngine;
 
 namespace AtomosZ.OhBehave
 {
-	public class OhBehaveStateMachineController : ScriptableObject
+	public class OhBehaveTreeController : ScriptableObject
 	{
+		public string behaviorName;
+		public string description;
 		public ICompositeNode rootNode;
 
 
 		public void Initialize(string path)
 		{
 			AssetDatabase.CreateAsset(this, path);
+			rootNode = new SequenceNode();
+
 			// add root node to statemachine
 			//rootNode = CreateInstance<SelectorNode>();
 			//AssetDatabase.AddObjectToAsset(rootNode, path);

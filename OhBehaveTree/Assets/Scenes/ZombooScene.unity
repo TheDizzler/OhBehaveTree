@@ -275,7 +275,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 519420028}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -10}
+  m_LocalPosition: {x: -1.2, y: 0, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -287,6 +287,18 @@ GameObject:
     type: 3}
   m_PrefabInstance: {fileID: 542418725231724586}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &568857055 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 220404844626554023, guid: f29b78fecf27e894fbf80a21cdb566dd,
+    type: 3}
+  m_PrefabInstance: {fileID: 542418725231724586}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 568857052}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 82ad785b20e46c94293601b2a0d1e137, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &941924003
 GameObject:
   m_ObjectHideFlags: 0
@@ -673,6 +685,12 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 220404844626554023, guid: f29b78fecf27e894fbf80a21cdb566dd,
+        type: 3}
+      propertyPath: ohBehaveAI
+      value: 
+      objectReference: {fileID: 11400000, guid: 8d77701190c9fb440a4ff09433572516,
+        type: 2}
     - target: {fileID: 542418724697479626, guid: f29b78fecf27e894fbf80a21cdb566dd,
         type: 3}
       propertyPath: m_Controller
@@ -758,5 +776,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Zomboo
       objectReference: {fileID: 0}
+    - target: {fileID: 2754231941804248492, guid: f29b78fecf27e894fbf80a21cdb566dd,
+        type: 3}
+      propertyPath: bsm
+      value: 
+      objectReference: {fileID: 568857055}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f29b78fecf27e894fbf80a21cdb566dd, type: 3}

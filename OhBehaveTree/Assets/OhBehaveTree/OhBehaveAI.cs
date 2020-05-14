@@ -2,8 +2,10 @@
 
 namespace AtomosZ.OhBehave
 {
-	public class BehaviorStateMachine : MonoBehaviour
+	public class OhBehaveAI : MonoBehaviour
 	{
+		public OhBehaveTreeController ohBehaveAI;
+
 		public ICompositeNode root;
 		private INode currentNode;
 
