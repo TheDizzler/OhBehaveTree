@@ -9,6 +9,8 @@ namespace AtomosZ.OhBehave
 		public string description;
 		public ICompositeNode rootNode;
 
+		public GameObject functionSource;
+
 
 		public void Initialize(string path)
 		{

@@ -1,0 +1,212 @@
+{
+    "nodes": [
+        {
+            "nodeType": 1,
+            "index": 0,
+            "parentIndex": -69,
+            "displayName": "Root",
+            "description": "",
+            "startEvent": {
+                "m_PersistentCalls": {
+                    "m_Calls": []
+                }
+            },
+            "actionEvent": {
+                "m_PersistentCalls": {
+                    "m_Calls": []
+                }
+            },
+            "windowRect": {
+                "serializedVersion": "2",
+                "x": 337.0,
+                "y": 15.0,
+                "width": 250.0,
+                "height": 234.0
+            },
+            "children": [
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+                11
+            ]
+        },
+        {
+            "nodeType": 1,
+            "index": 5,
+            "parentIndex": 0,
+            "displayName": "Sequence 1111",
+            "description": "Sequence type node. Add description of desired behaviour",
+            "startEvent": {
+                "m_PersistentCalls": {
+                    "m_Calls": []
+                }
+            },
+            "actionEvent": {
+                "m_PersistentCalls": {
+                    "m_Calls": []
+                }
+            },
+            "windowRect": {
+                "serializedVersion": "2",
+                "x": 46.0,
+                "y": 193.0,
+                "width": 250.0,
+                "height": 150.0
+            },
+            "children": []
+        },
+        {
+            "nodeType": 3,
+            "index": 6,
+            "parentIndex": 0,
+            "displayName": "Leaf123",
+            "description": "Leaf type node. Add description of desired behaviour",
+            "startEvent": {
+                "m_PersistentCalls": {
+                    "m_Calls": []
+                }
+            },
+            "actionEvent": {
+                "m_PersistentCalls": {
+                    "m_Calls": []
+                }
+            },
+            "windowRect": {
+                "serializedVersion": "2",
+                "x": 716.0,
+                "y": 353.0,
+                "width": 250.0,
+                "height": 75.0
+            },
+            "children": []
+        },
+        {
+            "nodeType": 1,
+            "index": 7,
+            "parentIndex": 0,
+            "displayName": "Sequence rrrrr",
+            "description": "Sequence type node. Add description of desired behaviour",
+            "startEvent": {
+                "m_PersistentCalls": {
+                    "m_Calls": []
+                }
+            },
+            "actionEvent": {
+                "m_PersistentCalls": {
+                    "m_Calls": []
+                }
+            },
+            "windowRect": {
+                "serializedVersion": "2",
+                "x": 36.0,
+                "y": 374.0,
+                "width": 250.0,
+                "height": 100.0
+            },
+            "children": []
+        },
+        {
+            "nodeType": 3,
+            "index": 8,
+            "parentIndex": 0,
+            "displayName": "Leafy ee",
+            "description": "Leaf type node. Add description of desired behaviour",
+            "startEvent": {
+                "m_PersistentCalls": {
+                    "m_Calls": []
+                }
+            },
+            "actionEvent": {
+                "m_PersistentCalls": {
+                    "m_Calls": []
+                }
+            },
+            "windowRect": {
+                "serializedVersion": "2",
+                "x": 545.0,
+                "y": 437.0,
+                "width": 250.0,
+                "height": 75.0
+            },
+            "children": []
+        },
+        {
+            "nodeType": 1,
+            "index": 9,
+            "parentIndex": 0,
+            "displayName": "Sequencey Sequ",
+            "description": "Sequence type node. Add description of desired behaviour",
+            "startEvent": {
+                "m_PersistentCalls": {
+                    "m_Calls": []
+                }
+            },
+            "actionEvent": {
+                "m_PersistentCalls": {
+                    "m_Calls": []
+                }
+            },
+            "windowRect": {
+                "serializedVersion": "2",
+                "x": 670.0,
+                "y": 212.0,
+                "width": 250.0,
+                "height": 100.0
+            },
+            "children": []
+        },
+        {
+            "nodeType": 1,
+            "index": 10,
+            "parentIndex": 0,
+            "displayName": "Sequence a",
+            "description": "Sequence type node. Add description of desired behaviour",
+            "startEvent": {
+                "m_PersistentCalls": {
+                    "m_Calls": []
+                }
+            },
+            "actionEvent": {
+                "m_PersistentCalls": {
+                    "m_Calls": []
+                }
+            },
+            "windowRect": {
+                "serializedVersion": "2",
+                "x": 299.0,
+                "y": 388.0,
+                "width": 250.0,
+                "height": 100.0
+            },
+            "children": []
+        },
+        {
+            "nodeType": 3,
+            "index": 11,
+            "parentIndex": 0,
+            "displayName": "Leafy leaf",
+            "description": "Leaf type node. Add description of desired behaviour",
+            "startEvent": {
+                "m_PersistentCalls": {
+                    "m_Calls": []
+                }
+            },
+            "actionEvent": {
+                "m_PersistentCalls": {
+                    "m_Calls": []
+                }
+            },
+            "windowRect": {
+                "serializedVersion": "2",
+                "x": 314.0,
+                "y": 295.0,
+                "width": 250.0,
+                "height": 75.0
+            },
+            "children": []
+        }
+    ]
+}

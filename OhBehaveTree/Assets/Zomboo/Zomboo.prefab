@@ -46,7 +46,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 56bc0740a25ceab46a5ba1c5383496cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  bsm: {fileID: 0}
+  bsm: {fileID: 220404844626554023}
 --- !u!114 &220404844626554023
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -59,8 +59,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 82ad785b20e46c94293601b2a0d1e137, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  root:
-    nodeState: 0
+  ohBehaveAI: {fileID: 11400000, guid: 8d77701190c9fb440a4ff09433572516, type: 2}
+  functionSource: {fileID: 2754231941804248492}
 --- !u!212 &542418724697479671
 SpriteRenderer:
   m_ObjectHideFlags: 0

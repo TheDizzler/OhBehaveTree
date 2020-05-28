@@ -10,7 +10,7 @@
 			selectedInPoint = inPoint;
 			if (selectedOutPoint != null)
 			{
-				if (selectedOutPoint.node != selectedInPoint.node)
+				if (selectedOutPoint.nodeWindow != selectedInPoint.nodeWindow)
 				{
 					CreateConnection();
 					ClearConnectionSelection();
@@ -28,7 +28,7 @@
 
 			if (selectedInPoint != null)
 			{
-				if (selectedOutPoint.node != selectedInPoint.node)
+				if (selectedOutPoint.nodeWindow != selectedInPoint.nodeWindow)
 				{
 					CreateConnection();
 					ClearConnectionSelection();
@@ -42,7 +42,7 @@
 
 		private static void CreateConnection()
 		{
-			((CompositeNodeWindow)selectedOutPoint.node).CreateChildConnection(selectedInPoint.node);
+			((CompositeNodeWindow)selectedOutPoint.nodeWindow).CreateChildConnection(selectedInPoint.nodeWindow);
 		}
 
 		private static void ClearConnectionSelection()

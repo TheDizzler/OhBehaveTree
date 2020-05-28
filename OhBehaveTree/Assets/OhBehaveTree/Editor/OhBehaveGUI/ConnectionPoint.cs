@@ -10,7 +10,7 @@ namespace AtomosZ.OhBehave.EditorTools
 	{
 		public Rect rect;
 		public ConnectionPointType type;
-		public NodeWindow node;
+		public NodeWindow nodeWindow;
 		public GUIStyle style;
 		public Action<ConnectionPoint> OnClickConnectionPoint;
 
@@ -18,29 +18,31 @@ namespace AtomosZ.OhBehave.EditorTools
 		public ConnectionPoint(NodeWindow node, ConnectionPointType type, Action<ConnectionPoint> OnClickConnectionPoint)
 		{
 			var ohBehave = EditorWindow.GetWindow<OhBehaveEditorWindow>();
-			this.node = node;
+			this.nodeWindow = node;
 			this.type = type;
 			if (type == ConnectionPointType.In)
-				style = OhBehaveEditorWindow.inPointStyle;
+				style = OhBehaveEditorWindow.InPointStyle;
 			else
-				style = OhBehaveEditorWindow.outPointStyle;
+				style = OhBehaveEditorWindow.OutPointStyle;
 			this.OnClickConnectionPoint = OnClickConnectionPoint;
+
 
 			rect = new Rect(0, 0, style.normal.background.width, style.normal.background.height);
 		}
 
 		public void Draw()
 		{
-			rect.x = node.rect.x + node.rect.width * .5f - rect.width * .5f;
+			Rect windowRect = nodeWindow.GetRect();
+			rect.x = windowRect.x + windowRect.width * .5f - rect.width * .5f;
 
 			switch (type)
 			{
 				case ConnectionPointType.In:
-					rect.y = node.rect.y;
+					rect.y = windowRect.y - rect.height / 2;
 					break;
 
 				case ConnectionPointType.Out:
-					rect.y = node.rect.y - rect.height + node.rect.height;
+					rect.y = windowRect.y - rect.height / 2 + windowRect.height;
 					break;
 			}
 

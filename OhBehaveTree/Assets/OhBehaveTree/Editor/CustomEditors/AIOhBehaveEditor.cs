@@ -37,7 +37,6 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 			EditorGUILayout.ObjectField("Script", target, typeof(OhBehaveAI), false);
 			GUI.enabled = true;
 
-
 			EditorGUILayout.PropertyField(aiBehaviourTree);
 
 			if (aiBehaviourTree.objectReferenceValue == null)
@@ -73,9 +72,9 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 
 						var machineBlueprint = CreateInstance<OhBehaveTreeBlueprint>();
 						machineBlueprint.Initialize(path);
-						
+
 						aiBehaviourTree.objectReferenceValue = machineBlueprint.ohBehaveTree;
-						
+
 						EditorWindow.GetWindow<OhBehaveEditorWindow>().Open(machineBlueprint.ohBehaveTree);
 					}
 				}
@@ -84,6 +83,12 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 			{
 				EditorWindow.GetWindow<OhBehaveEditorWindow>().Open(
 					(OhBehaveTreeController)aiBehaviourTree.objectReferenceValue);
+			}
+
+			if (aiBehaviourTree.objectReferenceValue != null)
+			{
+				((OhBehaveTreeController)aiBehaviourTree.objectReferenceValue).functionSource =
+					instance.gameObject;
 			}
 			//else if (clickArea.Contains(Event.current.mousePosition) && Event.current.type == EventType.MouseDown)
 			//{

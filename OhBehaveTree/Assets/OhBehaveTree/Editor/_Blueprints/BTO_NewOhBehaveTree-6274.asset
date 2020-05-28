@@ -10,7 +10,25 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7b87c18b7b2ef524981601c966489ea5, type: 3}
-  m_Name: BTO_NewOhBehaveTree-5398
+  m_Name: BTO_NewOhBehaveTree-6274
   m_EditorClassIdentifier: 
   ohBehaveTree: {fileID: 0}
-  nodeObjects: []
+  selectedNode:
+    nodeType: 0
+    index: 0
+    parentIndex: 0
+    displayName: 
+    description: 
+    startEvent:
+      m_PersistentCalls:
+        m_Calls: []
+    actionEvent:
+      m_PersistentCalls:
+        m_Calls: []
+    windowRect:
+      serializedVersion: 2
+      x: 0
+      y: 0
+      width: 0
+      height: 0
+    children: 

@@ -1,19 +1,15 @@
-﻿using System.Collections.Generic;
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
 
 namespace AtomosZ.OhBehave.EditorTools
 {
 	public class OhBehaveEditorWindow : EditorWindow
 	{
-		//[SerializeField]
-		//public OhBehaveTreeBlueprint treeBlueprint;
-
-		internal static NodeStyle selectorNodeStyle;
-		internal static NodeStyle sequenceNodeStyle;
+		internal static NodeStyle SelectorNodeStyle;
+		internal static NodeStyle SequenceNodeStyle;
 		internal static NodeStyle LeafNodeStyle;
-		internal static GUIStyle inPointStyle;
-		internal static GUIStyle outPointStyle;
+		internal static GUIStyle InPointStyle;
+		internal static GUIStyle OutPointStyle;
 
 		internal OhBehaveTreeBlueprint treeBlueprint;
 
@@ -24,38 +20,57 @@ namespace AtomosZ.OhBehave.EditorTools
 
 		private void OnEnable()
 		{
-			window = EditorWindow.GetWindow<OhBehaveEditorWindow>();
+			window = GetWindow<OhBehaveEditorWindow>();
 			window.titleContent = new GUIContent("OhBehave!");
 
-			selectorNodeStyle = new NodeStyle();
-			selectorNodeStyle.Init(
-				EditorGUIUtility.Load("builtin skins/darkskin/images/node2.png") as Texture2D,
-				EditorGUIUtility.Load("builtin skins/darkskin/images/node2 on.png") as Texture2D);
-			sequenceNodeStyle = new NodeStyle();
-			sequenceNodeStyle.Init(
-				EditorGUIUtility.Load("builtin skins/darkskin/images/node0.png") as Texture2D,
-				EditorGUIUtility.Load("builtin skins/darkskin/images/node0 on.png") as Texture2D);
-			LeafNodeStyle = new NodeStyle();
-			LeafNodeStyle.Init(
-				EditorGUIUtility.Load("builtin skins/darkskin/images/node1.png") as Texture2D,
-				EditorGUIUtility.Load("builtin skins/darkskin/images/node1 on.png") as Texture2D);
+			try
+			{
+				if (EditorStyles.helpBox == null)
+				{ //EditorStyle not yet initialized
+					return;
+				}
+			}
+			catch (System.Exception)
+			{ //EditorStyle not yet initialized
+				return;
+			}
 
-			inPointStyle = new GUIStyle();
-			inPointStyle.normal.background = (Texture2D)
-				EditorGUIUtility.Load("builtin skins/darkskin/images/radio.png");
-			inPointStyle.active.background = (Texture2D)
-				EditorGUIUtility.Load("builtin skins/darkskin/images/radio on.png");
-
-			outPointStyle = new GUIStyle();
-			outPointStyle.normal.background = (Texture2D)
-				EditorGUIUtility.Load("builtin skins/darkskin/images/radio.png");
-			outPointStyle.active.background = (Texture2D)
-				EditorGUIUtility.Load("builtin skins/darkskin/images/radio on.png");
+			CreateStyles();
 
 			if (treeBlueprint != null)
 			{
 				treeBlueprint.ConstructNodes();
 			}
+		}
+
+		private void CreateStyles()
+		{
+			SelectorNodeStyle = new NodeStyle();
+			SelectorNodeStyle.Init(
+				EditorGUIUtility.Load("builtin skins/darkskin/images/node2.png") as Texture2D,
+				EditorGUIUtility.Load("builtin skins/darkskin/images/node2 on.png") as Texture2D,
+				new Vector2(250, 100));
+			SequenceNodeStyle = new NodeStyle();
+			SequenceNodeStyle.Init(
+				EditorGUIUtility.Load("builtin skins/darkskin/images/node0.png") as Texture2D,
+				EditorGUIUtility.Load("builtin skins/darkskin/images/node0 on.png") as Texture2D,
+				new Vector2(250, 100));
+			LeafNodeStyle = new NodeStyle();
+			LeafNodeStyle.Init(
+				EditorGUIUtility.Load("builtin skins/darkskin/images/node1.png") as Texture2D,
+				EditorGUIUtility.Load("builtin skins/darkskin/images/node1 on.png") as Texture2D);
+
+			InPointStyle = new GUIStyle();
+			InPointStyle.normal.background = (Texture2D)
+				EditorGUIUtility.Load("builtin skins/darkskin/images/radio.png");
+			InPointStyle.active.background = (Texture2D)
+				EditorGUIUtility.Load("builtin skins/darkskin/images/radio on.png");
+
+			OutPointStyle = new GUIStyle();
+			OutPointStyle.normal.background = (Texture2D)
+				EditorGUIUtility.Load("builtin skins/darkskin/images/radio.png");
+			OutPointStyle.active.background = (Texture2D)
+				EditorGUIUtility.Load("builtin skins/darkskin/images/radio on.png");
 		}
 
 
@@ -74,6 +89,71 @@ namespace AtomosZ.OhBehave.EditorTools
 
 			window.Show();
 		}
+
+
+		private void OnLostFocus()
+		{
+#pragma warning disable CS0618 // Type or member is obsolete
+			if (mouseOverWindow != null && mouseOverWindow.title == "Inspector")
+#pragma warning restore CS0618 // Type or member is obsolete
+				return;
+			treeBlueprint.DeselectNode();
+			Repaint();
+		}
+
+
+		void OnGUI()
+		{
+			if (Selection.activeGameObject != null)
+			{
+				OhBehaveAI ohBehaveSM = Selection.activeGameObject.GetComponent<OhBehaveAI>();
+				if (ohBehaveSM != null)
+				{
+					var ohBehaveController = ohBehaveSM.ohBehaveAI;
+					if (ohBehaveController != null && ohBehaveController != currentTreeController)
+					{ // switch to the currently selected gameobjects behavior tree
+						Open(ohBehaveController);
+						return;
+					}
+				}
+			}
+
+			
+
+			if (treeBlueprint == null)
+			{
+				if (Selection.activeObject != null)
+				{
+					OhBehaveTreeBlueprint testIfTree = Selection.activeObject as OhBehaveTreeBlueprint;
+					if (testIfTree != null)
+					{
+						treeBlueprint = testIfTree;
+						Repaint();
+					}
+				}
+				return;
+			}
+
+			if (InPointStyle == null)
+			{
+				CreateStyles();
+			}
+
+			if (NodeEditPopup.instance != null)
+			{
+				if (Event.current.type == EventType.MouseDown
+					&& EditorWindow.mouseOverWindow != NodeEditPopup.instance)
+					NodeEditPopup.instance.Hide();
+			}
+
+			treeBlueprint.OnGui(Event.current);
+
+
+			if (GUI.changed)
+				Repaint();
+		}
+
+
 
 		/// <summary>
 		/// Because it's not possible to store editor objects in non-editor objects
@@ -94,67 +174,6 @@ namespace AtomosZ.OhBehave.EditorTools
 			}
 
 			return null;
-		}
-
-
-
-		void OnGUI()
-		{
-			if (Selection.activeGameObject != null)
-			{
-				OhBehaveAI ohBehaveSM = Selection.activeGameObject.GetComponent<OhBehaveAI>();
-				if (ohBehaveSM != null)
-				{
-					var ohBehaveController = ohBehaveSM.ohBehaveAI;
-					if (ohBehaveController != currentTreeController)
-					{ // switch to the currently selected gameobjects behavior tree
-						Open(ohBehaveController);
-						return;
-					}
-				}
-			}
-
-
-			//if (nodeTree == null)
-			//{
-			//	if (Selection.activeGameObject == null)
-			//		return;
-
-
-			//	var ai = Selection.activeGameObject.GetComponent<BehaviorStateMachine>();
-			//	if (ai == null || ai.ohBehaveAI == null)
-			//	{
-			//		return;
-			//	}
-
-			//	Open(ai.ohBehaveAI);
-			//	return;
-			//}
-
-
-			//nodeTree.OnGui(Event.current);
-			if (GUI.changed)
-				Repaint();
-		}
-	}
-
-	public class NodeStyle
-	{
-		public GUIStyle defaultStyle, selectedStyle;
-		private Texture2D texture2D;
-
-
-		internal void Init(Texture2D normal, Texture2D selected)
-		{
-			defaultStyle = new GUIStyle();
-			defaultStyle.normal.background = normal;
-			defaultStyle.border = new RectOffset(12, 12, 12, 12);
-			defaultStyle.alignment = TextAnchor.UpperCenter;
-
-			selectedStyle = new GUIStyle();
-			selectedStyle.normal.background = selected;
-			selectedStyle.border = new RectOffset(12, 12, 12, 12);
-			selectedStyle.alignment = TextAnchor.UpperCenter;
 		}
 	}
 }
