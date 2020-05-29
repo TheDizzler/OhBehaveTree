@@ -188,6 +188,7 @@ namespace AtomosZ.OhBehave.EditorTools
 				}
 			}
 
+			GUI.changed = true;
 			deleteTasks.Clear();
 			Save();
 		}

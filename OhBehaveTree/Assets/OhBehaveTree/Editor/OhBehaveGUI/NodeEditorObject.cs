@@ -146,6 +146,8 @@ namespace AtomosZ.OhBehave.EditorTools
 			{
 				Debug.LogError(childIndex + " does not exist in " + displayName);
 			}
+
+			window.UpdateChildren();
 		}
 
 
