@@ -76,19 +76,15 @@ namespace AtomosZ.OhBehave.EditorTools
 				{
 					nodeObject.ChangeNodeType(newType);
 				}
-			}
 
-			if (childNodesReorderable == null)
-				CreateChildList();
-			childNodesReorderable.DoLayoutList();
 
-			if (Event.current.type == EventType.Repaint)
-			{
-				Rect lastrect = GUILayoutUtility.GetLastRect();
-				float heightOfList = lastrect.yMax - lastrect.height;
-				if (heightOfList > GetRect().height)
+				if (childNodesReorderable == null)
+					CreateChildList();
+				childNodesReorderable.DoLayoutList();
+
+				if (Event.current.type == EventType.Repaint)
 				{
-					Debug.Log("Need more room!");
+					Rect lastrect = GUILayoutUtility.GetLastRect();
 					nodeObject.windowRect.height = lastrect.yMax;
 				}
 			}

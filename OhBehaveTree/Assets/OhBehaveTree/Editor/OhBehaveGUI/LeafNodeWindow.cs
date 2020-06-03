@@ -84,7 +84,6 @@ namespace AtomosZ.OhBehave.EditorTools
 				isExpanded = EditorGUILayout.Foldout(isExpanded, new GUIContent("Actions"));
 				if (isExpanded)
 				{
-					UpdateRect(true);
 					EditorGUILayout.LabelField("Action Start:");
 					if (nodeObject.startEvent.GetPersistentEventCount() == 0)
 					{
@@ -107,9 +106,11 @@ namespace AtomosZ.OhBehave.EditorTools
 						EditorGUILayout.LabelField("\t" + nodeObject.actionEvent.GetPersistentMethodName(i));
 					}
 				}
-				else
+
+				if (Event.current.type == EventType.Repaint)
 				{
-					UpdateRect(false);
+					Rect lastrect = GUILayoutUtility.GetLastRect();
+					nodeObject.windowRect.height = lastrect.yMax + 10;
 				}
 
 				GUILayout.EndVertical();
@@ -122,19 +123,6 @@ namespace AtomosZ.OhBehave.EditorTools
 
 			if (connectionToParent != null)
 				connectionToParent.Draw();
-		}
-
-
-		private void UpdateRect(bool isOpen)
-		{
-			if (!isOpen)
-			{
-				nodeObject.windowRect.height = 75;
-			}
-			else
-			{
-				nodeObject.windowRect.height = 150;
-			}
 		}
 
 		public override void UpdateChildren()

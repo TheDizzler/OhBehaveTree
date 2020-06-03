@@ -68,29 +68,20 @@ namespace AtomosZ.OhBehave.EditorTools
 		private Texture2D texture2D;
 
 
-		internal void Init(Texture2D normal, Texture2D selected)
-		{
-			CreateStyles(normal, selected);
-			size = new Vector2(
-				defaultStyle.normal.background.width * 4,
-				defaultStyle.normal.background.height);
-		}
 
-		internal void Init(Texture2D normal, Texture2D selected, Vector2 rectSize)
+		public void Init(Vector2 rectSize)
 		{
-			CreateStyles(normal, selected);
+			CreateStyles();
 			size = rectSize;
 		}
 
-		private void CreateStyles(Texture2D normal, Texture2D selected)
+		private void CreateStyles()
 		{
 			defaultStyle = new GUIStyle(EditorStyles.helpBox);
-			defaultStyle.normal.background = normal;
 			defaultStyle.normal.textColor = new Color(0, 0, 0, 0);
 			defaultStyle.alignment = TextAnchor.UpperCenter;
 
 			selectedStyle = new GUIStyle(EditorStyles.helpBox);
-			selectedStyle.normal.background = selected;
 			selectedStyle.normal.textColor = new Color(0,0,0,0);
 			selectedStyle.alignment = TextAnchor.UpperCenter;
 		}
