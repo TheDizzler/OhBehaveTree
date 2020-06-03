@@ -24,7 +24,7 @@ namespace AtomosZ.OhBehave.EditorTools
 					}
 					else if (e.button == 1)
 					{
-						if (nodeObject.windowRect.Contains(e.mousePosition))
+						if (GetRect().Contains(e.mousePosition))
 						{
 							treeBlueprint.ProcessContextMenu(nodeObject);
 						}

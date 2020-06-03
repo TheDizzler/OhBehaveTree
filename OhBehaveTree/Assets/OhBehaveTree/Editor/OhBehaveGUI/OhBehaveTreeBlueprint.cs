@@ -24,6 +24,10 @@ namespace AtomosZ.OhBehave.EditorTools
 
 
 		public OhBehaveTreeController ohBehaveTree;
+		/// <summary>
+		/// Goddamn scriptable object LOVE losing data.
+		/// </summary>
+		public string controllerFilePath;
 		public NodeEditorObject selectedNode;
 
 		private Dictionary<int, NodeEditorObject> nodeObjects;
@@ -119,7 +123,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		}
 
 
-		public void OnGui(Event current)
+		public void OnGui(Event current, Vector2 contentOffset)
 		{
 			if (serializedObject == null)
 				serializedObject = new SerializedObject(this);
@@ -132,6 +136,7 @@ namespace AtomosZ.OhBehave.EditorTools
 
 			foreach (var node in nodeObjects.Values)
 			{
+				node.Offset(contentOffset);
 				node.ProcessEvents(current);
 				node.OnGUI();
 			}
@@ -152,7 +157,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		public NodeEditorObject GetNodeObject(int nodeIndex)
 		{
 			if (nodeIndex <= OhBehaveTreeBlueprint.NO_PARENT_INDEX)
-			{ 
+			{
 				return null;
 			}
 			return nodeObjects[nodeIndex];
@@ -201,16 +206,16 @@ namespace AtomosZ.OhBehave.EditorTools
 			{
 				case NodeType.Leaf:
 				case NodeType.Sequence:
-					NodeEditorObject newNode 
+					NodeEditorObject newNode
 						= new NodeEditorObject(nodeType, ++lastNodeIndex, parentNode.index)
-					{
-						description = nodeType + " type node. Add description of desired behaviour",
-						displayName = nodeType.ToString(),
-						windowRect = new Rect(
+						{
+							description = nodeType + " type node. Add description of desired behaviour",
+							displayName = nodeType.ToString(),
+							windowRect = new Rect(
 						new Vector2(parentWindowRect.x,
-							parentWindowRect.y +parentWindowRect.height + DefaultTreeRowHeight),
+							parentWindowRect.y + parentWindowRect.height + DefaultTreeRowHeight),
 						OhBehaveEditorWindow.SequenceNodeStyle.size)
-					};
+						};
 					nodeObjects.Add(lastNodeIndex, newNode);
 					parentNode.AddChild(newNode);
 					break;
@@ -260,6 +265,7 @@ namespace AtomosZ.OhBehave.EditorTools
 			var statemachine = CreateInstance<OhBehaveTreeController>();
 			statemachine.Initialize(path);
 			ohBehaveTree = statemachine;
+			controllerFilePath = path;
 
 			JsonNodeWrapper wrappedNodes = new JsonNodeWrapper();
 			wrappedNodes.nodes = new NodeEditorObject[0];
@@ -274,6 +280,11 @@ namespace AtomosZ.OhBehave.EditorTools
 			writer.Close();
 		}
 
+		public void FindYourControllerDumbass()
+		{
+			ohBehaveTree = (OhBehaveTreeController)
+				AssetDatabase.LoadAssetAtPath(controllerFilePath, typeof(OhBehaveTreeController));
+		}
 
 		[Serializable]
 		private class JsonNodeWrapper

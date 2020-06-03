@@ -5,17 +5,29 @@ namespace AtomosZ.OhBehave.EditorTools
 {
 	public class OhBehaveEditorWindow : EditorWindow
 	{
-		internal static NodeStyle SelectorNodeStyle;
-		internal static NodeStyle SequenceNodeStyle;
-		internal static NodeStyle LeafNodeStyle;
-		internal static GUIStyle InPointStyle;
-		internal static GUIStyle OutPointStyle;
 
-		internal OhBehaveTreeBlueprint treeBlueprint;
+		private const float ZOOM_BORDER = 10;
+
+		public static NodeStyle SelectorNodeStyle;
+		public static NodeStyle SequenceNodeStyle;
+		public static NodeStyle LeafNodeStyle;
+		public static GUIStyle InPointStyle;
+		public static GUIStyle OutPointStyle;
+
+		public OhBehaveTreeBlueprint treeBlueprint;
+		public EditorZoomer zoomer;
 
 		private OhBehaveEditorWindow window;
-		private Vector2 scrollPos;
 		private OhBehaveTreeController currentTreeController;
+
+
+
+		private Rect zoomRect;
+		private float areaBelowZoomHeight = 50;
+		private Vector2 lastOffset;
+
+		//private float zoomScale = 1;
+		//private Vector2 zoomCoordsOrigin = Vector2.zero;
 
 
 		private void OnEnable()
@@ -41,24 +53,18 @@ namespace AtomosZ.OhBehave.EditorTools
 			{
 				treeBlueprint.ConstructNodes();
 			}
+
+			zoomer = new EditorZoomer();
 		}
 
 		private void CreateStyles()
 		{
 			SelectorNodeStyle = new NodeStyle();
-			SelectorNodeStyle.Init(
-				EditorGUIUtility.Load("builtin skins/darkskin/images/node2.png") as Texture2D,
-				EditorGUIUtility.Load("builtin skins/darkskin/images/node2 on.png") as Texture2D,
-				new Vector2(250, 100));
+			SelectorNodeStyle.Init(new Vector2(250, 100));
 			SequenceNodeStyle = new NodeStyle();
-			SequenceNodeStyle.Init(
-				EditorGUIUtility.Load("builtin skins/darkskin/images/node0.png") as Texture2D,
-				EditorGUIUtility.Load("builtin skins/darkskin/images/node0 on.png") as Texture2D,
-				new Vector2(250, 100));
+			SequenceNodeStyle.Init(new Vector2(250, 100));
 			LeafNodeStyle = new NodeStyle();
-			LeafNodeStyle.Init(
-				EditorGUIUtility.Load("builtin skins/darkskin/images/node1.png") as Texture2D,
-				EditorGUIUtility.Load("builtin skins/darkskin/images/node1 on.png") as Texture2D);
+			LeafNodeStyle.Init(new Vector2(250, 75));
 
 			InPointStyle = new GUIStyle();
 			InPointStyle.normal.background = (Texture2D)
@@ -97,7 +103,8 @@ namespace AtomosZ.OhBehave.EditorTools
 			if (mouseOverWindow != null && mouseOverWindow.title == "Inspector")
 #pragma warning restore CS0618 // Type or member is obsolete
 				return;
-			treeBlueprint.DeselectNode();
+			if (treeBlueprint != null)
+				treeBlueprint.DeselectNode();
 			Repaint();
 		}
 
@@ -118,7 +125,7 @@ namespace AtomosZ.OhBehave.EditorTools
 				}
 			}
 
-			
+
 
 			if (treeBlueprint == null)
 			{
@@ -131,28 +138,98 @@ namespace AtomosZ.OhBehave.EditorTools
 						Repaint();
 					}
 				}
-				return;
-			}
 
-			if (InPointStyle == null)
+			}
+			else
 			{
-				CreateStyles();
-			}
 
-			if (NodeEditPopup.instance != null)
-			{
-				if (Event.current.type == EventType.MouseDown
-					&& EditorWindow.mouseOverWindow != NodeEditPopup.instance)
-					NodeEditPopup.instance.Hide();
-			}
+				if (InPointStyle == null)
+				{
+					CreateStyles();
+				}
 
-			treeBlueprint.OnGui(Event.current);
+				{   // Just keeping this around for future reference.
+					if (NodeEditPopup.instance != null)
+					{
+						if (Event.current.type == EventType.MouseDown
+							&& EditorWindow.mouseOverWindow != NodeEditPopup.instance)
+							NodeEditPopup.instance.Hide();
+					}
+				}
+
+				//Vector2 center = zoomCoordsOrigin + zoomRect.size / 2 / zoomScale;
+				//float prevZoom = zoomScale;
+				//zoomScale = EditorGUILayout.Slider(zoomScale, MIN_ZOOM, MAX_ZOOM);
+				//if (Event.current.type == EventType.ScrollWheel)
+				//{
+				//	Vector2 screenCoordsMousePos = Event.current.mousePosition;
+				//	Vector2 delta = Event.current.delta;
+				//	float zoomDelta = -delta.y / 150.0f;
+				//	zoomScale += zoomDelta;
+
+				//	Event.current.Use();
+				//}
+
+				//zoomCoordsOrigin += (center - zoomCoordsOrigin) - (prevZoom / zoomScale) * (center - zoomCoordsOrigin);
+				if (zoomer == null)
+					zoomer = new EditorZoomer();
+
+				zoomer.HandleEvents(Event.current);
+
+				DrawHorizontalUILine(Color.gray);
+
+				Rect lastRect = GUILayoutUtility.GetLastRect();
+				if (Event.current.type == EventType.Repaint)
+				{
+					zoomRect.position = new Vector2(
+						ZOOM_BORDER,
+						lastRect.yMax + lastRect.height + ZOOM_BORDER);
+					zoomRect.size = new Vector2(
+						window.position.width - ZOOM_BORDER * 2,
+						window.position.height - (lastRect.yMax + ZOOM_BORDER * 2 + areaBelowZoomHeight));
+				}
+
+				zoomer.Begin(zoomRect);
+				{
+					treeBlueprint.OnGui(Event.current, zoomer.GetContentOffset());
+				}
+				zoomer.End(new Rect(0, zoomRect.yMax + zoomRect.position.y - 50, window.position.width, window.position.height));
+
+
+				//DrawHorizontalUILine(Color.gray);
+
+				EditorGUILayout.Vector2Field("mouse", Event.current.mousePosition);
+			}
 
 
 			if (GUI.changed)
 				Repaint();
 		}
 
+
+
+
+
+		public static void DrawHorizontalUILine(Color color, int thickness = 2, int padding = 10)
+		{
+			Rect r = EditorGUILayout.GetControlRect(GUILayout.Height(padding + thickness));
+			r.height = thickness;
+			r.width -= 9.5f;
+			r.y += padding / 2;
+			//r.x -= 2;
+			r.width += 6;
+			EditorGUI.DrawRect(r, color);
+		}
+
+		public static void DrawVerticalUILine(Color color, int thickness = 2, int padding = 10)
+		{
+			Rect r = EditorGUILayout.GetControlRect(GUILayout.Width(padding + thickness));
+			r.width = thickness;
+			//r.x += padding / 2;
+			r.y -= 2;
+			r.height += 6;
+			EditorGUI.DrawRect(r, color);
+		}
 
 
 		/// <summary>

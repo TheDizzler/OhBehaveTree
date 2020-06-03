@@ -76,9 +76,15 @@ namespace AtomosZ.OhBehave.EditorTools
 
 		public Rect GetRect()
 		{
-			return nodeObject.windowRect;
+			Rect rect =  nodeObject.windowRect;
+			rect.position -= nodeObject.offset;
+			return rect;
 		}
 
+		public Rect GetRectNoOffset()
+		{
+			return nodeObject.windowRect;
+		}
 
 		public void ParentDeleted()
 		{

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using UnityEditor;
 using UnityEngine;
 
@@ -44,11 +45,15 @@ namespace AtomosZ.OhBehave.EditorTools
 		[SerializeField]
 		public List<int> children;
 
-
+		[NonSerialized]
+		public Vector2 offset;
 		/// <summary>
 		/// Editor objects have a hard time serializing themselves.
 		/// </summary>
 		private NodeEditorObject parent;
+		
+
+
 		public NodeEditorObject Parent
 		{
 			get
@@ -204,6 +209,11 @@ namespace AtomosZ.OhBehave.EditorTools
 						child.parentIndex = OhBehaveTreeBlueprint.NO_PARENT_INDEX;
 				}
 			}
+		}
+
+		public void Offset(Vector2 contentOffset)
+		{
+			 offset = contentOffset;
 		}
 	}
 }
