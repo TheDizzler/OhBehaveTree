@@ -172,6 +172,8 @@ namespace AtomosZ.OhBehave.EditorTools
 
 		private void PendingDeletes()
 		{
+			if (deleteTasks.Count == 0)
+				return;
 			foreach (var node in deleteTasks)
 			{
 				Debug.Log("delete me! " + node.displayName);
