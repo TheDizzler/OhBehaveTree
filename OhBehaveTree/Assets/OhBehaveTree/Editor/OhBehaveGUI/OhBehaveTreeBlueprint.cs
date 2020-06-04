@@ -29,6 +29,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		/// </summary>
 		public string controllerFilePath;
 		public NodeEditorObject selectedNode;
+		public bool isDrawingNewConnection = false;
 
 		private Dictionary<int, NodeEditorObject> nodeObjects;
 		private SerializedObject serializedObject;
@@ -37,6 +38,9 @@ namespace AtomosZ.OhBehave.EditorTools
 		/// </summary>
 		private int lastNodeIndex = ROOT_INDEX;
 		private List<NodeEditorObject> deleteTasks = new List<NodeEditorObject>();
+		private ConnectionPoint connectionDrawing;
+		private bool cancelMakeNewConnection;
+		private bool save;
 
 
 		public void ConstructNodes()
@@ -96,6 +100,109 @@ namespace AtomosZ.OhBehave.EditorTools
 			}
 		}
 
+		public void OnGui(Event current, Vector2 contentOffset)
+		{
+			if (serializedObject == null)
+				serializedObject = new SerializedObject(this);
+
+			if (nodeObjects == null)
+			{
+				ConstructNodes();
+				return;
+			}
+
+
+			foreach (var node in nodeObjects.Values)
+			{
+				node.Offset(contentOffset);
+				if (node.ProcessEvents(current))
+					save = true;
+				node.OnGUI();
+			}
+
+			PendingDeletes();
+
+			if (cancelMakeNewConnection)
+			{
+				isDrawingNewConnection = false;
+				connectionDrawing = null;
+				cancelMakeNewConnection = false;
+			}
+
+			if (save)
+			{
+				Save();
+				save = false;
+			}
+		}
+
+
+		public void DrawingNewConnection(ConnectionPoint connectionPoint)
+		{
+			isDrawingNewConnection = true;
+			connectionDrawing = connectionPoint;
+		}
+
+		public bool CheckValidConnection(ConnectionPoint potentialConnection)
+		{
+			if (connectionDrawing == null)
+			{       // this is fucked. This should never happen, yet, here we are.
+				isDrawingNewConnection = false;
+				return false;
+			}
+
+			return connectionDrawing.type != potentialConnection.type && connectionDrawing.nodeWindow != potentialConnection.nodeWindow;
+		}
+
+		public void CancelNewConnection(ConnectionPoint connectionPoint)
+		{
+			cancelMakeNewConnection = true;
+		}
+
+		/// <summary>
+		/// The connection needs to be verified prior to this or we could have massive problems.
+		/// </summary>
+		/// <param name="connectionPoint"></param>
+		public void CreateNewConnection(ConnectionPoint connectionPoint)
+		{
+			NodeEditorObject nodeParent, nodeChild;
+			if (connectionPoint.type == ConnectionPointType.Out)
+			{
+				nodeParent = connectionPoint.nodeWindow.nodeObject;
+				nodeChild = connectionDrawing.nodeWindow.nodeObject;
+			}
+			else
+			{
+				nodeChild = connectionPoint.nodeWindow.nodeObject;
+				nodeParent = connectionDrawing.nodeWindow.nodeObject;
+			}
+
+			if (nodeParent.nodeType == NodeType.Inverter && nodeParent.children.Count != 0)
+			{
+				// orphan the olde child
+				var oldChild = GetNodeObject(nodeParent.children[0]);
+				if (!oldChild.ParentRemoved(nodeParent.index))
+					throw new Exception("WTF problems removing parent from child in CreateNewConnection()");
+			}
+
+			var oldParent = GetNodeObject(nodeChild.parentIndex);
+			if (oldParent != null)
+			{
+				// remove from old parent
+				oldParent.ChildRemoved(nodeChild.index);
+			}
+
+			// ok, let's do this
+			nodeParent.AddChild(nodeChild);
+			nodeChild.ParentChanged(nodeParent.index);
+
+			//nodeParent.window.CreateConnectionToParent(;
+			nodeChild.window.CreateConnectionToParent((IParentNodeWindow)nodeParent.window);
+
+			Save();
+		}
+
+
 		public void DeselectNode()
 		{
 			if (selectedNode == null || selectedNode.window == null)
@@ -120,28 +227,6 @@ namespace AtomosZ.OhBehave.EditorTools
 			StreamWriter writer = new StreamWriter(jsonFilepath);
 			writer.WriteLine(jsonString);
 			writer.Close();
-		}
-
-
-		public void OnGui(Event current, Vector2 contentOffset)
-		{
-			if (serializedObject == null)
-				serializedObject = new SerializedObject(this);
-
-			if (nodeObjects == null)
-			{
-				ConstructNodes();
-				return;
-			}
-
-			foreach (var node in nodeObjects.Values)
-			{
-				node.Offset(contentOffset);
-				node.ProcessEvents(current);
-				node.OnGUI();
-			}
-
-			PendingDeletes();
 		}
 
 		public void ProcessContextMenu(NodeEditorObject parentNode)
@@ -184,7 +269,7 @@ namespace AtomosZ.OhBehave.EditorTools
 				}
 
 				if (node.parentIndex != NO_PARENT_INDEX && node.Parent != null)
-					node.Parent.ChildDeleted(node.index);
+					node.Parent.ChildRemoved(node.index);
 
 				node.NotifyChildrenOfDelete();
 

@@ -47,12 +47,15 @@ namespace AtomosZ.OhBehave.EditorTools
 
 		public override void OnGUI()
 		{
+			if (refreshConnection)
+			{
+				RefreshConnection();
+			}
+
 			Color clr = GUI.backgroundColor;
-			inPoint.Draw();
 
 			if (isSelected)
 				GUI.backgroundColor = bgColor;
-
 
 			var content = new GUIContent("Name: " + nodeName, nodeObject.description);
 
@@ -121,6 +124,7 @@ namespace AtomosZ.OhBehave.EditorTools
 
 			GUI.backgroundColor = clr;
 
+			inPoint.Draw();
 			if (connectionToParent != null)
 				connectionToParent.Draw();
 		}

@@ -97,7 +97,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		}
 
 
-		public bool ParentDeleted(int deletedParentIndex)
+		public bool ParentRemoved(int deletedParentIndex)
 		{
 			if (deletedParentIndex != parentIndex)
 			{
@@ -106,7 +106,7 @@ namespace AtomosZ.OhBehave.EditorTools
 				return false;
 			}
 
-			window.ParentDeleted();
+			window.ParentRemoved();
 			parent = null;
 			return true;
 		}
@@ -123,6 +123,7 @@ namespace AtomosZ.OhBehave.EditorTools
 			}
 		}
 
+
 		public void AddChild(NodeEditorObject newChildNode)
 		{
 			if (children == null)
@@ -138,8 +139,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		}
 
 
-
-		public void ChildDeleted(int childIndex)
+		public void ChildRemoved(int childIndex)
 		{
 			if (children == null)
 			{
@@ -155,15 +155,14 @@ namespace AtomosZ.OhBehave.EditorTools
 			window.UpdateChildren();
 		}
 
-
-		public void ProcessEvents(Event current)
+		public bool ProcessEvents(Event current)
 		{
 			if (window == null)
 			{
 				CreateWindow();
 			}
 
-			window.ProcessEvents(current);
+			return window.ProcessEvents(current);
 		}
 
 		public void OnGUI()
@@ -205,7 +204,7 @@ namespace AtomosZ.OhBehave.EditorTools
 				foreach (int nodeIndex in children)
 				{
 					NodeEditorObject child = treeBlueprint.GetNodeObject(nodeIndex);
-					if (child.ParentDeleted(index))
+					if (child.ParentRemoved(index))
 						child.parentIndex = OhBehaveTreeBlueprint.NO_PARENT_INDEX;
 				}
 			}
@@ -214,6 +213,12 @@ namespace AtomosZ.OhBehave.EditorTools
 		public void Offset(Vector2 contentOffset)
 		{
 			 offset = contentOffset;
+		}
+
+		public void ParentChanged(int newParentIndex)
+		{
+			parentIndex = newParentIndex;
+			window.ParentRemoved();
 		}
 	}
 }

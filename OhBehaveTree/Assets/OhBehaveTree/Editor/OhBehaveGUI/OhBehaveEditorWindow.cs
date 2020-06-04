@@ -63,13 +63,13 @@ namespace AtomosZ.OhBehave.EditorTools
 			InPointStyle = new GUIStyle();
 			InPointStyle.normal.background = (Texture2D)
 				EditorGUIUtility.Load("builtin skins/darkskin/images/radio.png");
-			InPointStyle.active.background = (Texture2D)
+			InPointStyle.hover.background = (Texture2D)
 				EditorGUIUtility.Load("builtin skins/darkskin/images/radio on.png");
 
 			OutPointStyle = new GUIStyle();
 			OutPointStyle.normal.background = (Texture2D)
 				EditorGUIUtility.Load("builtin skins/darkskin/images/radio.png");
-			OutPointStyle.active.background = (Texture2D)
+			OutPointStyle.hover.background = (Texture2D)
 				EditorGUIUtility.Load("builtin skins/darkskin/images/radio on.png");
 		}
 

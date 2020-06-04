@@ -28,8 +28,9 @@ namespace AtomosZ.OhBehave.EditorTools
 		protected OhBehaveTreeBlueprint treeBlueprint;
 		protected bool isDragged;
 		protected bool isSelected;
+		protected bool refreshConnection;
 		private double timeClicked = double.MinValue;
-
+		
 
 		public NodeWindow(NodeEditorObject nodeObj)
 		{
@@ -61,12 +62,14 @@ namespace AtomosZ.OhBehave.EditorTools
 			if (nodeObject.index != OhBehaveTreeBlueprint.ROOT_INDEX)
 				inPoint = new ConnectionPoint(this, ConnectionPointType.In, ConnectionControls.OnClickInPoint);
 
-			NodeEditorObject prntObj = nodeObj.Parent;
+			NodeEditorObject prntObj = nodeObject.Parent;
 			if (prntObj != null)
 			{
 				parent = (IParentNodeWindow)prntObj.window;
-
-				connectionToParent = new Connection(((NodeWindow)parent).outPoint, inPoint, OnClickRemoveConnection);
+				if (parent != null)
+					connectionToParent = new Connection(((NodeWindow)parent).outPoint, inPoint, OnClickRemoveConnection);
+				else
+					refreshConnection = true;
 			}
 			else
 			{
@@ -76,7 +79,7 @@ namespace AtomosZ.OhBehave.EditorTools
 
 		public Rect GetRect()
 		{
-			Rect rect =  nodeObject.windowRect;
+			Rect rect = nodeObject.windowRect;
 			rect.position -= nodeObject.offset;
 			return rect;
 		}
@@ -86,11 +89,24 @@ namespace AtomosZ.OhBehave.EditorTools
 			return nodeObject.windowRect;
 		}
 
-		public void ParentDeleted()
+		public void ParentRemoved()
 		{
 			OnClickRemoveConnection(connectionToParent);
 		}
 
+		protected void RefreshConnection()
+		{
+			NodeEditorObject prntObj = nodeObject.Parent;
+			if (prntObj != null)
+			{
+				parent = (IParentNodeWindow)prntObj.window;
+				if (parent != null)
+				{
+					connectionToParent = new Connection(((NodeWindow)parent).outPoint, inPoint, OnClickRemoveConnection);
+					refreshConnection = false;
+				}
+			}
+		}
 
 		protected void LeftClick(Event e)
 		{
@@ -123,7 +139,6 @@ namespace AtomosZ.OhBehave.EditorTools
 				currentStyle = nodeStyle.selectedStyle;
 				Selection.SetActiveObjectWithContext(treeBlueprint, null);
 				e.Use();
-				Debug.Log(GetRect());
 			}
 			else
 			{
@@ -182,7 +197,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		/// <param name="connection"></param>
 		protected void OnClickRemoveConnection(Connection connection)
 		{
-			parent.RemoveChildConnection(this);
+			parent.RemoveChildConnection(this); // this probably should not be called here
 			if (connection != connectionToParent)
 			{
 				throw new Exception("Huh? Connection and connectionToParent are not equal?");
