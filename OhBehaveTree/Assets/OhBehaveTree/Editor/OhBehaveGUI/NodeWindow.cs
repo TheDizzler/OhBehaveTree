@@ -113,6 +113,7 @@ namespace AtomosZ.OhBehave.EditorTools
 				treeBlueprint.selectedNode = nodeObject;
 				currentStyle = nodeStyle.selectedStyle;
 				Selection.SetActiveObjectWithContext(treeBlueprint, null);
+				e.Use();
 			}
 			else if (GetRect().Contains(e.mousePosition))
 			{
@@ -121,6 +122,8 @@ namespace AtomosZ.OhBehave.EditorTools
 				treeBlueprint.selectedNode = nodeObject;
 				currentStyle = nodeStyle.selectedStyle;
 				Selection.SetActiveObjectWithContext(treeBlueprint, null);
+				e.Use();
+				Debug.Log(GetRect());
 			}
 			else
 			{

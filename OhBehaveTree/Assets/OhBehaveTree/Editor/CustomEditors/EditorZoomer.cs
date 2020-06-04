@@ -19,36 +19,29 @@ namespace AtomosZ.OhBehave.EditorTools
 		private Vector2 lastMouse = Vector2.zero;
 		private Matrix4x4 prevGUIMatrix;
 		private bool zoomToCenter;
+		private Texture2D bgTexture = EditorGUIUtility.FindTexture("Assets/OhBehaveTree/Editor/zoomerBG.jpg");
+
 
 		public void Begin(Rect zoomRect)
 		{
 			// Ends group that Unity implicity begins for every editor window
 			zoomAreaRect = zoomRect;
 			GUI.EndGroup();
-			GUI.BeginGroup(zoomAreaRect, EditorStyles.helpBox);
-			{
-				GUILayout.BeginArea(new Rect(zoomAreaRect.xMax - sliderWidth * 1.5f, zoomAreaRect.yMin - 25, sliderWidth, sliderHeight),
-					EditorStyles.helpBox);
-				var defaultColor = GUI.color;
-				GUI.color = new Color(0, 0, 0, .25f);
-				GUILayout.Label("Zoom Scale:");
-				float newZoom = GUILayout.HorizontalSlider(zoomScale, MIN_ZOOM, MAX_ZOOM);
-				if (zoomScale != newZoom)
-				{
-					zoomToCenter = true;
-					zoomScale = newZoom;
-				}
-				GUILayout.EndArea();
-				GUI.color = defaultColor;
-			}
-			GUI.EndGroup();
 
+			
+			Vector2 offset = GetContentOffset();
+			float xFactor = offset.x / bgTexture.width;
+			float yFactor = offset.y / bgTexture.height;
+
+			GUI.DrawTextureWithTexCoords(zoomAreaRect, bgTexture, // texcoords are between 0 and 1! 1 == fullwrap!
+				new Rect(xFactor, -yFactor, zoomAreaRect.width / (bgTexture.width * zoomScale),
+					zoomAreaRect.height / (bgTexture.height * zoomScale)));
 
 			Rect clippedArea = ScaleSizeBy(zoomAreaRect, 1.0f / zoomScale, new Vector2(zoomAreaRect.xMin, zoomAreaRect.yMin));
-
 			GUI.BeginGroup(clippedArea);
 
 			prevGUIMatrix = GUI.matrix;
+			
 			Matrix4x4 translation = Matrix4x4.TRS(
 				new Vector2(clippedArea.xMin, clippedArea.yMin), Quaternion.identity, Vector3.one);
 			Matrix4x4 scale = Matrix4x4.Scale(new Vector3(zoomScale, zoomScale, 1f));
@@ -58,7 +51,28 @@ namespace AtomosZ.OhBehave.EditorTools
 
 		public void End(Rect postZoomArea)
 		{
+			var matrix = GUI.matrix;
 			GUI.matrix = prevGUIMatrix;
+			GUI.EndGroup();
+
+			GUI.BeginGroup(zoomAreaRect, EditorStyles.helpBox);
+			{
+				GUILayout.BeginArea(new Rect(zoomAreaRect.xMax - sliderWidth * 1.5f, zoomAreaRect.yMin - 25, sliderWidth , sliderHeight),
+					EditorStyles.helpBox);
+				var defaultColor = GUI.color;
+				GUI.color = new Color(0, 0, 0, .25f);
+				GUILayout.Label("Zoom Scale: " + zoomScale + "x");
+				float newZoom = GUILayout.HorizontalSlider(zoomScale, MIN_ZOOM, MAX_ZOOM);
+				if (zoomScale != newZoom)
+				{
+					zoomToCenter = true;
+					zoomScale = newZoom;
+				}
+
+				GUI.changed = true;
+				GUILayout.EndArea();
+				GUI.color = defaultColor;
+			}
 			GUI.EndGroup();
 			GUI.BeginGroup(postZoomArea);
 		}
