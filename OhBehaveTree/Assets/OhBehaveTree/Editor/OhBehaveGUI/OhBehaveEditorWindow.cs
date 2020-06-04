@@ -20,14 +20,8 @@ namespace AtomosZ.OhBehave.EditorTools
 		private OhBehaveEditorWindow window;
 		private OhBehaveTreeController currentTreeController;
 
-
-
 		private Rect zoomRect;
 		private float areaBelowZoomHeight = 50;
-		private Vector2 lastOffset;
-
-		//private float zoomScale = 1;
-		//private Vector2 zoomCoordsOrigin = Vector2.zero;
 
 
 		private void OnEnable()
@@ -157,20 +151,7 @@ namespace AtomosZ.OhBehave.EditorTools
 					}
 				}
 
-				//Vector2 center = zoomCoordsOrigin + zoomRect.size / 2 / zoomScale;
-				//float prevZoom = zoomScale;
-				//zoomScale = EditorGUILayout.Slider(zoomScale, MIN_ZOOM, MAX_ZOOM);
-				//if (Event.current.type == EventType.ScrollWheel)
-				//{
-				//	Vector2 screenCoordsMousePos = Event.current.mousePosition;
-				//	Vector2 delta = Event.current.delta;
-				//	float zoomDelta = -delta.y / 150.0f;
-				//	zoomScale += zoomDelta;
 
-				//	Event.current.Use();
-				//}
-
-				//zoomCoordsOrigin += (center - zoomCoordsOrigin) - (prevZoom / zoomScale) * (center - zoomCoordsOrigin);
 				if (zoomer == null)
 					zoomer = new EditorZoomer();
 
@@ -188,6 +169,7 @@ namespace AtomosZ.OhBehave.EditorTools
 						window.position.width - ZOOM_BORDER * 2,
 						window.position.height - (lastRect.yMax + ZOOM_BORDER * 2 + areaBelowZoomHeight));
 				}
+
 
 				zoomer.Begin(zoomRect);
 				{
