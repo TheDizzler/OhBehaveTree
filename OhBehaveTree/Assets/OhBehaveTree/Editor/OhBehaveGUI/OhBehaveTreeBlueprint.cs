@@ -47,8 +47,6 @@ namespace AtomosZ.OhBehave.EditorTools
 		{
 			if (nodeObjects == null)
 			{
-				//Debug.LogError("We NEED to serialize our NodeObjects...");
-				//return;
 				nodeObjects = new Dictionary<int, NodeEditorObject>();
 				string blueprintPath = AssetDatabase.GetAssetPath(this);
 				string jsonFilepath = Application.dataPath + "/../"
@@ -65,7 +63,12 @@ namespace AtomosZ.OhBehave.EditorTools
 					string fileString = reader.ReadToEnd();
 					reader.Close();
 
-					JsonNodeWrapper nodes = JsonUtility.FromJson<JsonNodeWrapper>(fileString);
+					JsonData data = JsonUtility.FromJson<JsonData>(fileString);
+					var ohBehave = EditorWindow.GetWindow<OhBehaveEditorWindow>();
+					ohBehave.zoomer.SetScale(data.zoomScale);
+					ohBehave.zoomer.SetOrigin(data.origin);
+
+					JsonNodeWrapper nodes = data.nodeWrapper;
 
 					foreach (var node in nodes.nodes)
 					{
@@ -213,12 +216,20 @@ namespace AtomosZ.OhBehave.EditorTools
 
 		public void Save()
 		{
+			var ohBehave = EditorWindow.GetWindow<OhBehaveEditorWindow>();
+			JsonData data = new JsonData();
+			data.origin = ohBehave.zoomer.GetOrigin();
+			data.zoomScale = ohBehave.zoomer.GetScale();
+
+
 			JsonNodeWrapper wrappedNodes = new JsonNodeWrapper();
 			List<NodeEditorObject> nodes = new List<NodeEditorObject>();
 			foreach (var node in nodeObjects.Values)
 				nodes.Add(node);
 			wrappedNodes.nodes = nodes.ToArray();
-			string jsonString = JsonUtility.ToJson(wrappedNodes, true);
+			data.nodeWrapper = wrappedNodes;
+
+			string jsonString = JsonUtility.ToJson(data, true);
 
 			string jsonFilepath = Application.dataPath + "/../"
 				+ Path.GetDirectoryName(AssetDatabase.GetAssetPath(this)) + "/"
@@ -354,9 +365,13 @@ namespace AtomosZ.OhBehave.EditorTools
 			ohBehaveTree = statemachine;
 			controllerFilePath = path;
 
+			JsonData data = new JsonData();
+			data.origin = Vector2.zero;
+			data.zoomScale = 1;
 			JsonNodeWrapper wrappedNodes = new JsonNodeWrapper();
 			wrappedNodes.nodes = new NodeEditorObject[0];
-			string jsonString = JsonUtility.ToJson(wrappedNodes, true);
+			data.nodeWrapper = wrappedNodes;
+			string jsonString = JsonUtility.ToJson(data, true);
 
 			string jsonFilepath = Application.dataPath + "/../"
 				+ Path.GetDirectoryName(AssetDatabase.GetAssetPath(this)) + "/"
@@ -373,10 +388,20 @@ namespace AtomosZ.OhBehave.EditorTools
 				AssetDatabase.LoadAssetAtPath(controllerFilePath, typeof(OhBehaveTreeController));
 		}
 
+
+
 		[Serializable]
 		private class JsonNodeWrapper
 		{
 			public NodeEditorObject[] nodes;
+		}
+
+		[Serializable]
+		private class JsonData
+		{
+			public Vector2 origin;
+			public float zoomScale;
+			public JsonNodeWrapper nodeWrapper;
 		}
 	}
 }

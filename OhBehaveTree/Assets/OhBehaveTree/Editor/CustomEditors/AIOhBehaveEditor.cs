@@ -90,16 +90,6 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 				((OhBehaveTreeController)aiBehaviourTree.objectReferenceValue).functionSource =
 					instance.gameObject;
 			}
-			//else if (clickArea.Contains(Event.current.mousePosition) && Event.current.type == EventType.MouseDown)
-			//{
-			//	EditorWindow.GetWindow<OhBehaveEditorWindow>().Open((SelectorNode)aiBehaviourTree.objectReferenceValue);
-			//}
-			//else
-			//{
-			//	var picked = EditorGUIUtility.ObjectContent(aiBehaviourTree.objectReferenceValue, typeof(SelectorNode));
-			//	if (Event.current.type == EventType.MouseDown)
-			//		Debug.Log(Event.current.mousePosition);
-			//}
 
 			serializedObject.ApplyModifiedProperties();
 		}

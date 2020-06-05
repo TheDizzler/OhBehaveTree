@@ -61,7 +61,9 @@ namespace AtomosZ.OhBehave.EditorTools
 
 			GUI.BeginGroup(zoomAreaRect, EditorStyles.helpBox);
 			{
-				GUILayout.BeginArea(new Rect(zoomAreaRect.xMax - sliderWidth * 1.5f, zoomAreaRect.yMin - 25, sliderWidth, sliderHeight),
+				GUILayout.BeginArea(
+					new Rect(zoomAreaRect.xMax - sliderWidth * 1.5f, zoomAreaRect.yMin - 25, 
+						sliderWidth, sliderHeight),
 					EditorStyles.helpBox);
 				var defaultColor = GUI.color;
 				GUI.color = new Color(0, 0, 0, .25f);
@@ -79,6 +81,26 @@ namespace AtomosZ.OhBehave.EditorTools
 			}
 			GUI.EndGroup();
 			GUI.BeginGroup(postZoomArea);
+		}
+
+		public float GetScale()
+		{
+			return zoomScale;
+		}
+
+		public Vector2 GetOrigin()
+		{
+			return zoomOrigin;
+		}
+
+		public void SetScale(float savedScale)
+		{
+			zoomScale = savedScale;
+		}
+
+		public void SetOrigin(Vector2 savedOrigin)
+		{
+			zoomOrigin = savedOrigin;
 		}
 
 		public Vector2 GetContentOffset()
