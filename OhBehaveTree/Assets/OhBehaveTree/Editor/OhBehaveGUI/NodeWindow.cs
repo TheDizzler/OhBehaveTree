@@ -135,17 +135,18 @@ namespace AtomosZ.OhBehave.EditorTools
 			{
 				GUI.changed = true;
 				isSelected = true;
-				treeBlueprint.selectedNode = nodeObject;
+				labelStyle.normal.textColor = Color.white;
+				treeBlueprint.SelectNode(nodeObject);
 				currentStyle = nodeStyle.selectedStyle;
 				Selection.SetActiveObjectWithContext(treeBlueprint, null);
-				e.Use();
+				//e.Use();
 			}
 			else
 			{
 				GUI.changed = true;
-				isSelected = false;
-				if (treeBlueprint.selectedNode == nodeObject)
-					treeBlueprint.selectedNode = null;
+				Deselect();
+				if (treeBlueprint.GetSelectedNode() == nodeObject)
+					treeBlueprint.SelectNode(null);
 				currentStyle = nodeStyle.defaultStyle;
 			}
 		}
@@ -155,6 +156,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		public void Deselect()
 		{
 			isSelected = false;
+			labelStyle.normal.textColor = Color.black;
 		}
 
 		protected Rect TitleLabelRect()

@@ -28,9 +28,10 @@ namespace AtomosZ.OhBehave.EditorTools
 		/// Goddamn scriptable object LOVE losing data.
 		/// </summary>
 		public string controllerFilePath;
-		public NodeEditorObject selectedNode;
 		public bool isDrawingNewConnection = false;
 
+		[SerializeField]
+		private NodeEditorObject selectedNode;
 		private Dictionary<int, NodeEditorObject> nodeObjects;
 		private SerializedObject serializedObject;
 		/// <summary>
@@ -139,6 +140,15 @@ namespace AtomosZ.OhBehave.EditorTools
 			}
 		}
 
+		public void SelectNode(NodeEditorObject nodeObject)
+		{
+			if (IsNodeSelected())
+			{
+				selectedNode.window.Deselect();
+			}
+
+			selectedNode = nodeObject;
+		}
 
 		public void DrawingNewConnection(ConnectionPoint connectionPoint)
 		{
@@ -208,7 +218,8 @@ namespace AtomosZ.OhBehave.EditorTools
 
 		public void DeselectNode()
 		{
-			if (selectedNode == null || selectedNode.window == null)
+
+			if (!IsNodeSelected())
 				return;
 			selectedNode.window.Deselect();
 			selectedNode = null;
@@ -328,6 +339,15 @@ namespace AtomosZ.OhBehave.EditorTools
 		}
 
 
+		public bool IsNodeSelected()
+		{
+			return selectedNode != null && !string.IsNullOrEmpty(selectedNode.displayName);
+		}
+
+		public NodeEditorObject GetSelectedNode()
+		{
+			return selectedNode;
+		}
 
 
 

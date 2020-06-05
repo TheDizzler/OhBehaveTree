@@ -18,12 +18,18 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 
 		public override void OnInspectorGUI()
 		{
-			if (instance.selectedNode != null && !string.IsNullOrEmpty(instance.selectedNode.displayName))
+			if (instance.IsNodeSelected())
 			{
 				DrawSelectedNode();
 			}
 			else
 			{
+				if (instance.ohBehaveTree == null)
+				{
+					Debug.LogWarning("POS blueprint lost track of it's controller");
+					instance.FindYourControllerDumbass();
+				}
+				else
 				DrawBlueprintEditor();
 			}
 
@@ -47,7 +53,7 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 
 		private void DrawSelectedNode()
 		{
-			var nodeObject = instance.selectedNode;
+			var nodeObject = instance.GetSelectedNode();
 
 			GUILayout.BeginVertical();
 			{
