@@ -41,6 +41,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		private List<NodeEditorObject> deleteTasks = new List<NodeEditorObject>();
 		private ConnectionPoint connectionDrawing;
 		private bool cancelMakeNewConnection;
+		private Vector2 savedMousePos;
 		private bool save;
 
 
@@ -88,7 +89,8 @@ namespace AtomosZ.OhBehave.EditorTools
 					return;
 
 				var winData = new Rect(
-							EditorWindow.GetWindow<OhBehaveEditorWindow>().position.width / 2, 0,
+							-OhBehaveEditorWindow.SequenceNodeStyle.size.x / 2,
+							-OhBehaveEditorWindow.SequenceNodeStyle.size.y,
 							OhBehaveEditorWindow.SequenceNodeStyle.size.x,
 							OhBehaveEditorWindow.SequenceNodeStyle.size.y);
 
@@ -170,6 +172,9 @@ namespace AtomosZ.OhBehave.EditorTools
 		public void CancelNewConnection(ConnectionPoint connectionPoint)
 		{
 			cancelMakeNewConnection = true;
+			savedMousePos = Event.current.mousePosition;
+			// Prompt to create new node
+			ProcessContextMenu(connectionPoint.nodeWindow.nodeObject, true);
 		}
 
 		/// <summary>
@@ -251,13 +256,17 @@ namespace AtomosZ.OhBehave.EditorTools
 			writer.Close();
 		}
 
-		public void ProcessContextMenu(NodeEditorObject parentNode)
+		public void ProcessContextMenu(NodeEditorObject parentNode, bool createAtMousePosition = false)
 		{
 			GenericMenu genericMenu = new GenericMenu();
-			genericMenu.AddItem(new GUIContent("Add Leaf"), false, () => CreateChildNode(parentNode, NodeType.Leaf));
-			genericMenu.AddItem(new GUIContent("Add Inverter"), false, () => CreateChildNode(parentNode, NodeType.Inverter));
-			genericMenu.AddItem(new GUIContent("Add Sequence"), false, () => CreateChildNode(parentNode, NodeType.Sequence));
-			genericMenu.AddItem(new GUIContent("Add Selector"), false, () => CreateChildNode(parentNode, NodeType.Selector));
+			genericMenu.AddItem(new GUIContent("Add Leaf"), false, 
+				() => CreateChildNode(parentNode, NodeType.Leaf, createAtMousePosition));
+			genericMenu.AddItem(new GUIContent("Add Inverter"), false, 
+				() => CreateChildNode(parentNode, NodeType.Inverter, createAtMousePosition));
+			genericMenu.AddItem(new GUIContent("Add Sequence"), false, 
+				() => CreateChildNode(parentNode, NodeType.Sequence, createAtMousePosition));
+			genericMenu.AddItem(new GUIContent("Add Selector"), false, 
+				() => CreateChildNode(parentNode, NodeType.Selector, createAtMousePosition));
 			genericMenu.ShowAsContext();
 		}
 
@@ -307,30 +316,32 @@ namespace AtomosZ.OhBehave.EditorTools
 			Save();
 		}
 
-		private void CreateChildNode(NodeEditorObject parentNode, NodeType nodeType)
+		private void CreateChildNode(NodeEditorObject parentNode, NodeType nodeType, bool createAtMousePosition)
 		{
-			Rect parentWindowRect = parentNode.window.GetRect();
+			Rect parentWindowRect = parentNode.window.GetRectNoOffset();
 
 			switch (nodeType)
 			{
 				case NodeType.Leaf:
 				case NodeType.Sequence:
+				case NodeType.Selector:
+				case NodeType.Inverter:
 					NodeEditorObject newNode
 						= new NodeEditorObject(nodeType, ++lastNodeIndex, parentNode.index)
 						{
 							description = nodeType + " type node. Add description of desired behaviour",
 							displayName = nodeType.ToString(),
-							windowRect = new Rect(
-						new Vector2(parentWindowRect.x,
-							parentWindowRect.y + parentWindowRect.height + DefaultTreeRowHeight),
-						OhBehaveEditorWindow.SequenceNodeStyle.size)
+							windowRect = new Rect(createAtMousePosition?
+								savedMousePos + EditorWindow.GetWindow<OhBehaveEditorWindow>().zoomer.GetContentOffset():
+								new Vector2(parentWindowRect.x,
+									parentWindowRect.y + parentWindowRect.height + DefaultTreeRowHeight),
+							OhBehaveEditorWindow.SequenceNodeStyle.size)
 						};
 					nodeObjects.Add(lastNodeIndex, newNode);
 					parentNode.AddChild(newNode);
 					break;
-				case NodeType.Inverter:
-				case NodeType.Selector:
 
+				default:
 					Debug.LogWarning("TODO: CreateChildNode of type " + nodeType);
 					break;
 			}

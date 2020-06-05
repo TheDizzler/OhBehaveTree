@@ -72,7 +72,7 @@ namespace AtomosZ.OhBehave.EditorTools
 				GUILayout.Label(
 					new GUIContent(nodeObject.displayName + " - " + Enum.GetName(typeof(NodeType),
 						nodeObject.nodeType)),
-					NodeStyle.SequencerLabelStyle
+					labelStyle
 				);
 
 				NodeType newType = (NodeType)EditorGUILayout.EnumPopup(nodeObject.nodeType);

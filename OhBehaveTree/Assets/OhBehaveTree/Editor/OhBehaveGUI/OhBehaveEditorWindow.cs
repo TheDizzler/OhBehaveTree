@@ -11,6 +11,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		public static NodeStyle SelectorNodeStyle;
 		public static NodeStyle SequenceNodeStyle;
 		public static NodeStyle LeafNodeStyle;
+		public static NodeStyle InverterNodeStyle;
 		public static GUIStyle InPointStyle;
 		public static GUIStyle OutPointStyle;
 
@@ -59,6 +60,8 @@ namespace AtomosZ.OhBehave.EditorTools
 			SequenceNodeStyle.Init(new Vector2(250, 100));
 			LeafNodeStyle = new NodeStyle();
 			LeafNodeStyle.Init(new Vector2(250, 75));
+			InverterNodeStyle = new NodeStyle();
+			InverterNodeStyle.Init(new Vector2(250, 75));
 
 			InPointStyle = new GUIStyle();
 			InPointStyle.normal.background = (Texture2D)

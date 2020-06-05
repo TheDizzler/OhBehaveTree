@@ -22,15 +22,20 @@ namespace AtomosZ.OhBehave.EditorTools
 		protected string nodeName;
 		protected GUIStyle currentStyle;
 		protected Color bgColor;
+		protected GUIStyle labelStyle;
 
 		public IParentNodeWindow parent;
 		public Connection connectionToParent;
 		protected OhBehaveTreeBlueprint treeBlueprint;
 		protected bool isDragged;
 		protected bool isSelected;
+		/// <summary>
+		/// If a child node is constructed before the parent the connection can
+		/// not be constructed, so hold off on the construction until it's possible.
+		/// </summary>
 		protected bool refreshConnection;
 		private double timeClicked = double.MinValue;
-		
+
 
 		public NodeWindow(NodeEditorObject nodeObj)
 		{
@@ -43,16 +48,25 @@ namespace AtomosZ.OhBehave.EditorTools
 			{
 				case NodeType.Leaf:
 					nodeStyle = OhBehaveEditorWindow.LeafNodeStyle;
-					bgColor = NodeStyle.leafColor;
+					bgColor = NodeStyle.LeafColor;
+					labelStyle = NodeStyle.LeafLabelStyle;
 					break;
 				case NodeType.Selector:
 					nodeStyle = OhBehaveEditorWindow.SelectorNodeStyle;
-					bgColor = NodeStyle.selectorColor;
+					bgColor = NodeStyle.SelectorColor;
+					labelStyle = NodeStyle.SelectorLabelStyle;
 					outPoint = new ConnectionPoint(this, ConnectionPointType.Out, ConnectionControls.OnClickOutPoint);
 					break;
 				case NodeType.Sequence:
 					nodeStyle = OhBehaveEditorWindow.SequenceNodeStyle;
-					bgColor = NodeStyle.sequenceColor;
+					bgColor = NodeStyle.SequenceColor;
+					labelStyle = NodeStyle.SequencerLabelStyle;
+					outPoint = new ConnectionPoint(this, ConnectionPointType.Out, ConnectionControls.OnClickOutPoint);
+					break;
+				case NodeType.Inverter:
+					nodeStyle = OhBehaveEditorWindow.InverterNodeStyle;
+					bgColor = NodeStyle.InverterColor;
+					labelStyle = NodeStyle.InverterLabelStyle;
 					outPoint = new ConnectionPoint(this, ConnectionPointType.Out, ConnectionControls.OnClickOutPoint);
 					break;
 			}
@@ -73,7 +87,7 @@ namespace AtomosZ.OhBehave.EditorTools
 			}
 			else
 			{
-				bgColor = NodeStyle.rootColor;
+				bgColor = NodeStyle.RootColor;
 			}
 		}
 
@@ -126,7 +140,8 @@ namespace AtomosZ.OhBehave.EditorTools
 				isDragged = true;
 				GUI.changed = true;
 				isSelected = true;
-				treeBlueprint.selectedNode = nodeObject;
+				labelStyle.normal.textColor = Color.white;
+				treeBlueprint.SelectNode(nodeObject);
 				currentStyle = nodeStyle.selectedStyle;
 				Selection.SetActiveObjectWithContext(treeBlueprint, null);
 				e.Use();

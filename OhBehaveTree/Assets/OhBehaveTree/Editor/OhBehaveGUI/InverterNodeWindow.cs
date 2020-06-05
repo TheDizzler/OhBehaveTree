@@ -4,13 +4,9 @@ using UnityEngine;
 
 namespace AtomosZ.OhBehave.EditorTools
 {
-	public class LeafNodeWindow : NodeWindow
+	public class InverterNodeWindow : NodeWindow
 	{
-		private bool isExpanded;
-
-
-		public LeafNodeWindow(NodeEditorObject node) : base(node) { }
-
+		public InverterNodeWindow(NodeEditorObject nodeObj) : base(nodeObj) { }
 
 		public override bool ProcessEvents(Event e)
 		{
@@ -44,7 +40,6 @@ namespace AtomosZ.OhBehave.EditorTools
 			return false;
 		}
 
-
 		public override void OnGUI()
 		{
 			if (refreshConnection)
@@ -71,10 +66,6 @@ namespace AtomosZ.OhBehave.EditorTools
 						labelStyle
 					);
 
-					//if (GUILayout.Button("Edit", NodeStyle.LeafLabelStyle))
-					//{
-					//	NodeEditPopup.Init(nodeObject);
-					//}
 				}
 				GUILayout.EndHorizontal();
 
@@ -84,32 +75,10 @@ namespace AtomosZ.OhBehave.EditorTools
 					nodeObject.ChangeNodeType(newType);
 				}
 
-				isExpanded = EditorGUILayout.Foldout(isExpanded, new GUIContent("Actions"));
-				if (isExpanded)
-				{
-					EditorGUILayout.LabelField("Action Start:");
-					if (nodeObject.startEvent.GetPersistentEventCount() == 0)
-					{
-						EditorGUILayout.LabelField("\tNo Methods Set");
-					}
-
-					for (int i = 0; i < nodeObject.startEvent.GetPersistentEventCount(); ++i)
-					{
-						EditorGUILayout.LabelField("\t" + nodeObject.startEvent.GetPersistentMethodName(i));
-					}
-
-					EditorGUILayout.LabelField("Action:");
-					if (nodeObject.actionEvent.GetPersistentEventCount() == 0)
-					{
-						EditorGUILayout.LabelField("\tNo Methods Set");
-					}
-
-					for (int i = 0; i < nodeObject.actionEvent.GetPersistentEventCount(); ++i)
-					{
-						EditorGUILayout.LabelField("\t" + nodeObject.actionEvent.GetPersistentMethodName(i));
-					}
-				}
-
+				if (nodeObject.children != null && nodeObject.children.Count == 1)
+					GUILayout.Label("NOT " + nodeObject.children[0]);
+				else
+					GUILayout.Label("Dangeling Inverter");
 				if (Event.current.type == EventType.Repaint)
 				{
 					Rect lastrect = GUILayoutUtility.GetLastRect();
@@ -127,11 +96,16 @@ namespace AtomosZ.OhBehave.EditorTools
 			inPoint.Draw();
 			if (connectionToParent != null)
 				connectionToParent.Draw();
+
+			if (outPoint != null)
+				outPoint.Draw();
 		}
+
+
 
 		public override void UpdateChildren()
 		{
-			Debug.LogError("Leaf nodes should NOT have children!");
+			throw new System.NotImplementedException();
 		}
 	}
 }

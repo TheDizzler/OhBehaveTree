@@ -183,11 +183,16 @@ namespace AtomosZ.OhBehave.EditorTools
 				case NodeType.Sequence:
 					window = new SequenceNodeWindow(this);
 					break;
+				case NodeType.Selector:
+					window = new SelectorNodeWindow(this);
+					break;
 				case NodeType.Leaf:
 					window = new LeafNodeWindow(this);
 					break;
 				case NodeType.Inverter:
-				case NodeType.Selector:
+					window = new InverterNodeWindow(this);
+					break;
+				default:
 					Debug.LogWarning("TODO: CreateWindow of type " + nodeType);
 					break;
 			}
