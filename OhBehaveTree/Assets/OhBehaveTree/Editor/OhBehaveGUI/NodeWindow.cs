@@ -6,6 +6,7 @@ namespace AtomosZ.OhBehave.EditorTools
 {
 	public abstract class NodeWindow
 	{
+		protected const float TITLEBAR_OFFSET = 15;
 		public static float DoubleClickTime = .3f;
 
 		/// <summary>
@@ -35,7 +36,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		/// </summary>
 		protected bool refreshConnection;
 		private double timeClicked = double.MinValue;
-
+		
 
 		public NodeWindow(NodeEditorObject nodeObj)
 		{
@@ -91,6 +92,21 @@ namespace AtomosZ.OhBehave.EditorTools
 			}
 		}
 
+
+		public abstract bool ProcessEvents(Event e);
+		public abstract void OnGUI();
+		/// <summary>
+		/// Keep list of children update-to-date. Used by Composite Nodes.
+		/// </summary>
+		public abstract void UpdateChildrenList();
+
+		public void Deselect()
+		{
+			isSelected = false;
+			labelStyle.normal.textColor = Color.black;
+		}
+
+
 		public Rect GetRect()
 		{
 			Rect rect = nodeObject.windowRect;
@@ -107,6 +123,23 @@ namespace AtomosZ.OhBehave.EditorTools
 		{
 			OnClickRemoveConnection(connectionToParent);
 		}
+
+		/// <summary>
+		/// TODO: This will need to be re-thunk to accomodate windows being total slaves to the NodeEditorObjects.
+		/// Called from parent (CreateChildConnection())
+		/// </summary>
+		/// <param name="newParent"></param>
+		public void CreateConnectionToParent(IParentNodeWindow newParent)
+		{
+			if (parent != null)
+			{ // TODO: cleanup old connection
+				throw new Exception("Must handle situation where child already has parent!");
+			}
+
+			parent = newParent;
+			connectionToParent = new Connection(((NodeWindow)parent).outPoint, inPoint, OnClickRemoveConnection);
+		}
+
 
 		protected void RefreshConnection()
 		{
@@ -166,48 +199,38 @@ namespace AtomosZ.OhBehave.EditorTools
 			}
 		}
 
-		/// <summary>
-		/// Keep list of children update-to-date. Used by Composite Nodes.
-		/// </summary>
-		public abstract void UpdateChildrenList();
+		
 
-		public void Deselect()
+		protected void CreateTitleBar()
 		{
-			isSelected = false;
-			labelStyle.normal.textColor = Color.black;
+			GUILayout.Space(TITLEBAR_OFFSET);
+			GUILayout.BeginHorizontal();
+			{
+				GUILayout.Label(
+					new GUIContent(nodeObject.displayName + " - " + Enum.GetName(typeof(NodeType),
+						nodeObject.nodeType)),
+					labelStyle
+				);
+
+				//if (GUILayout.Button("Edit", NodeStyle.LeafLabelStyle))
+				//{
+				//	NodeEditPopup.Init(nodeObject);
+				//}
+			}
+			GUILayout.EndHorizontal();
 		}
 
 		protected Rect TitleLabelRect()
 		{
 			Rect rect = GetRect();
+			rect.y += TITLEBAR_OFFSET;
 			rect.height = EditorGUIUtility.singleLineHeight;
 			return rect;
 		}
 
-		public abstract bool ProcessEvents(Event e);
-
-		public abstract void OnGUI();
-
-
 		protected void Drag(Vector2 delta)
 		{
 			nodeObject.windowRect.position += delta;
-		}
-
-		/// <summary>
-		/// TODO: This will need to be re-thunk to accomodate windows being total slaves to the NodeEditorObjects.
-		/// Called from parent (CreateChildConnection())
-		/// </summary>
-		/// <param name="newParent"></param>
-		public void CreateConnectionToParent(IParentNodeWindow newParent)
-		{
-			if (parent != null)
-			{ // TODO: cleanup old connection
-				throw new Exception("Must handle situation where child already has parent!");
-			}
-
-			parent = newParent;
-			connectionToParent = new Connection(((NodeWindow)parent).outPoint, inPoint, OnClickRemoveConnection);
 		}
 
 

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
@@ -73,11 +72,7 @@ namespace AtomosZ.OhBehave.EditorTools
 
 			GUILayout.BeginArea(GetRect(), content, currentStyle);
 			{
-				GUILayout.Label(
-					new GUIContent(nodeObject.displayName + " - " + Enum.GetName(typeof(NodeType),
-						nodeObject.nodeType)),
-					labelStyle
-				);
+				CreateTitleBar();
 
 				NodeType newType = (NodeType)EditorGUILayout.EnumPopup(nodeObject.nodeType);
 				if (newType != nodeObject.nodeType)

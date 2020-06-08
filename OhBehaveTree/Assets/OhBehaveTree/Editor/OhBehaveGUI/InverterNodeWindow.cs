@@ -1,5 +1,4 @@
-﻿using System;
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
 
 namespace AtomosZ.OhBehave.EditorTools
@@ -63,17 +62,8 @@ namespace AtomosZ.OhBehave.EditorTools
 
 			GUILayout.BeginArea(GetRect(), content, currentStyle);
 			{
-				GUILayout.BeginVertical();
-				GUILayout.BeginHorizontal();
-				{
-					GUILayout.Label(
-						new GUIContent(nodeObject.displayName + " - " + Enum.GetName(typeof(NodeType),
-							nodeObject.nodeType)),
-						labelStyle
-					);
+				CreateTitleBar();
 
-				}
-				GUILayout.EndHorizontal();
 
 				NodeType newType = (NodeType)EditorGUILayout.EnumPopup(nodeObject.nodeType);
 				if (newType != nodeObject.nodeType)
@@ -90,8 +80,6 @@ namespace AtomosZ.OhBehave.EditorTools
 					Rect lastrect = GUILayoutUtility.GetLastRect();
 					nodeObject.windowRect.height = lastrect.yMax + 10;
 				}
-
-				GUILayout.EndVertical();
 			}
 			GUILayout.EndArea();
 
@@ -99,12 +87,10 @@ namespace AtomosZ.OhBehave.EditorTools
 
 			GUI.backgroundColor = clr;
 
-			
+
 			if (connectionToParent != null)
 				connectionToParent.Draw();
 		}
-
-
 
 		public override void UpdateChildrenList()
 		{
