@@ -55,7 +55,7 @@ namespace AtomosZ.OhBehave.EditorTools
 					break;
 			}
 
-			if (rect.Contains(Event.current.mousePosition))
+			if (rect.Contains(e.mousePosition))
 			{
 				isHovering = true;
 
@@ -68,11 +68,12 @@ namespace AtomosZ.OhBehave.EditorTools
 					hoverBGColor = Color.red;
 				}
 
-				if (Event.current.button == 0)
+				if (e.button == 0)
 				{
 					if (e.type == EventType.MouseDown)
 					{
 						blueprint.StartPointSelected(this);
+						e.Use();
 					}
 					else if (e.type == EventType.MouseUp)
 					{
@@ -80,7 +81,6 @@ namespace AtomosZ.OhBehave.EditorTools
 						e.Use();
 					}
 				}
-
 			}
 			else
 				isHovering = false;

@@ -7,6 +7,7 @@ namespace AtomosZ.OhBehave.EditorTools
 	public abstract class NodeWindow
 	{
 		protected const float TITLEBAR_OFFSET = 15;
+		protected static Texture invalidTexture = EditorGUIUtility.FindTexture("Assets/OhBehaveTree/Editor/Node Broken Branch.png");
 		public static float DoubleClickTime = .3f;
 
 		/// <summary>
@@ -36,7 +37,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		/// </summary>
 		protected bool refreshConnection;
 		private double timeClicked = double.MinValue;
-		
+		private bool isValid;
 
 		public NodeWindow(NodeEditorObject nodeObj)
 		{
@@ -140,6 +141,10 @@ namespace AtomosZ.OhBehave.EditorTools
 			connectionToParent = new Connection(((NodeWindow)parent).outPoint, inPoint, OnClickRemoveConnection);
 		}
 
+		public void BranchBroken(bool isFine)
+		{
+			isValid = isFine;
+		}
 
 		protected void RefreshConnection()
 		{
@@ -199,11 +204,14 @@ namespace AtomosZ.OhBehave.EditorTools
 			}
 		}
 
-		
+
 
 		protected void CreateTitleBar()
 		{
-			GUILayout.Space(TITLEBAR_OFFSET);
+			if (isValid)
+				GUILayout.Space(TITLEBAR_OFFSET);
+			else
+				GUILayout.Label(invalidTexture);
 			GUILayout.BeginHorizontal();
 			{
 				GUILayout.Label(
@@ -223,8 +231,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		protected Rect TitleLabelRect()
 		{
 			Rect rect = GetRect();
-			rect.y += TITLEBAR_OFFSET;
-			rect.height = EditorGUIUtility.singleLineHeight;
+			rect.height = EditorGUIUtility.singleLineHeight + TITLEBAR_OFFSET;
 			return rect;
 		}
 

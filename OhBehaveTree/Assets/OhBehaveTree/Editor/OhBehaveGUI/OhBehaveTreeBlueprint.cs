@@ -106,7 +106,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		}
 
 
-		public void OnGui(Event current, Vector2 contentOffset)
+		public void OnGui(Event current, EditorZoomer zoomer)
 		{
 			if (serializedObject == null)
 				serializedObject = new SerializedObject(this);
@@ -117,12 +117,14 @@ namespace AtomosZ.OhBehave.EditorTools
 				return;
 			}
 
-
+			bool isValidTree = true;
 			foreach (var node in nodeObjects.Values)
 			{
-				node.Offset(contentOffset);
+				node.Offset(zoomer.GetContentOffset());
 				if (node.ProcessEvents(current))
 					save = true;
+				if (node.CheckIsValid())
+					isValidTree = false;
 				node.OnGUI();
 			}
 
@@ -130,7 +132,7 @@ namespace AtomosZ.OhBehave.EditorTools
 			if (startConnection != null)
 			{// we want to draw the line on-top of everything else
 				Handles.DrawLine(startConnection.rect.center, current.mousePosition);
-
+				GUI.changed = true;
 				if (current.button == 1
 					&& current.type == EventType.MouseDown)
 				{
@@ -154,6 +156,14 @@ namespace AtomosZ.OhBehave.EditorTools
 					startConnection = null;
 				}
 			}
+			else if (current.button == 1
+				&& current.type == EventType.MouseUp
+				&& !zoomer.isScreenMoved)
+			{
+				CreateStandAloneContextMenu();
+			}
+
+			zoomer.DisplayInvalid(isValidTree);
 
 
 			PendingDeletes();
@@ -203,7 +213,6 @@ namespace AtomosZ.OhBehave.EditorTools
 			if (endPoint.type != startConnection.type
 				&& endPoint.nodeWindow != startConnection.nodeWindow)
 			{
-				Debug.Log("Complete Connection");
 				endConnection = endPoint;
 			}
 		}
@@ -256,6 +265,20 @@ namespace AtomosZ.OhBehave.EditorTools
 			save = true;
 		}
 
+
+		private void CreateStandAloneContextMenu()
+		{
+			var genericMenu = new GenericMenu();
+			genericMenu.AddItem(new GUIContent("Add Leaf"), false,
+				() => CreateStandAloneNode(NodeType.Leaf));
+			genericMenu.AddItem(new GUIContent("Add Inverter"), false,
+				() => CreateStandAloneNode(NodeType.Inverter));
+			genericMenu.AddItem(new GUIContent("Add Sequence"), false,
+				() => CreateStandAloneNode(NodeType.Sequence));
+			genericMenu.AddItem(new GUIContent("Add Selector"), false,
+				() => CreateStandAloneNode(NodeType.Selector));
+			genericMenu.ShowAsContext();
+		}
 
 		public void CreateParentContextMenu(NodeEditorObject childNode, bool createAtMousePosition = false)
 		{
@@ -321,6 +344,8 @@ namespace AtomosZ.OhBehave.EditorTools
 			StreamWriter writer = new StreamWriter(jsonFilepath);
 			writer.WriteLine(jsonString);
 			writer.Close();
+
+			AssetDatabase.Refresh();
 		}
 
 		private void PendingDeletes()
@@ -350,6 +375,33 @@ namespace AtomosZ.OhBehave.EditorTools
 			save = true;
 		}
 
+		private void CreateStandAloneNode(NodeType nodeType)
+		{
+			switch (nodeType)
+			{
+				case NodeType.Leaf:
+				case NodeType.Sequence:
+				case NodeType.Selector:
+				case NodeType.Inverter:
+					NodeEditorObject newNode
+						= new NodeEditorObject(nodeType, ++lastNodeIndex, NO_PARENT_INDEX)
+						{
+							description = nodeType + " type node. Add description of desired behaviour",
+							displayName = nodeType.ToString(),
+							windowRect = new Rect(
+								savedMousePos + EditorWindow.GetWindow<OhBehaveEditorWindow>().zoomer.GetContentOffset(),
+								OhBehaveEditorWindow.SequenceNodeStyle.size)
+						};
+					nodeObjects.Add(lastNodeIndex, newNode);
+					save = true;
+					break;
+
+				default:
+					Debug.LogWarning("TODO: CreateChildNode of type " + nodeType);
+					break;
+			}
+		}
+
 		private void CreateParentNode(NodeEditorObject childNode, NodeType nodeType, bool createAtMousePosition)
 		{
 			Rect childWindowRect = childNode.window.GetRectNoOffset();
@@ -368,7 +420,7 @@ namespace AtomosZ.OhBehave.EditorTools
 								savedMousePos + EditorWindow.GetWindow<OhBehaveEditorWindow>().zoomer.GetContentOffset() :
 								new Vector2(childWindowRect.x,
 									childWindowRect.y - childWindowRect.height - DefaultTreeRowHeight),
-							OhBehaveEditorWindow.SequenceNodeStyle.size)
+								OhBehaveEditorWindow.SequenceNodeStyle.size)
 						};
 					nodeObjects.Add(lastNodeIndex, newNode);
 					newNode.AddChild(childNode);
@@ -411,7 +463,7 @@ namespace AtomosZ.OhBehave.EditorTools
 								savedMousePos + EditorWindow.GetWindow<OhBehaveEditorWindow>().zoomer.GetContentOffset() :
 								new Vector2(parentWindowRect.x,
 									parentWindowRect.y + parentWindowRect.height + DefaultTreeRowHeight),
-							OhBehaveEditorWindow.SequenceNodeStyle.size)
+								OhBehaveEditorWindow.SequenceNodeStyle.size)
 						};
 					nodeObjects.Add(lastNodeIndex, newNode);
 					parentNode.AddChild(newNode);

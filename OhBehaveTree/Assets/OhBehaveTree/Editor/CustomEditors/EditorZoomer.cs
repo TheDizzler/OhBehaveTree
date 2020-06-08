@@ -12,6 +12,9 @@ namespace AtomosZ.OhBehave.EditorTools
 		private const float MAX_ZOOM = 2;
 		private const float sliderWidth = 75;
 		private const float sliderHeight = 50;
+		private readonly float panMinimum = 1f;
+
+		public bool isScreenMoved;
 
 		private Rect zoomAreaRect;
 		private float zoomScale = 1;
@@ -24,6 +27,16 @@ namespace AtomosZ.OhBehave.EditorTools
 		/// Prevents zoom area from jumping around when left mouse button was clicked in a different context.
 		/// </summary>
 		private bool lastWasDragging;
+		private Vector2 prePanZoomOrigin;
+		private GUIStyle warningTextStyle;
+		private bool displayWarning;
+
+
+		public EditorZoomer()
+		{
+			warningTextStyle = new GUIStyle();
+			warningTextStyle.normal.textColor = Color.red;
+		}
 
 		public void Begin(Rect zoomRect)
 		{
@@ -55,6 +68,11 @@ namespace AtomosZ.OhBehave.EditorTools
 		}
 
 
+		public void DisplayInvalid(bool isValidTree)
+		{
+			displayWarning = !isValidTree;
+		}
+
 		public void End(Rect postZoomArea)
 		{
 			var matrix = GUI.matrix;
@@ -75,13 +93,30 @@ namespace AtomosZ.OhBehave.EditorTools
 				{
 					zoomToCenter = true;
 					zoomScale = newZoom;
+					GUI.changed = true;
 				}
 
-				GUI.changed = true;
 				GUILayout.EndArea();
 				GUI.color = defaultColor;
 			}
 			GUI.EndGroup();
+
+			if (displayWarning)
+			{
+				GUI.BeginGroup(zoomAreaRect, EditorStyles.helpBox);
+				{
+					GUILayout.BeginArea(
+						new Rect(zoomAreaRect.xMax - sliderWidth * 4f, zoomAreaRect.yMax - 100,
+							sliderWidth * 3.3f, sliderHeight * .5f),
+						EditorStyles.helpBox);
+					{
+						GUILayout.Label("Tree Invalid - Please fix broken branches", warningTextStyle);
+					}
+
+					GUILayout.EndArea();
+				}
+				GUI.EndGroup();
+			}
 			GUI.BeginGroup(postZoomArea);
 		}
 
@@ -125,12 +160,26 @@ namespace AtomosZ.OhBehave.EditorTools
 					{
 						var mouseDelta = Event.current.mousePosition - lastMouse;
 						zoomOrigin += mouseDelta;
+						prePanZoomOrigin += mouseDelta;
 						Event.current.Use();
 					}
+
 					lastWasDragging = true;
 				}
-				else
+				else if (current.type == EventType.MouseUp && current.button == 1)
+				{
+					isScreenMoved = Mathf.Abs(prePanZoomOrigin.x) > panMinimum
+						|| Mathf.Abs(prePanZoomOrigin.y) > panMinimum;
+
 					lastWasDragging = false;
+					prePanZoomOrigin = Vector2.zero;
+				}
+				else
+				{
+					lastWasDragging = false;
+					prePanZoomOrigin = Vector2.zero;
+					isScreenMoved = false;
+				}
 				lastMouse = current.mousePosition;
 			}
 

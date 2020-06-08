@@ -180,7 +180,7 @@ namespace AtomosZ.OhBehave.EditorTools
 
 				zoomer.Begin(zoomRect);
 				{
-					treeBlueprint.OnGui(Event.current, zoomer.GetContentOffset());
+					treeBlueprint.OnGui(Event.current, zoomer);
 				}
 				zoomer.End(new Rect(0, zoomRect.yMax + zoomRect.position.y - 50, window.position.width, window.position.height));
 
