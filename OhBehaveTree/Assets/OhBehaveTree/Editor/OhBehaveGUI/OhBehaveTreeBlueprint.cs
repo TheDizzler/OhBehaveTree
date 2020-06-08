@@ -215,6 +215,10 @@ namespace AtomosZ.OhBehave.EditorTools
 			{
 				endConnection = endPoint;
 			}
+			else
+			{ // cancel this new connection
+				startConnection = null;
+			}
 		}
 
 
@@ -354,11 +358,10 @@ namespace AtomosZ.OhBehave.EditorTools
 				return;
 			foreach (var node in deleteTasks)
 			{
-				Debug.Log("delete me! " + node.displayName);
 				if (node.parentIndex == ROOT_NODE_PARENT_INDEX)
 				{
-					Debug.Log("Delete denied: I am Root");
-					return;
+					Debug.LogWarning("Delete denied: I am Root");
+					continue;
 				}
 
 				node.NotifyNeigboursOfDelete();
