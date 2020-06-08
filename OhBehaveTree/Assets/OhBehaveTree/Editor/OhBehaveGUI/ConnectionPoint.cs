@@ -15,8 +15,10 @@ namespace AtomosZ.OhBehave.EditorTools
 
 		private GUIStyle style;
 		private GUIStyle hoverStyle;
-		private bool drawingNewConnection;
 		private OhBehaveTreeBlueprint blueprint;
+		private bool isHovering;
+		private Color hoverBGColor;
+
 
 		public ConnectionPoint(NodeWindow node, ConnectionPointType type, Action<ConnectionPoint> OnClickConnectionPoint)
 		{
@@ -34,9 +36,10 @@ namespace AtomosZ.OhBehave.EditorTools
 			hoverStyle.normal.background = style.hover.background;
 
 			rect = new Rect(0, 0, style.normal.background.width, style.normal.background.height);
+
 		}
 
-		public void Draw()
+		public void ProcessEvents(Event e)
 		{
 			Rect windowRect = nodeWindow.GetRect();
 			rect.x = windowRect.x + windowRect.width * .5f - rect.width * .5f;
@@ -52,73 +55,48 @@ namespace AtomosZ.OhBehave.EditorTools
 					break;
 			}
 
-
 			if (rect.Contains(Event.current.mousePosition))
 			{
-				if (blueprint.isDrawingNewConnection && !drawingNewConnection)
+				isHovering = true;
+
+				if (blueprint.IsValidConnection(this))
 				{
-					if (blueprint.CheckValidConnection(this))
-					{
-						// we can connect these two nodes!
-						DrawValid();
-						if (Event.current.type == EventType.MouseUp
-							&& Event.current.button == 0)
-						{
-							blueprint.CreateNewConnection(this);
-						}
-						return;
-					}
-					DrawInvalid();
-					return;
+					hoverBGColor = Color.green;
+				}
+				else
+				{
+					hoverBGColor = Color.red;
 				}
 
-				if (Event.current.type == EventType.MouseDown
-					&& Event.current.button == 0)
+				if (Event.current.button == 0)
 				{
-					//OnClickConnectionPoint?.Invoke(this);
-					drawingNewConnection = true;
-					blueprint.DrawingNewConnection(this);
+					if (e.type == EventType.MouseDown)
+					{
+						blueprint.StartPointSelected(this);
+					}
+					else if (e.type == EventType.MouseUp)
+					{
+						blueprint.EndPointSelected(this);
+						e.Use();
+					}
 				}
-				else if (drawingNewConnection)
-					DrawValid();
-				else
-					GUI.Label(rect, "", hoverStyle);
+
 			}
-			else if (drawingNewConnection)
-				DrawValid();
+			else
+				isHovering = false;
+		}
+
+		public void OnGUI()
+		{
+			if (isHovering)
+			{
+				Color clr = GUI.backgroundColor;
+				GUI.backgroundColor = hoverBGColor;
+				GUI.Label(rect, "", hoverStyle);
+				GUI.backgroundColor = clr;
+			}
 			else
 				GUI.Label(rect, "", style);
-
-			if (drawingNewConnection)
-			{
-				if (Event.current.type == EventType.MouseUp
-					&& Event.current.button == 0)
-				{
-					drawingNewConnection = false;
-					blueprint.CancelNewConnection(this);
-					return;
-				}
-
-				Handles.DrawLine(rect.center, Event.current.mousePosition);
-			}
 		}
-
-		private void DrawInvalid()
-		{
-
-			Color clr = GUI.backgroundColor;
-			GUI.backgroundColor = Color.red;
-			GUI.Label(rect, "", hoverStyle);
-			GUI.backgroundColor = clr;
-		}
-
-		private void DrawValid()
-		{
-			Color clr = GUI.backgroundColor;
-			GUI.backgroundColor = Color.green;
-			GUI.Label(rect, "", hoverStyle);
-			GUI.backgroundColor = clr;
-		}
-
 	}
 }

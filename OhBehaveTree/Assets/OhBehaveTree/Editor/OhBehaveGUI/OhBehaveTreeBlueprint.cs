@@ -28,7 +28,6 @@ namespace AtomosZ.OhBehave.EditorTools
 		/// Goddamn scriptable object LOVE losing data.
 		/// </summary>
 		public string controllerFilePath;
-		public bool isDrawingNewConnection = false;
 
 		[SerializeField]
 		private NodeEditorObject selectedNode;
@@ -39,8 +38,8 @@ namespace AtomosZ.OhBehave.EditorTools
 		/// </summary>
 		private int lastNodeIndex = ROOT_INDEX;
 		private List<NodeEditorObject> deleteTasks = new List<NodeEditorObject>();
-		private ConnectionPoint connectionDrawing;
-		private bool cancelMakeNewConnection;
+		private ConnectionPoint startConnection;
+		private ConnectionPoint endConnection;
 		private Vector2 savedMousePos;
 		private bool save;
 
@@ -102,9 +101,10 @@ namespace AtomosZ.OhBehave.EditorTools
 				};
 				nodeObjects.Add(0, newNode);
 
-				Save();
+				save = true;
 			}
 		}
+
 
 		public void OnGui(Event current, Vector2 contentOffset)
 		{
@@ -126,14 +126,37 @@ namespace AtomosZ.OhBehave.EditorTools
 				node.OnGUI();
 			}
 
-			PendingDeletes();
 
-			if (cancelMakeNewConnection)
-			{
-				isDrawingNewConnection = false;
-				connectionDrawing = null;
-				cancelMakeNewConnection = false;
+			if (startConnection != null)
+			{// we want to draw the line on-top of everything else
+				Handles.DrawLine(startConnection.rect.center, current.mousePosition);
+
+				if (current.button == 1
+					&& current.type == EventType.MouseDown)
+				{
+					startConnection = null;
+					endConnection = null;
+				}
+				else if (endConnection != null)
+				{
+					CompleteConnection();
+				}
+				else if (current.button == 0
+					&& current.type == EventType.MouseUp)
+				{
+					// if this has not been consumed we can (?) assume that
+					//	the mouse was not released over a connection point
+					savedMousePos = current.mousePosition;
+					if (startConnection.type == ConnectionPointType.Out)
+						CreateChildContextMenu(startConnection.nodeWindow.nodeObject, true);
+					else
+						CreateParentContextMenu(startConnection.nodeWindow.nodeObject, true);
+					startConnection = null;
+				}
 			}
+
+
+			PendingDeletes();
 
 			if (save)
 			{
@@ -141,6 +164,8 @@ namespace AtomosZ.OhBehave.EditorTools
 				save = false;
 			}
 		}
+
+
 
 		public void SelectNode(NodeEditorObject nodeObject)
 		{
@@ -152,120 +177,108 @@ namespace AtomosZ.OhBehave.EditorTools
 			selectedNode = nodeObject;
 		}
 
-		public void DrawingNewConnection(ConnectionPoint connectionPoint)
-		{
-			isDrawingNewConnection = true;
-			connectionDrawing = connectionPoint;
-		}
-
-		public bool CheckValidConnection(ConnectionPoint potentialConnection)
-		{
-			if (connectionDrawing == null)
-			{       // this is fucked. This should never happen, yet, here we are.
-				isDrawingNewConnection = false;
-				return false;
-			}
-
-			return connectionDrawing.type != potentialConnection.type && connectionDrawing.nodeWindow != potentialConnection.nodeWindow;
-		}
-
-		public void CancelNewConnection(ConnectionPoint connectionPoint)
-		{
-			cancelMakeNewConnection = true;
-			savedMousePos = Event.current.mousePosition;
-			// Prompt to create new node
-			ProcessContextMenu(connectionPoint.nodeWindow.nodeObject, true);
-		}
-
-		/// <summary>
-		/// The connection needs to be verified prior to this or we could have massive problems.
-		/// </summary>
-		/// <param name="connectionPoint"></param>
-		public void CreateNewConnection(ConnectionPoint connectionPoint)
-		{
-			NodeEditorObject nodeParent, nodeChild;
-			if (connectionPoint.type == ConnectionPointType.Out)
-			{
-				nodeParent = connectionPoint.nodeWindow.nodeObject;
-				nodeChild = connectionDrawing.nodeWindow.nodeObject;
-			}
-			else
-			{
-				nodeChild = connectionPoint.nodeWindow.nodeObject;
-				nodeParent = connectionDrawing.nodeWindow.nodeObject;
-			}
-
-			if (nodeParent.nodeType == NodeType.Inverter && nodeParent.children.Count != 0)
-			{
-				// orphan the olde child
-				var oldChild = GetNodeObject(nodeParent.children[0]);
-				if (!oldChild.ParentRemoved(nodeParent.index))
-					throw new Exception("WTF problems removing parent from child in CreateNewConnection()");
-			}
-
-			var oldParent = GetNodeObject(nodeChild.parentIndex);
-			if (oldParent != null)
-			{
-				// remove from old parent
-				oldParent.ChildRemoved(nodeChild.index);
-			}
-
-			// ok, let's do this
-			nodeParent.AddChild(nodeChild);
-			nodeChild.ParentChanged(nodeParent.index);
-
-			//nodeParent.window.CreateConnectionToParent(;
-			nodeChild.window.CreateConnectionToParent((IParentNodeWindow)nodeParent.window);
-
-			Save();
-		}
-
-
 		public void DeselectNode()
 		{
-
 			if (!IsNodeSelected())
 				return;
 			selectedNode.window.Deselect();
 			selectedNode = null;
 		}
 
-		public void Save()
+
+
+		public void StartPointSelected(ConnectionPoint selectedConnection)
 		{
-			var ohBehave = EditorWindow.GetWindow<OhBehaveEditorWindow>();
-			JsonData data = new JsonData();
-			data.origin = ohBehave.zoomer.GetOrigin();
-			data.zoomScale = ohBehave.zoomer.GetScale();
+			if (startConnection != null)
+			{
+				Debug.LogError("Trying to make new start point");
+				return;
+			}
 
-
-			JsonNodeWrapper wrappedNodes = new JsonNodeWrapper();
-			List<NodeEditorObject> nodes = new List<NodeEditorObject>();
-			foreach (var node in nodeObjects.Values)
-				nodes.Add(node);
-			wrappedNodes.nodes = nodes.ToArray();
-			data.nodeWrapper = wrappedNodes;
-
-			string jsonString = JsonUtility.ToJson(data, true);
-
-			string jsonFilepath = Application.dataPath + "/../"
-				+ Path.GetDirectoryName(AssetDatabase.GetAssetPath(this)) + "/"
-				+ Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(this))
-				+ ".json";
-			StreamWriter writer = new StreamWriter(jsonFilepath);
-			writer.WriteLine(jsonString);
-			writer.Close();
+			startConnection = selectedConnection;
 		}
 
-		public void ProcessContextMenu(NodeEditorObject parentNode, bool createAtMousePosition = false)
+		public void EndPointSelected(ConnectionPoint endPoint)
 		{
-			GenericMenu genericMenu = new GenericMenu();
-			genericMenu.AddItem(new GUIContent("Add Leaf"), false, 
+			if (endPoint.type != startConnection.type
+				&& endPoint.nodeWindow != startConnection.nodeWindow)
+			{
+				Debug.Log("Complete Connection");
+				endConnection = endPoint;
+			}
+		}
+
+
+		public bool IsValidConnection(ConnectionPoint hoveredPoint)
+		{
+			if (startConnection == null || hoveredPoint == startConnection)
+				return true; // no points have been selected or this is the first selected point
+			return (hoveredPoint.type != startConnection.type
+				&& hoveredPoint.nodeWindow != startConnection.nodeWindow);
+		}
+
+		private void CompleteConnection()
+		{
+			NodeEditorObject nodeParent, nodeChild;
+			if (startConnection.type == ConnectionPointType.Out)
+			{
+				nodeParent = startConnection.nodeWindow.nodeObject;
+				nodeChild = endConnection.nodeWindow.nodeObject;
+			}
+			else
+			{
+				nodeParent = endConnection.nodeWindow.nodeObject;
+				nodeChild = startConnection.nodeWindow.nodeObject;
+			}
+
+			if (nodeParent.nodeType == NodeType.Inverter && nodeParent.HasChildren())
+			{
+				// orphan the olde child
+				var oldChild = GetNodeObject(nodeParent.children[0]);
+				oldChild.RemoveParent();
+				nodeParent.RemoveChild(oldChild.index);
+			}
+
+			var oldParent = GetNodeObject(nodeChild.parentIndex);
+			if (oldParent != null)
+			{
+				// remove from old parent
+				oldParent.RemoveChild(nodeChild.index);
+				nodeChild.RemoveParent();
+			}
+
+			// ok, let's do this
+			nodeParent.AddChild(nodeChild);
+			nodeChild.AddParent(nodeParent.index);
+
+			endConnection = null;
+			startConnection = null;
+			save = true;
+		}
+
+
+		public void CreateParentContextMenu(NodeEditorObject childNode, bool createAtMousePosition = false)
+		{
+			var genericMenu = new GenericMenu();
+			genericMenu.AddItem(new GUIContent("Add Inverter"), false,
+				() => CreateParentNode(childNode, NodeType.Inverter, createAtMousePosition));
+			genericMenu.AddItem(new GUIContent("Add Sequence"), false,
+				() => CreateParentNode(childNode, NodeType.Sequence, createAtMousePosition));
+			genericMenu.AddItem(new GUIContent("Add Selector"), false,
+				() => CreateParentNode(childNode, NodeType.Selector, createAtMousePosition));
+			genericMenu.ShowAsContext();
+		}
+
+		public void CreateChildContextMenu(NodeEditorObject parentNode, bool createAtMousePosition = false)
+		{
+			var genericMenu = new GenericMenu();
+			genericMenu.AddItem(new GUIContent("Add Leaf"), false,
 				() => CreateChildNode(parentNode, NodeType.Leaf, createAtMousePosition));
-			genericMenu.AddItem(new GUIContent("Add Inverter"), false, 
+			genericMenu.AddItem(new GUIContent("Add Inverter"), false,
 				() => CreateChildNode(parentNode, NodeType.Inverter, createAtMousePosition));
-			genericMenu.AddItem(new GUIContent("Add Sequence"), false, 
+			genericMenu.AddItem(new GUIContent("Add Sequence"), false,
 				() => CreateChildNode(parentNode, NodeType.Sequence, createAtMousePosition));
-			genericMenu.AddItem(new GUIContent("Add Selector"), false, 
+			genericMenu.AddItem(new GUIContent("Add Selector"), false,
 				() => CreateChildNode(parentNode, NodeType.Selector, createAtMousePosition));
 			genericMenu.ShowAsContext();
 		}
@@ -285,6 +298,30 @@ namespace AtomosZ.OhBehave.EditorTools
 			deleteTasks.Add(node);
 		}
 
+		private void Save()
+		{
+			var ohBehave = EditorWindow.GetWindow<OhBehaveEditorWindow>();
+			JsonData data = new JsonData();
+			data.origin = ohBehave.zoomer.GetOrigin();
+			data.zoomScale = ohBehave.zoomer.GetScale();
+
+			JsonNodeWrapper wrappedNodes = new JsonNodeWrapper();
+			List<NodeEditorObject> nodes = new List<NodeEditorObject>();
+			foreach (var node in nodeObjects.Values)
+				nodes.Add(node);
+			wrappedNodes.nodes = nodes.ToArray();
+			data.nodeWrapper = wrappedNodes;
+
+			string jsonString = JsonUtility.ToJson(data, true);
+
+			string jsonFilepath = Application.dataPath + "/../"
+				+ Path.GetDirectoryName(AssetDatabase.GetAssetPath(this)) + "/"
+				+ Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(this))
+				+ ".json";
+			StreamWriter writer = new StreamWriter(jsonFilepath);
+			writer.WriteLine(jsonString);
+			writer.Close();
+		}
 
 		private void PendingDeletes()
 		{
@@ -299,10 +336,7 @@ namespace AtomosZ.OhBehave.EditorTools
 					return;
 				}
 
-				if (node.parentIndex != NO_PARENT_INDEX && node.Parent != null)
-					node.Parent.ChildRemoved(node.index);
-
-				node.NotifyChildrenOfDelete();
+				node.NotifyNeigboursOfDelete();
 
 
 				if (!nodeObjects.Remove(node.index))
@@ -313,12 +347,54 @@ namespace AtomosZ.OhBehave.EditorTools
 
 			GUI.changed = true;
 			deleteTasks.Clear();
-			Save();
+			save = true;
+		}
+
+		private void CreateParentNode(NodeEditorObject childNode, NodeType nodeType, bool createAtMousePosition)
+		{
+			Rect childWindowRect = childNode.window.GetRectNoOffset();
+			childNode.RemoveParent();
+			switch (nodeType)
+			{
+				case NodeType.Sequence:
+				case NodeType.Selector:
+				case NodeType.Inverter:
+					NodeEditorObject newNode
+						= new NodeEditorObject(nodeType, ++lastNodeIndex, NO_PARENT_INDEX)
+						{
+							description = nodeType + " type node. Add description of desired behaviour",
+							displayName = nodeType.ToString(),
+							windowRect = new Rect(createAtMousePosition ?
+								savedMousePos + EditorWindow.GetWindow<OhBehaveEditorWindow>().zoomer.GetContentOffset() :
+								new Vector2(childWindowRect.x,
+									childWindowRect.y - childWindowRect.height - DefaultTreeRowHeight),
+							OhBehaveEditorWindow.SequenceNodeStyle.size)
+						};
+					nodeObjects.Add(lastNodeIndex, newNode);
+					newNode.AddChild(childNode);
+					childNode.AddParent(newNode.index);
+					save = true;
+					break;
+
+				case NodeType.Leaf:
+					throw new Exception("A leaf may not be a parent");
+				default:
+					Debug.LogWarning("TODO: CreateParentNode of type " + nodeType);
+					break;
+			}
 		}
 
 		private void CreateChildNode(NodeEditorObject parentNode, NodeType nodeType, bool createAtMousePosition)
 		{
 			Rect parentWindowRect = parentNode.window.GetRectNoOffset();
+			if (parentNode.nodeType == NodeType.Inverter)
+			{
+				if (parentNode.HasChildren())
+				{
+					GetNodeObject(parentNode.children[0]).RemoveParent();
+					parentNode.RemoveChild(parentNode.children[0]);
+				}
+			}
 
 			switch (nodeType)
 			{
@@ -331,22 +407,21 @@ namespace AtomosZ.OhBehave.EditorTools
 						{
 							description = nodeType + " type node. Add description of desired behaviour",
 							displayName = nodeType.ToString(),
-							windowRect = new Rect(createAtMousePosition?
-								savedMousePos + EditorWindow.GetWindow<OhBehaveEditorWindow>().zoomer.GetContentOffset():
+							windowRect = new Rect(createAtMousePosition ?
+								savedMousePos + EditorWindow.GetWindow<OhBehaveEditorWindow>().zoomer.GetContentOffset() :
 								new Vector2(parentWindowRect.x,
 									parentWindowRect.y + parentWindowRect.height + DefaultTreeRowHeight),
 							OhBehaveEditorWindow.SequenceNodeStyle.size)
 						};
 					nodeObjects.Add(lastNodeIndex, newNode);
 					parentNode.AddChild(newNode);
+					save = true;
 					break;
 
 				default:
 					Debug.LogWarning("TODO: CreateChildNode of type " + nodeType);
 					break;
 			}
-
-			Save();
 		}
 
 

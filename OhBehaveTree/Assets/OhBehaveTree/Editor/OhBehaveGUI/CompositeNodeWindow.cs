@@ -15,6 +15,10 @@ namespace AtomosZ.OhBehave.EditorTools
 
 		public override bool ProcessEvents(Event e)
 		{
+			if (inPoint != null)
+				inPoint.ProcessEvents(e);
+			outPoint.ProcessEvents(e);
+
 			switch (e.type)
 			{
 				case EventType.MouseDown:
@@ -26,7 +30,7 @@ namespace AtomosZ.OhBehave.EditorTools
 					{
 						if (GetRect().Contains(e.mousePosition))
 						{
-							treeBlueprint.ProcessContextMenu(nodeObject);
+							treeBlueprint.CreateChildContextMenu(nodeObject);
 							e.Use();
 						}
 					}
@@ -98,15 +102,14 @@ namespace AtomosZ.OhBehave.EditorTools
 			GUI.backgroundColor = clr;
 
 			if (inPoint != null)
-				inPoint.Draw();
-			if (outPoint != null)
-				outPoint.Draw();
+				inPoint.OnGUI();
+			outPoint.OnGUI();
 
 			if (connectionToParent != null)
 				connectionToParent.Draw();
 		}
 
-		public override void UpdateChildren()
+		public override void UpdateChildrenList()
 		{
 			CreateChildList();
 		}

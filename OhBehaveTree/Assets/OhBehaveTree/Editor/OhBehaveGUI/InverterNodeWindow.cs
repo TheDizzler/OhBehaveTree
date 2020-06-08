@@ -4,12 +4,15 @@ using UnityEngine;
 
 namespace AtomosZ.OhBehave.EditorTools
 {
-	public class InverterNodeWindow : NodeWindow
+	public class InverterNodeWindow : NodeWindow, IParentNodeWindow
 	{
 		public InverterNodeWindow(NodeEditorObject nodeObj) : base(nodeObj) { }
 
 		public override bool ProcessEvents(Event e)
 		{
+			inPoint.ProcessEvents(e);
+			outPoint.ProcessEvents(e);
+
 			switch (e.type)
 			{
 				case EventType.MouseDown:
@@ -47,6 +50,9 @@ namespace AtomosZ.OhBehave.EditorTools
 				RefreshConnection();
 			}
 
+			inPoint.OnGUI();
+			outPoint.OnGUI();
+
 			Color clr = GUI.backgroundColor;
 
 			if (isSelected)
@@ -76,7 +82,7 @@ namespace AtomosZ.OhBehave.EditorTools
 				}
 
 				if (nodeObject.children != null && nodeObject.children.Count == 1)
-					GUILayout.Label("NOT " + nodeObject.children[0]);
+					GUILayout.Label("NOT " + treeBlueprint.GetNodeObject(nodeObject.children[0]).displayName);
 				else
 					GUILayout.Label("Dangeling Inverter");
 				if (Event.current.type == EventType.Repaint)
@@ -93,19 +99,25 @@ namespace AtomosZ.OhBehave.EditorTools
 
 			GUI.backgroundColor = clr;
 
-			inPoint.Draw();
+			
 			if (connectionToParent != null)
 				connectionToParent.Draw();
-
-			if (outPoint != null)
-				outPoint.Draw();
 		}
 
 
 
-		public override void UpdateChildren()
+		public override void UpdateChildrenList()
 		{
-			throw new System.NotImplementedException();
+			// I don't think anything special needs to be done
+		}
+
+		public void CreateChildConnection(NodeWindow newChild)
+		{
+			newChild.CreateConnectionToParent(this);
+		}
+
+		public void RemoveChildConnection(NodeWindow removeNode)
+		{
 		}
 	}
 }

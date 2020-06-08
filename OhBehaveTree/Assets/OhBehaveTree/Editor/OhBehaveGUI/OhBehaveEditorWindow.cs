@@ -18,6 +18,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		public OhBehaveTreeBlueprint treeBlueprint;
 		public EditorZoomer zoomer;
 
+
 		private OhBehaveEditorWindow window;
 		private OhBehaveTreeController currentTreeController;
 
@@ -27,6 +28,11 @@ namespace AtomosZ.OhBehave.EditorTools
 
 		private void OnEnable()
 		{
+			if (window != null)
+			{
+				Debug.LogWarning("Editor Window already existed");
+				return;
+			}
 			window = GetWindow<OhBehaveEditorWindow>();
 			window.titleContent = new GUIContent("OhBehave!");
 
@@ -64,18 +70,16 @@ namespace AtomosZ.OhBehave.EditorTools
 			InverterNodeStyle.Init(new Vector2(250, 75));
 
 			InPointStyle = new GUIStyle();
-			InPointStyle.normal.background = (Texture2D)
-				EditorGUIUtility.Load("builtin skins/darkskin/images/radio.png");
-			InPointStyle.hover.background = (Texture2D)
-				EditorGUIUtility.Load("builtin skins/darkskin/images/radio on.png");
+			InPointStyle.normal.background =
+				EditorGUIUtility.FindTexture("Assets/OhBehaveTree/Editor/NodeInOut normal.png");
+			InPointStyle.hover.background =
+				EditorGUIUtility.FindTexture("Assets/OhBehaveTree/Editor/NodeInOut hover.png");
 
 			OutPointStyle = new GUIStyle();
-			OutPointStyle.normal.background = (Texture2D)
-				EditorGUIUtility.Load("builtin skins/darkskin/images/radio.png");
-			OutPointStyle.hover.background = (Texture2D)
-				EditorGUIUtility.Load("builtin skins/darkskin/images/radio on.png");
-		}
+			OutPointStyle.normal.background = InPointStyle.normal.background;
+			OutPointStyle.hover.background = InPointStyle.hover.background;
 
+		}
 
 		public void Open(OhBehaveTreeController ohBehaveController)
 		{

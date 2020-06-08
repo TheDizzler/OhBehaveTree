@@ -166,7 +166,10 @@ namespace AtomosZ.OhBehave.EditorTools
 			}
 		}
 
-		public abstract void UpdateChildren();
+		/// <summary>
+		/// Keep list of children update-to-date. Used by Composite Nodes.
+		/// </summary>
+		public abstract void UpdateChildrenList();
 
 		public void Deselect()
 		{
@@ -214,7 +217,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		/// <param name="connection"></param>
 		protected void OnClickRemoveConnection(Connection connection)
 		{
-			parent.RemoveChildConnection(this); // this probably should not be called here
+			//parent.RemoveChildConnection(this); // this probably should not be called here
 			if (connection != connectionToParent)
 			{
 				throw new Exception("Huh? Connection and connectionToParent are not equal?");

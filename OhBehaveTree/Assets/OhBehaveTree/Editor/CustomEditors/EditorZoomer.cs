@@ -20,8 +20,10 @@ namespace AtomosZ.OhBehave.EditorTools
 		private Matrix4x4 prevGUIMatrix;
 		private bool zoomToCenter;
 		private Texture2D bgTexture = EditorGUIUtility.FindTexture("Assets/OhBehaveTree/Editor/zoomerBG.jpg");
-
-
+		/// <summary>
+		/// Prevents zoom area from jumping around when left mouse button was clicked in a different context.
+		/// </summary>
+		private bool lastWasDragging;
 
 		public void Begin(Rect zoomRect)
 		{
@@ -62,7 +64,7 @@ namespace AtomosZ.OhBehave.EditorTools
 			GUI.BeginGroup(zoomAreaRect, EditorStyles.helpBox);
 			{
 				GUILayout.BeginArea(
-					new Rect(zoomAreaRect.xMax - sliderWidth * 1.5f, zoomAreaRect.yMin - 25, 
+					new Rect(zoomAreaRect.xMax - sliderWidth * 1.5f, zoomAreaRect.yMin - 25,
 						sliderWidth, sliderHeight),
 					EditorStyles.helpBox);
 				var defaultColor = GUI.color;
@@ -119,11 +121,16 @@ namespace AtomosZ.OhBehave.EditorTools
 					((current.button == 0 && current.modifiers == EventModifiers.Alt)
 						|| current.button == 1))
 				{
-					var mouseDelta = Event.current.mousePosition - lastMouse;
-					zoomOrigin += mouseDelta;
-					Event.current.Use();
+					if (lastWasDragging)
+					{
+						var mouseDelta = Event.current.mousePosition - lastMouse;
+						zoomOrigin += mouseDelta;
+						Event.current.Use();
+					}
+					lastWasDragging = true;
 				}
-
+				else
+					lastWasDragging = false;
 				lastMouse = current.mousePosition;
 			}
 

@@ -14,6 +14,7 @@ namespace AtomosZ.OhBehave.EditorTools
 
 		public override bool ProcessEvents(Event e)
 		{
+			inPoint.ProcessEvents(e);
 			switch (e.type)
 			{
 				case EventType.MouseDown:
@@ -47,6 +48,7 @@ namespace AtomosZ.OhBehave.EditorTools
 
 		public override void OnGUI()
 		{
+			inPoint.OnGUI();
 			if (refreshConnection)
 			{
 				RefreshConnection();
@@ -124,12 +126,12 @@ namespace AtomosZ.OhBehave.EditorTools
 
 			GUI.backgroundColor = clr;
 
-			inPoint.Draw();
+			
 			if (connectionToParent != null)
 				connectionToParent.Draw();
 		}
 
-		public override void UpdateChildren()
+		public override void UpdateChildrenList()
 		{
 			Debug.LogError("Leaf nodes should NOT have children!");
 		}
