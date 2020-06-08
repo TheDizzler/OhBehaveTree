@@ -123,7 +123,7 @@ namespace AtomosZ.OhBehave.EditorTools
 				node.Offset(zoomer.GetContentOffset());
 				if (node.ProcessEvents(current))
 					save = true;
-				if (node.CheckIsValid())
+				if (!node.CheckIsValid())
 					isValidTree = false;
 				node.OnGUI();
 			}

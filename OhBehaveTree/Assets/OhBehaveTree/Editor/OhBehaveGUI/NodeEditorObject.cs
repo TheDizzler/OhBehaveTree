@@ -93,6 +93,16 @@ namespace AtomosZ.OhBehave.EditorTools
 			return window.ProcessEvents(current);
 		}
 
+		public bool CheckIsValid()
+		{
+			bool isValid = nodeType == NodeType.Leaf
+				|| (nodeType == NodeType.Inverter && HasChildren() && children.Count == 1)
+				|| HasChildren();
+
+			window.BranchBroken(isValid);
+			return isValid;
+		}
+
 		public void OnGUI()
 		{
 			if (window == null)
