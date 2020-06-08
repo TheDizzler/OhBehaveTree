@@ -11,7 +11,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		{
 			inPoint.ProcessEvents(e);
 			outPoint.ProcessEvents(e);
-
+			bool saveNeeded = false;
 			switch (e.type)
 			{
 				case EventType.MouseDown:
@@ -22,14 +22,19 @@ namespace AtomosZ.OhBehave.EditorTools
 
 					break;
 				case EventType.MouseUp:
+					if (isDragged)
+					{
+						saveNeeded = true;
+						e.Use();
+					}
 					isDragged = false;
+
 					break;
 				case EventType.MouseDrag:
 					if (e.button == 0 && isDragged)
 					{
 						Drag(e.delta);
 						e.Use();
-						return true;
 					}
 					break;
 				case EventType.KeyDown:
@@ -39,7 +44,8 @@ namespace AtomosZ.OhBehave.EditorTools
 					}
 					break;
 			}
-			return false;
+
+			return saveNeeded;
 		}
 
 		public override void OnGUI()

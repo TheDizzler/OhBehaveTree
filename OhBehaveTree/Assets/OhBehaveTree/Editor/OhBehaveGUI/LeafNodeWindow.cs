@@ -14,6 +14,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		public override bool ProcessEvents(Event e)
 		{
 			inPoint.ProcessEvents(e);
+			bool saveNeeded = false;
 			switch (e.type)
 			{
 				case EventType.MouseDown:
@@ -24,6 +25,11 @@ namespace AtomosZ.OhBehave.EditorTools
 
 					break;
 				case EventType.MouseUp:
+					if (isDragged)
+					{
+						saveNeeded = true;
+						e.Use();
+					}
 					isDragged = false;
 					break;
 				case EventType.MouseDrag:
@@ -31,7 +37,6 @@ namespace AtomosZ.OhBehave.EditorTools
 					{
 						Drag(e.delta);
 						e.Use();
-						return true;
 					}
 					break;
 				case EventType.KeyDown:
@@ -41,7 +46,8 @@ namespace AtomosZ.OhBehave.EditorTools
 					}
 					break;
 			}
-			return false;
+
+			return saveNeeded;
 		}
 
 

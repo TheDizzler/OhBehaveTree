@@ -78,6 +78,11 @@ namespace AtomosZ.OhBehave.EditorTools
 			CreateWindow();
 		}
 
+		/// <summary>
+		/// Returns true if save needed.
+		/// </summary>
+		/// <param name="current"></param>
+		/// <returns></returns>
 		public bool ProcessEvents(Event current)
 		{
 			if (window == null)
