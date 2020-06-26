@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
@@ -19,25 +20,25 @@ namespace AtomosZ.OhBehave.EditorTools
 		public ConnectionPoint inPoint;
 		public ConnectionPoint outPoint;
 		public NodeStyle nodeStyle;
-
+		public IParentNodeWindow parent;
+		public Connection connectionToParent;
 
 		protected string nodeName;
 		protected GUIStyle currentStyle;
 		protected Color bgColor;
 		protected GUIStyle labelStyle;
-
-		public IParentNodeWindow parent;
-		public Connection connectionToParent;
+		
 		protected OhBehaveTreeBlueprint treeBlueprint;
 		protected bool isDragged;
 		protected bool isSelected;
 		/// <summary>
-		/// If a child node is constructed before the parent the connection can
-		/// not be constructed, so hold off on the construction until it's possible.
+		/// If a child node is constructed before the parent the connection is invalid, 
+		/// so hold off on the construction until it's possible.
 		/// </summary>
 		protected bool refreshConnection;
+		protected bool isValid;
 		private double timeClicked = double.MinValue;
-		private bool isValid;
+
 
 		public NodeWindow(NodeEditorObject nodeObj)
 		{
@@ -93,7 +94,6 @@ namespace AtomosZ.OhBehave.EditorTools
 			}
 		}
 
-
 		public abstract bool ProcessEvents(Event e);
 		public abstract void OnGUI();
 		/// <summary>
@@ -107,7 +107,6 @@ namespace AtomosZ.OhBehave.EditorTools
 			labelStyle.normal.textColor = Color.black;
 		}
 
-
 		public Rect GetRect()
 		{
 			Rect rect = nodeObject.windowRect;
@@ -118,6 +117,28 @@ namespace AtomosZ.OhBehave.EditorTools
 		public Rect GetRectNoOffset()
 		{
 			return nodeObject.windowRect;
+		}
+
+		public virtual string GetName()
+		{
+			return nodeObject.displayName;
+		}
+
+		public bool TryGetParentName(out string parentName)
+		{
+			if (parent == null)
+			{
+				parentName = "";
+				return false;
+			}
+
+			parentName = parent.GetName();
+			return true;
+		}
+
+		public List<int> GetChildren()
+		{
+			return nodeObject.children;
 		}
 
 		public void ParentRemoved()

@@ -4,5 +4,6 @@
 	{
 		void CreateChildConnection(NodeWindow newNode);
 		void RemoveChildConnection(NodeWindow removeNode);
+		string GetName();
 	}
 }

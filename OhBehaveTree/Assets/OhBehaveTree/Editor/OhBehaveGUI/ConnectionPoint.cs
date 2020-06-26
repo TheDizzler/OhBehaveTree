@@ -81,10 +81,19 @@ namespace AtomosZ.OhBehave.EditorTools
 						e.Use();
 					}
 				}
+				else if (e.button == 1)
+				{
+					if (e.type == EventType.MouseUp)
+					{
+						CreateContextMenu();
+						e.Use();
+					}
+				}
 			}
 			else
 				isHovering = false;
 		}
+
 
 		public void OnGUI()
 		{
@@ -97,6 +106,51 @@ namespace AtomosZ.OhBehave.EditorTools
 			}
 			else
 				GUI.Label(rect, "", style);
+		}
+
+		private void CreateContextMenu()
+		{
+			switch (type)
+			{
+				case ConnectionPointType.In:
+					if (!nodeWindow.TryGetParentName(out string parentName))
+					{
+						blueprint.CreateParentContextMenu(nodeWindow.nodeObject, false);
+						return;
+					}
+
+					var genericMenu = new GenericMenu();
+					genericMenu.AddItem(new GUIContent("Remove Connection to " + parentName), false,
+						() => DisconnectParent());
+					genericMenu.ShowAsContext();
+					break;
+
+				case ConnectionPointType.Out:
+					var children = nodeWindow.GetChildren();
+					if (children.Count > 0)
+					{
+						var disconnectMenu = new GenericMenu();
+						disconnectMenu.allowDuplicateNames = true;
+						foreach (int childIndex in children)
+						{
+							var node = blueprint.GetNodeObject(childIndex);
+							disconnectMenu.AddItem(new GUIContent("Remove Connection to " + node.displayName), false, () => DisconnectChild(node));
+						}
+
+						disconnectMenu.ShowAsContext();
+					}
+					break;
+			}
+		}
+
+		private void DisconnectChild(NodeEditorObject node)
+		{
+			Debug.Log("Disconnect " + node.displayName);
+		}
+
+		private void DisconnectParent()
+		{
+			Debug.Log("Disconnect parent!");
 		}
 	}
 }

@@ -6,7 +6,7 @@ namespace AtomosZ.OhBehave.EditorTools
 	public class LeafNodeWindow : NodeWindow
 	{
 		private bool isExpanded;
-
+		private GUIStyle foldoutStyle;
 
 		public LeafNodeWindow(NodeEditorObject node) : base(node) { }
 
@@ -50,7 +50,7 @@ namespace AtomosZ.OhBehave.EditorTools
 			return saveNeeded;
 		}
 
-
+		
 		public override void OnGUI()
 		{
 			inPoint.OnGUI();
