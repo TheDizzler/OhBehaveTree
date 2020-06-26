@@ -5,7 +5,6 @@ namespace AtomosZ.OhBehave.EditorTools
 {
 	public class OhBehaveEditorWindow : EditorWindow
 	{
-
 		private const float ZOOM_BORDER = 10;
 
 		public static NodeStyle SelectorNodeStyle;
@@ -14,6 +13,8 @@ namespace AtomosZ.OhBehave.EditorTools
 		public static NodeStyle InverterNodeStyle;
 		public static GUIStyle InPointStyle;
 		public static GUIStyle OutPointStyle;
+		public static GUIStyle normalFoldoutStyle;
+		public static GUIStyle invalidFoldoutStyle;
 
 		public OhBehaveTreeBlueprint treeBlueprint;
 		public EditorZoomer zoomer;
@@ -79,6 +80,10 @@ namespace AtomosZ.OhBehave.EditorTools
 			OutPointStyle.normal.background = InPointStyle.normal.background;
 			OutPointStyle.hover.background = InPointStyle.hover.background;
 
+			normalFoldoutStyle = new GUIStyle(EditorStyles.foldout);
+			invalidFoldoutStyle = new GUIStyle(EditorStyles.foldout);
+			invalidFoldoutStyle.normal.textColor = Color.red;
+			invalidFoldoutStyle.onNormal.textColor = Color.red;
 		}
 
 		public void Open(OhBehaveTreeController ohBehaveController)

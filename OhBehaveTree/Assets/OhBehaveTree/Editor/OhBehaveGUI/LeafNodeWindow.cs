@@ -70,52 +70,70 @@ namespace AtomosZ.OhBehave.EditorTools
 			GUILayout.BeginArea(GetRect(), content, currentStyle);
 			{
 
-					CreateTitleBar();
+				CreateTitleBar();
 
-					NodeType newType = (NodeType)EditorGUILayout.EnumPopup(nodeObject.nodeType);
-					if (newType != nodeObject.nodeType)
+				NodeType newType = (NodeType)EditorGUILayout.EnumPopup(nodeObject.nodeType);
+				if (newType != nodeObject.nodeType)
+				{
+					nodeObject.ChangeNodeType(newType);
+				}
+
+				if (!isValid)
+				{
+					foldoutStyle = OhBehaveEditorWindow.invalidFoldoutStyle;
+				}
+				else
+					foldoutStyle = OhBehaveEditorWindow.normalFoldoutStyle;
+
+				bool wasExpanded = isExpanded;
+				isExpanded = EditorGUILayout.Foldout(isExpanded, new GUIContent("Actions"), true, foldoutStyle);
+				if (wasExpanded != isExpanded)
+					GUI.changed = true;
+
+				if (isExpanded)
+				{
+					GUIStyle labelStyle = new GUIStyle(EditorStyles.label);
+					if (!isValid)
+						labelStyle.normal.textColor = Color.red;
+
+					if (nodeObject.startEvent.GetPersistentEventCount() == 0)
 					{
-						nodeObject.ChangeNodeType(newType);
+						EditorGUILayout.LabelField("Action Start:", labelStyle);
+						EditorGUILayout.LabelField("\tNo Methods Set", labelStyle);
 					}
-
-					isExpanded = EditorGUILayout.Foldout(isExpanded, new GUIContent("Actions"));
-					if (isExpanded)
+					else
 					{
 						EditorGUILayout.LabelField("Action Start:");
-						if (nodeObject.startEvent.GetPersistentEventCount() == 0)
-						{
-							EditorGUILayout.LabelField("\tNo Methods Set");
-						}
-
 						for (int i = 0; i < nodeObject.startEvent.GetPersistentEventCount(); ++i)
 						{
 							EditorGUILayout.LabelField("\t" + nodeObject.startEvent.GetPersistentMethodName(i));
 						}
+					}
 
-						EditorGUILayout.LabelField("Action:");
-						if (nodeObject.actionEvent.GetPersistentEventCount() == 0)
-						{
-							EditorGUILayout.LabelField("\tNo Methods Set");
-						}
-
+					if (nodeObject.actionEvent.GetPersistentEventCount() == 0)
+					{
+						EditorGUILayout.LabelField("Action:", labelStyle);
+						EditorGUILayout.LabelField("\tNo Methods Set", labelStyle);
+					}
+					else
+					{
+						EditorGUILayout.LabelField("Action Start:");
 						for (int i = 0; i < nodeObject.actionEvent.GetPersistentEventCount(); ++i)
 						{
 							EditorGUILayout.LabelField("\t" + nodeObject.actionEvent.GetPersistentMethodName(i));
 						}
 					}
+				}
 
-					if (Event.current.type == EventType.Repaint)
-					{
-						Rect lastrect = GUILayoutUtility.GetLastRect();
-						nodeObject.windowRect.height = lastrect.yMax + 10;
-					}
+				if (Event.current.type == EventType.Repaint)
+				{
+					Rect lastrect = GUILayoutUtility.GetLastRect();
+					nodeObject.windowRect.height = lastrect.yMax + 10;
+				}
 			}
 			GUILayout.EndArea();
 
-
-
 			GUI.backgroundColor = clr;
-
 
 			if (connectionToParent != null)
 				connectionToParent.Draw();
