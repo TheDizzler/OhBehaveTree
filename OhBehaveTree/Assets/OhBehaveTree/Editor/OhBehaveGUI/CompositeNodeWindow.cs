@@ -25,14 +25,14 @@ namespace AtomosZ.OhBehave.EditorTools
 					{
 						LeftClick(e);
 					}
-					else if (e.button == 1)
-					{
-						if (GetRect().Contains(e.mousePosition))
-						{
-							treeBlueprint.CreateChildContextMenu(nodeObject);
-							e.Use();
-						}
-					}
+					//else if (e.button == 1)
+					//{
+					//	if (GetRect().Contains(e.mousePosition))
+					//	{
+					//		treeBlueprint.CreateChildContextMenu(nodeObject);
+					//		e.Use();
+					//	}
+					//}
 
 					break;
 				case EventType.MouseUp:
