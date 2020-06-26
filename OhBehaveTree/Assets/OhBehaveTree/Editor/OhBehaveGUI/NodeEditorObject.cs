@@ -95,12 +95,28 @@ namespace AtomosZ.OhBehave.EditorTools
 
 		public bool CheckIsValid()
 		{
-			bool isValid = nodeType == NodeType.Leaf
-				|| (nodeType == NodeType.Inverter && HasChildren() && children.Count == 1)
-				|| HasChildren();
+			bool isValid;
+
+			switch (nodeType)
+			{
+				case NodeType.Leaf:
+					isValid = HasAction();
+					break;
+				case NodeType.Inverter:
+					isValid = HasChildren() && children.Count == 1;
+					break;
+				default:
+					isValid = HasChildren();
+					break;
+			}
 
 			window.BranchBroken(isValid);
 			return isValid;
+		}
+
+		private bool HasAction()
+		{
+			return startEvent.GetPersistentEventCount() != 0 && actionEvent.GetPersistentEventCount() != 0;
 		}
 
 		public void OnGUI()

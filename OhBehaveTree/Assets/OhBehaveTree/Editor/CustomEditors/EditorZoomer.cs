@@ -46,8 +46,8 @@ namespace AtomosZ.OhBehave.EditorTools
 
 
 			Vector2 offset = GetContentOffset();
-			float xFactor = offset.x / bgTexture.width;
-			float yFactor = offset.y / bgTexture.height;
+			//float xFactor = offset.x / bgTexture.width;
+			//float yFactor = offset.y / bgTexture.height;
 
 			//GUI.DrawTextureWithTexCoords(zoomAreaRect, bgTexture, // texcoords are between 0 and 1! 1 == fullwrap!
 			//	new Rect(xFactor, -yFactor, zoomAreaRect.width / (bgTexture.width * zoomScale),
