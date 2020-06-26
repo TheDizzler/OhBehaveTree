@@ -78,6 +78,7 @@ namespace AtomosZ.OhBehave.EditorTools
 			CreateWindow();
 		}
 
+
 		/// <summary>
 		/// Returns true if save needed.
 		/// </summary>
@@ -116,7 +117,8 @@ namespace AtomosZ.OhBehave.EditorTools
 
 		private bool HasAction()
 		{
-			return startEvent.GetPersistentEventCount() != 0 && actionEvent.GetPersistentEventCount() != 0;
+			return startEvent != null && startEvent.GetPersistentEventCount() != 0 
+				&& actionEvent != null &&  actionEvent.GetPersistentEventCount() != 0;
 		}
 
 		public void OnGUI()
@@ -210,7 +212,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		/// <summary>
 		/// Called when a node gets deleted to keep now orphaned nodes and parent node in sink.
 		/// </summary>
-		public void NotifyNeigboursOfDelete()
+		public void NotifyFamilyOfDelete()
 		{
 			if (parentIndex != OhBehaveTreeBlueprint.NO_PARENT_INDEX)
 				Parent.RemoveChild(index);

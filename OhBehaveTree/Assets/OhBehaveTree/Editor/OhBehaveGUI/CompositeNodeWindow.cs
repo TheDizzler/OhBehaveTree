@@ -135,7 +135,16 @@ namespace AtomosZ.OhBehave.EditorTools
 			List<string> nodeNames = new List<string>();
 			if (nodeObject.children != null)
 				foreach (var nodeIndex in nodeObject.children)
-					nodeNames.Add(treeBlueprint.GetNodeObject(nodeIndex).displayName);
+				{
+					var node = treeBlueprint.GetNodeObject(nodeIndex);
+					if (node == null)
+					{
+						nodeNames.Add("MISSING CHILD");
+					}
+					else
+						nodeNames.Add(node.displayName);
+
+				}
 			childNodesReorderable = new ReorderableList(nodeNames, typeof(string));
 			childNodesReorderable.displayAdd = false;
 			childNodesReorderable.displayRemove = false;

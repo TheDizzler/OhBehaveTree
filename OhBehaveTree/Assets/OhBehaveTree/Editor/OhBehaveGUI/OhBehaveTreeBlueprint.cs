@@ -316,7 +316,14 @@ namespace AtomosZ.OhBehave.EditorTools
 			{
 				return null;
 			}
-			return nodeObjects[nodeIndex];
+
+			if (!nodeObjects.TryGetValue(nodeIndex, out NodeEditorObject node))
+			{
+				Debug.LogError("GetNodeObject() Error! " + nodeIndex + " does not exist in!");
+				return null;
+			}
+
+			return node;
 		}
 
 
@@ -364,7 +371,7 @@ namespace AtomosZ.OhBehave.EditorTools
 					continue;
 				}
 
-				node.NotifyNeigboursOfDelete();
+				node.NotifyFamilyOfDelete();
 
 
 				if (!nodeObjects.Remove(node.index))
