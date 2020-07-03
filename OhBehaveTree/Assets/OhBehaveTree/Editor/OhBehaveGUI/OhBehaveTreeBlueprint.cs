@@ -43,7 +43,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		private ConnectionPoint endConnection;
 		private Vector2 savedMousePos;
 		private bool save;
-		
+
 
 
 		public void ConstructNodes()
@@ -359,6 +359,7 @@ namespace AtomosZ.OhBehave.EditorTools
 			writer.Close();
 
 			AssetDatabase.Refresh();
+			EditorUtility.SetDirty(this);
 		}
 
 		private void PendingDeletes()
@@ -581,6 +582,8 @@ namespace AtomosZ.OhBehave.EditorTools
 			writer.Close();
 
 			AssetDatabase.Refresh();
+			EditorUtility.SetDirty(ohBehaveTree);
+			EditorUtility.SetDirty(this);
 		}
 
 		public void FindYourControllerDumbass()
