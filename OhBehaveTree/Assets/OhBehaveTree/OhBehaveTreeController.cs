@@ -11,6 +11,8 @@ namespace AtomosZ.OhBehave
 
 		public GameObject functionSource;
 
+		public string blueprintGUID;
+
 
 		public void Initialize(string path)
 		{

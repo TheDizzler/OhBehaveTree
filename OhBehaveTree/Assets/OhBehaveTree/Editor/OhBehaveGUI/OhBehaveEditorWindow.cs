@@ -234,17 +234,38 @@ namespace AtomosZ.OhBehave.EditorTools
 		/// <returns></returns>
 		private OhBehaveTreeBlueprint GetBlueprintFor(OhBehaveTreeController ohBehaveController)
 		{
-			string[] guids = AssetDatabase.FindAssets("BTO_", new string[] { OhBehaveTreeBlueprint.blueprintsPath });
-			for (int i = 0; i < guids.Length; i++)
+			if (string.IsNullOrEmpty(ohBehaveController.blueprintGUID))
 			{
-				string path = AssetDatabase.GUIDToAssetPath(guids[i]);
-				OhBehaveTreeBlueprint temp = (OhBehaveTreeBlueprint)
-					AssetDatabase.LoadAssetAtPath(path, typeof(OhBehaveTreeBlueprint));
-				if (temp != null && temp.ohBehaveTree == ohBehaveController)
-					return temp;
+				Debug.LogError("FFS - Controller lost it's blueprints GUID");
+				return null;
 			}
 
-			return null;
+			var blueprint = AssetDatabase.LoadAssetAtPath<OhBehaveTreeBlueprint>(
+					AssetDatabase.GUIDToAssetPath(ohBehaveController.blueprintGUID));
+			if (blueprint.controllerGUID != AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(ohBehaveController)))
+			{
+				Debug.LogError("FFS - Controller and Blueprints GUID don't match :/");
+				return null;
+			}
+
+			return blueprint;
+
+			//string[] guids = AssetDatabase.FindAssets("BTO_", new string[] { OhBehaveTreeBlueprint.blueprintsPath });
+			//for (int i = 0; i < guids.Length; i++)
+			//{
+			//	string path = AssetDatabase.GUIDToAssetPath(guids[i]);
+			//	OhBehaveTreeBlueprint temp = (OhBehaveTreeBlueprint)
+			//		AssetDatabase.LoadAssetAtPath(path, typeof(OhBehaveTreeBlueprint));
+			//	if (temp != null && temp.ohBehaveTree == ohBehaveController)
+			//		return temp;
+			//	else if (temp.ohBehaveTree == null)
+			//	{
+			//		Debug.LogWarning("Why do these POS scriptable objects keep losing track of their assets?");
+
+			//	}
+			//}
+
+			//return null;
 		}
 	}
 }

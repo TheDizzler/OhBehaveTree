@@ -21,13 +21,14 @@ namespace AtomosZ.OhBehave.EditorTools
 		public const string blueprintsPrefix = "BTO_";
 
 		public static string blueprintsPath = "Assets/OhBehaveTree/Editor/_Blueprints";
+		public static string btoGUIDsFile = "/BOT_GUIDS.json";
 
 
 		public OhBehaveTreeController ohBehaveTree;
 		/// <summary>
 		/// Goddamn scriptable object LOVE losing data.
 		/// </summary>
-		public string controllerFilePath;
+		public string controllerGUID;
 
 		[SerializeField]
 		private NodeEditorObject selectedNode;
@@ -42,6 +43,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		private ConnectionPoint endConnection;
 		private Vector2 savedMousePos;
 		private bool save;
+		
 
 
 		public void ConstructNodes()
@@ -506,14 +508,15 @@ namespace AtomosZ.OhBehave.EditorTools
 		/// <summary>
 		/// Only called when first constructed.
 		/// </summary>
-		/// <param name="path">Path to new OhbehaveTreeController</param>
-		public void Initialize(string path)
+		/// <param name="controllerFilepath">Path to new OhBehaveTreeController</param>
+		public void Initialize(string controllerFilepath)
 		{
 			if (ohBehaveTree != null)
 			{
 				throw new System.Exception("Initialize() should never be called "
 					+ "on a OhBehaveTreeBlueprint more than once!");
 			}
+
 
 			if (!AssetDatabase.IsValidFolder(blueprintsPath))
 			{
@@ -523,15 +526,28 @@ namespace AtomosZ.OhBehave.EditorTools
 				blueprintsPath = AssetDatabase.GUIDToAssetPath(guid);
 			}
 
+			string guidPairFilePath = Application.dataPath + "/../"
+					+ blueprintsPath + btoGUIDsFile;
+
+			if (!File.Exists(guidPairFilePath))
+			{
+				StreamWriter sw = new StreamWriter(guidPairFilePath);
+				string header = "Oh behave GUIDs for " + Application.productName;
+				sw.WriteLine(header);
+				sw.Close();
+			}
+
 			AssetDatabase.CreateAsset(this,
 				blueprintsPath + "/" + blueprintsPrefix
-					+ Path.GetFileNameWithoutExtension(path)
+					+ Path.GetFileNameWithoutExtension(controllerFilepath)
 					+ GetInstanceID() + ".asset");
 
-			var statemachine = CreateInstance<OhBehaveTreeController>();
-			statemachine.Initialize(path);
-			ohBehaveTree = statemachine;
-			controllerFilePath = path;
+			ohBehaveTree = CreateInstance<OhBehaveTreeController>();
+			AssetDatabase.Refresh();
+			ohBehaveTree.Initialize(controllerFilepath);
+			string blueprintGUID = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(this));
+			controllerGUID = AssetDatabase.AssetPathToGUID(controllerFilepath);
+			ohBehaveTree.blueprintGUID = blueprintGUID;
 
 			JsonData data = new JsonData();
 			data.origin = Vector2.zero;
@@ -541,19 +557,37 @@ namespace AtomosZ.OhBehave.EditorTools
 			data.nodeWrapper = wrappedNodes;
 			string jsonString = JsonUtility.ToJson(data, true);
 
-			string jsonFilepath = Application.dataPath + "/../"
-				+ Path.GetDirectoryName(AssetDatabase.GetAssetPath(this)) + "/"
-				+ Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(this))
-				+ ".json";
+			string relativeFilePath = Path.GetDirectoryName(AssetDatabase.GetAssetPath(this)) + "/"
+				+ Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(this)) + ".json";
+			string jsonFilepath = Application.dataPath + "/../" + relativeFilePath;
 			StreamWriter writer = new StreamWriter(jsonFilepath);
 			writer.WriteLine(jsonString);
 			writer.Close();
+
+			AssetDatabase.Refresh();
+
+
+			JsonGUIDPair guids = new JsonGUIDPair()
+			{
+				jsonGUID = AssetDatabase.AssetPathToGUID(relativeFilePath),
+				blueprintGUID = blueprintGUID,
+				treeGUID = controllerGUID
+			};
+
+			jsonString = JsonUtility.ToJson(guids, true);
+			writer = new StreamWriter(guidPairFilePath, true);
+
+			writer.WriteLine(jsonString);
+			writer.Close();
+
+			AssetDatabase.Refresh();
 		}
 
 		public void FindYourControllerDumbass()
 		{
-			ohBehaveTree = (OhBehaveTreeController)
-				AssetDatabase.LoadAssetAtPath(controllerFilePath, typeof(OhBehaveTreeController));
+			ohBehaveTree =
+				AssetDatabase.LoadAssetAtPath<OhBehaveTreeController>(
+					AssetDatabase.GUIDToAssetPath(controllerGUID));
 		}
 
 
@@ -570,6 +604,14 @@ namespace AtomosZ.OhBehave.EditorTools
 			public Vector2 origin;
 			public float zoomScale;
 			public JsonNodeWrapper nodeWrapper;
+		}
+
+		[Serializable]
+		private class JsonGUIDPair
+		{
+			public string blueprintGUID;
+			public string treeGUID;
+			public string jsonGUID;
 		}
 	}
 }
