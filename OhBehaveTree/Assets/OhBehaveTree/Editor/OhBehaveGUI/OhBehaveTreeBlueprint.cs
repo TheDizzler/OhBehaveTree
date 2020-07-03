@@ -68,6 +68,15 @@ namespace AtomosZ.OhBehave.EditorTools
 
 					JsonData data = JsonUtility.FromJson<JsonData>(fileString);
 					var ohBehave = EditorWindow.GetWindow<OhBehaveEditorWindow>();
+
+					// the problem was likely solved so probably won't need this
+					if (ohBehave == null)
+						throw new Exception("Can't find editor window??!!");
+					if (ohBehave.zoomer == null)
+						throw new Exception("Zoomer not created??");
+					if (data == null)
+						throw new Exception("data not found??");
+
 					ohBehave.zoomer.SetScale(data.zoomScale);
 					ohBehave.zoomer.SetOrigin(data.origin);
 
