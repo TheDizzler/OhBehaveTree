@@ -50,13 +50,11 @@ namespace AtomosZ.OhBehave.EditorTools
 			}
 
 			CreateStyles();
-
+			zoomer = new EditorZoomer();
 			if (treeBlueprint != null)
 			{
 				treeBlueprint.ConstructNodes();
 			}
-
-			zoomer = new EditorZoomer();
 		}
 
 		private void CreateStyles()
