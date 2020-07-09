@@ -58,10 +58,13 @@ namespace AtomosZ.OhBehave.EditorTools
 		{
 			get
 			{
-				if (parent == null)
+				if (parent == null) // this is ALWAYS null! WHY???
 				{
-					var ohBehave = EditorWindow.GetWindow<OhBehaveEditorWindow>();
-					var treeBlueprint = ohBehave.treeBlueprint;
+					if (treeBlueprint == null)
+					{
+						var ohBehave = EditorWindow.GetWindow<OhBehaveEditorWindow>();
+						treeBlueprint = ohBehave.treeBlueprint;
+					}
 					parent = treeBlueprint.GetNodeObject(parentIndex);
 				}
 
@@ -95,31 +98,71 @@ namespace AtomosZ.OhBehave.EditorTools
 			return window.ProcessEvents(current);
 		}
 
-		public bool CheckIsValid()
+		public bool CheckIsValid(out InvalidNodeMessage invalidNodeMessage)
 		{
 			bool isValid;
+			invalidNodeMessage.node = this;
+			invalidNodeMessage.errorCode = InvalidNodeMessage.ErrorCode.Success.ToString();
 
 			switch (nodeType)
 			{
 				case NodeType.Leaf:
 					isValid = HasAction();
+					if (!isValid)
+					{
+						invalidNodeMessage.errorCode = InvalidNodeMessage.ErrorCode.LeafActionNotSet.ToString();
+					}
 					break;
 				case NodeType.Inverter:
 					isValid = HasChildren() && children.Count == 1;
+					if (!isValid)
+					{
+						invalidNodeMessage.errorCode = InvalidNodeMessage.ErrorCode.NoChildren.ToString();
+					}
 					break;
 				default:
 					isValid = HasChildren();
+					if (!isValid)
+					{
+						invalidNodeMessage.errorCode = InvalidNodeMessage.ErrorCode.NoChildren.ToString();
+					}
 					break;
 			}
 
-			window.BranchBroken(isValid);
-			return isValid;
+			isConnectedToRoot = IsConnectedToRoot();
+			if (!isConnectedToRoot)
+				invalidNodeMessage.errorCode += " | " + InvalidNodeMessage.ErrorCode.NoConnectionToRoot.ToString();
+
+			window.BranchBroken(isValid, isConnectedToRoot, invalidNodeMessage.errorCode);
+			return isValid || !isConnectedToRoot;
+		}
+
+		public struct InvalidNodeMessage
+		{
+			public enum ErrorCode
+			{
+				Success,
+				NoChildren,
+				NoConnectionToRoot,
+				LeafActionNotSet,
+			};
+
+			public NodeEditorObject node;
+			public string errorCode;
+		}
+
+
+		private bool IsConnectedToRoot()
+		{
+			if (Parent != null && (Parent.isConnectedToRoot || Parent.index == OhBehaveTreeBlueprint.ROOT_INDEX))
+				return true;
+			return index == OhBehaveTreeBlueprint.ROOT_INDEX;
 		}
 
 		private bool HasAction()
 		{
-			return startEvent != null && startEvent.GetPersistentEventCount() != 0 
-				&& actionEvent != null &&  actionEvent.GetPersistentEventCount() != 0;
+			return startEvent != null && startEvent.GetPersistentEventCount() != 0
+				&& actionEvent != null && actionEvent.GetPersistentEventCount() != 0;
 		}
 
 		public void OnGUI()

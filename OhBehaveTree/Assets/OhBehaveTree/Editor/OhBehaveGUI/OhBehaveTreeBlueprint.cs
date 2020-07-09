@@ -129,13 +129,18 @@ namespace AtomosZ.OhBehave.EditorTools
 			}
 
 			bool isValidTree = true;
+			List<InvalidNodeMessage> errorMsgs = new List<InvalidNodeMessage>();
 			foreach (var node in nodeObjects.Values)
 			{
 				node.Offset(zoomer.GetContentOffset());
 				if (node.ProcessEvents(current))
 					save = true;
-				if (!node.CheckIsValid())
+				if (!node.CheckIsValid(out InvalidNodeMessage invalidMsg))
+				{
 					isValidTree = false;
+					errorMsgs.Add(invalidMsg);
+				}
+
 				node.OnGUI();
 			}
 
@@ -174,7 +179,7 @@ namespace AtomosZ.OhBehave.EditorTools
 				CreateStandAloneContextMenu();
 			}
 
-			zoomer.DisplayInvalid(isValidTree);
+			zoomer.DisplayInvalid(isValidTree, errorMsgs);
 
 
 			PendingDeletes();

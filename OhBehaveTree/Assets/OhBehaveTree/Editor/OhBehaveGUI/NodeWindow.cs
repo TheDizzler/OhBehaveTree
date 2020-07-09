@@ -8,7 +8,8 @@ namespace AtomosZ.OhBehave.EditorTools
 	public abstract class NodeWindow
 	{
 		protected const float TITLEBAR_OFFSET = 15;
-		protected static Texture invalidTexture = EditorGUIUtility.FindTexture("Assets/OhBehaveTree/Editor/Node Broken Branch.png");
+		public static Texture brokenBranchImage = EditorGUIUtility.FindTexture("Assets/OhBehaveTree/Editor/Node Broken Branch.png");
+		public static Texture disconnectedBranchImage = EditorGUIUtility.FindTexture("Assets/OhBehaveTree/Editor/Node Disconnected Branch.png");
 		public static float DoubleClickTime = .3f;
 
 		/// <summary>
@@ -27,7 +28,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		protected GUIStyle currentStyle;
 		protected Color bgColor;
 		protected GUIStyle labelStyle;
-		
+
 		protected OhBehaveTreeBlueprint treeBlueprint;
 		protected bool isDragged;
 		protected bool isSelected;
@@ -37,6 +38,8 @@ namespace AtomosZ.OhBehave.EditorTools
 		/// </summary>
 		protected bool refreshConnection;
 		protected bool isValid;
+		private bool isConnectedToRoot;
+		private string errorMsg;
 		private double timeClicked = double.MinValue;
 
 
@@ -162,9 +165,11 @@ namespace AtomosZ.OhBehave.EditorTools
 			connectionToParent = new Connection(((NodeWindow)parent).outPoint, inPoint, OnClickRemoveConnection);
 		}
 
-		public void BranchBroken(bool isFine)
+		public void BranchBroken(bool isFine, bool isConnected, string errorCode)
 		{
 			isValid = isFine;
+			isConnectedToRoot = isConnected;
+			errorMsg = errorCode;
 		}
 
 		protected void RefreshConnection()
@@ -249,7 +254,14 @@ namespace AtomosZ.OhBehave.EditorTools
 			if (isValid)
 				GUILayout.Space(TITLEBAR_OFFSET);
 			else
-				GUILayout.Label(invalidTexture);
+			{
+				GUILayout.BeginHorizontal();
+
+				GUILayout.Label(isConnectedToRoot ? brokenBranchImage : disconnectedBranchImage);
+				GUILayout.Label(errorMsg, OhBehaveEditorWindow.warningTextStyle);
+
+				GUILayout.EndHorizontal();
+			}
 			GUILayout.BeginHorizontal();
 			{
 				GUILayout.Label(

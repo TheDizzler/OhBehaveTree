@@ -15,6 +15,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		public static GUIStyle OutPointStyle;
 		public static GUIStyle normalFoldoutStyle;
 		public static GUIStyle invalidFoldoutStyle;
+		public static GUIStyle warningTextStyle;
 
 		public OhBehaveTreeBlueprint treeBlueprint;
 		public EditorZoomer zoomer;
@@ -30,10 +31,10 @@ namespace AtomosZ.OhBehave.EditorTools
 		private void OnEnable()
 		{
 			if (window != null)
-			{
-				Debug.LogWarning("Editor Window already existed");
+			{ // no need to reconstruct everything
 				return;
 			}
+
 			window = GetWindow<OhBehaveEditorWindow>();
 			window.titleContent = new GUIContent("OhBehave!");
 
@@ -82,6 +83,9 @@ namespace AtomosZ.OhBehave.EditorTools
 			invalidFoldoutStyle = new GUIStyle(EditorStyles.foldout);
 			invalidFoldoutStyle.normal.textColor = Color.red;
 			invalidFoldoutStyle.onNormal.textColor = Color.red;
+
+			warningTextStyle = new GUIStyle();
+			warningTextStyle.normal.textColor = Color.red;
 		}
 
 		public void Open(OhBehaveTreeController ohBehaveController)
