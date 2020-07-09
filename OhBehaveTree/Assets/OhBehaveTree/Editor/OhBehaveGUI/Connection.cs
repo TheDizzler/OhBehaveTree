@@ -6,6 +6,8 @@ namespace AtomosZ.OhBehave.EditorTools
 {
 	public class Connection
 	{
+		private static readonly Vector2 lineOffset = new Vector2(0, 40);
+
 		public ConnectionPoint parentPoint;
 		public ConnectionPoint childPoint;
 		public Action<Connection> OnClickRemoveConnection;
@@ -19,7 +21,7 @@ namespace AtomosZ.OhBehave.EditorTools
 
 		public void Draw()
 		{
-			Handles.DrawLine(parentPoint.rect.center, childPoint.rect.center);
+			Handles.DrawAAPolyLine(10, parentPoint.rect.center, parentPoint.rect.center + lineOffset, childPoint.rect.center - lineOffset, childPoint.rect.center);
 
 			if (Handles.Button(
 					(parentPoint.rect.center + childPoint.rect.center) * 0.5f, 
