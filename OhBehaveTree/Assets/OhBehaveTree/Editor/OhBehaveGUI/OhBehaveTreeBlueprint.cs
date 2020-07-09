@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-//using Leguar.TotalJSON;
 using UnityEditor;
 using UnityEngine;
+using static AtomosZ.OhBehave.EditorTools.NodeEditorObject;
 
 namespace AtomosZ.OhBehave.EditorTools
 {
@@ -21,74 +21,39 @@ namespace AtomosZ.OhBehave.EditorTools
 		public const string blueprintsPrefix = "BTO_";
 
 		public static string blueprintsPath = "Assets/OhBehaveTree/Editor/_Blueprints";
-		public static string btoGUIDsFile = "/BOT_GUIDS.json";
-
+		
 
 		public OhBehaveTreeController ohBehaveTree;
 		/// <summary>
 		/// Goddamn scriptable object LOVE losing data.
 		/// </summary>
 		public string controllerGUID;
+		
+		public List<NodeEditorObject> savedNodes;
 
 		[SerializeField]
 		private NodeEditorObject selectedNode;
+		
 		private Dictionary<int, NodeEditorObject> nodeObjects;
 		private SerializedObject serializedObject;
 		/// <summary>
 		/// For keeping track of indices when assigning an index to a new node.
 		/// </summary>
+		[SerializeField]
 		private int lastNodeIndex = ROOT_INDEX;
 		private List<NodeEditorObject> deleteTasks = new List<NodeEditorObject>();
 		private ConnectionPoint startConnection;
 		private ConnectionPoint endConnection;
 		private Vector2 savedMousePos;
 		private bool save;
-
-
+		
 
 		public void ConstructNodes()
 		{
 			if (nodeObjects == null)
 			{
-				nodeObjects = new Dictionary<int, NodeEditorObject>();
-				string blueprintPath = AssetDatabase.GetAssetPath(this);
-				string jsonFilepath = Application.dataPath + "/../"
-					+ Path.GetDirectoryName(blueprintPath) + "/"
-					+ Path.GetFileNameWithoutExtension(blueprintPath)
-					+ ".json";
-				if (!File.Exists(jsonFilepath))
-				{
-					Debug.LogError("Could not find json file for " + blueprintPath);
-				}
-				else
-				{
-					StreamReader reader = new StreamReader(jsonFilepath);
-					string fileString = reader.ReadToEnd();
-					reader.Close();
-
-					JsonData data = JsonUtility.FromJson<JsonData>(fileString);
-					var ohBehave = EditorWindow.GetWindow<OhBehaveEditorWindow>();
-
-					// the problem was likely solved so probably won't need this
-					if (ohBehave == null)
-						throw new Exception("Can't find editor window??!!");
-					if (ohBehave.zoomer == null)
-						throw new Exception("Zoomer not created??");
-					if (data == null)
-						throw new Exception("data not found??");
-
-					ohBehave.zoomer.SetScale(data.zoomScale);
-					ohBehave.zoomer.SetOrigin(data.origin);
-
-					JsonNodeWrapper nodes = data.nodeWrapper;
-
-					foreach (var node in nodes.nodes)
-					{
-						nodeObjects.Add(node.index, node);
-						if (node.index > lastNodeIndex)
-							lastNodeIndex = node.index;
-					}
-				}
+				//LoadFromJson();
+				InitializeNodeDictionary();
 			}
 
 			serializedObject = new SerializedObject(this);
@@ -110,8 +75,12 @@ namespace AtomosZ.OhBehave.EditorTools
 					displayName = "Root",
 					windowRect = winData,
 				};
-				nodeObjects.Add(0, newNode);
+				
+				AddNewNode(newNode, 0);
+				
 
+				AssetDatabase.Refresh();
+				EditorUtility.SetDirty(this);
 				save = true;
 			}
 		}
@@ -382,28 +351,7 @@ namespace AtomosZ.OhBehave.EditorTools
 
 		private void Save()
 		{
-			var ohBehave = EditorWindow.GetWindow<OhBehaveEditorWindow>();
-			JsonData data = new JsonData();
-			data.origin = ohBehave.zoomer.GetOrigin();
-			data.zoomScale = ohBehave.zoomer.GetScale();
-
-			JsonNodeWrapper wrappedNodes = new JsonNodeWrapper();
-			List<NodeEditorObject> nodes = new List<NodeEditorObject>();
-			foreach (var node in nodeObjects.Values)
-				nodes.Add(node);
-			wrappedNodes.nodes = nodes.ToArray();
-			data.nodeWrapper = wrappedNodes;
-
-			string jsonString = JsonUtility.ToJson(data, true);
-
-			string jsonFilepath = Application.dataPath + "/../"
-				+ Path.GetDirectoryName(AssetDatabase.GetAssetPath(this)) + "/"
-				+ Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(this))
-				+ ".json";
-			StreamWriter writer = new StreamWriter(jsonFilepath);
-			writer.WriteLine(jsonString);
-			writer.Close();
-
+			AssetDatabase.SaveAssets();
 			AssetDatabase.Refresh();
 			EditorUtility.SetDirty(this);
 		}
@@ -427,6 +375,8 @@ namespace AtomosZ.OhBehave.EditorTools
 				{
 					Debug.LogWarning(node.displayName + " index " + node.index + " was NOT found.");
 				}
+
+				savedNodes.Remove(node);
 			}
 
 			GUI.changed = true;
@@ -451,8 +401,9 @@ namespace AtomosZ.OhBehave.EditorTools
 								savedMousePos + EditorWindow.GetWindow<OhBehaveEditorWindow>().zoomer.GetContentOffset(),
 								OhBehaveEditorWindow.SequenceNodeStyle.size)
 						};
-					nodeObjects.Add(lastNodeIndex, newNode);
-					save = true;
+
+					AddNewNode(newNode, lastNodeIndex);
+					
 					break;
 
 				default:
@@ -481,10 +432,9 @@ namespace AtomosZ.OhBehave.EditorTools
 									childWindowRect.y - childWindowRect.height - DefaultTreeRowHeight),
 								OhBehaveEditorWindow.SequenceNodeStyle.size)
 						};
-					nodeObjects.Add(lastNodeIndex, newNode);
+					AddNewNode(newNode, lastNodeIndex);
 					newNode.AddChild(childNode);
 					childNode.AddParent(newNode.index);
-					save = true;
 					break;
 
 				case NodeType.Leaf:
@@ -524,9 +474,9 @@ namespace AtomosZ.OhBehave.EditorTools
 									parentWindowRect.y + parentWindowRect.height + DefaultTreeRowHeight),
 								OhBehaveEditorWindow.SequenceNodeStyle.size)
 						};
-					nodeObjects.Add(lastNodeIndex, newNode);
+
+					AddNewNode(newNode, lastNodeIndex);
 					parentNode.AddChild(newNode);
-					save = true;
 					break;
 
 				default:
@@ -547,11 +497,25 @@ namespace AtomosZ.OhBehave.EditorTools
 		}
 
 
+		private void InitializeNodeDictionary()
+		{
+			nodeObjects = new Dictionary<int, NodeEditorObject>();
+			foreach (var node in savedNodes)
+			{
+				nodeObjects[node.index] = node;
+				if (node.index > lastNodeIndex)
+					lastNodeIndex = node.index;
+			}
+		}
 
+		private void AddNewNode(NodeEditorObject newNode, int nodeIndex)
+		{
+			nodeObjects.Add(nodeIndex, newNode);
+			savedNodes.Add(newNode);
+			save = true;
+		}
 
-
-
-
+	
 		/// <summary>
 		/// Only called when first constructed.
 		/// </summary>
@@ -573,16 +537,6 @@ namespace AtomosZ.OhBehave.EditorTools
 				blueprintsPath = AssetDatabase.GUIDToAssetPath(guid);
 			}
 
-			string guidPairFilePath = Application.dataPath + "/../"
-					+ blueprintsPath + btoGUIDsFile;
-
-			if (!File.Exists(guidPairFilePath))
-			{
-				StreamWriter sw = new StreamWriter(guidPairFilePath);
-				string header = "Oh behave GUIDs for " + Application.productName;
-				sw.WriteLine(header);
-				sw.Close();
-			}
 
 			AssetDatabase.CreateAsset(this,
 				blueprintsPath + "/" + blueprintsPrefix
@@ -596,37 +550,9 @@ namespace AtomosZ.OhBehave.EditorTools
 			controllerGUID = AssetDatabase.AssetPathToGUID(controllerFilepath);
 			ohBehaveTree.blueprintGUID = blueprintGUID;
 
-			JsonData data = new JsonData();
-			data.origin = Vector2.zero;
-			data.zoomScale = 1;
-			JsonNodeWrapper wrappedNodes = new JsonNodeWrapper();
-			wrappedNodes.nodes = new NodeEditorObject[0];
-			data.nodeWrapper = wrappedNodes;
-			string jsonString = JsonUtility.ToJson(data, true);
+			savedNodes = new List<NodeEditorObject>();
 
-			string relativeFilePath = Path.GetDirectoryName(AssetDatabase.GetAssetPath(this)) + "/"
-				+ Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(this)) + ".json";
-			string jsonFilepath = Application.dataPath + "/../" + relativeFilePath;
-			StreamWriter writer = new StreamWriter(jsonFilepath);
-			writer.WriteLine(jsonString);
-			writer.Close();
-
-			AssetDatabase.Refresh();
-
-
-			JsonGUIDPair guids = new JsonGUIDPair()
-			{
-				jsonGUID = AssetDatabase.AssetPathToGUID(relativeFilePath),
-				blueprintGUID = blueprintGUID,
-				treeGUID = controllerGUID
-			};
-
-			jsonString = JsonUtility.ToJson(guids, true);
-			writer = new StreamWriter(guidPairFilePath, true);
-
-			writer.WriteLine(jsonString);
-			writer.Close();
-
+			AssetDatabase.SaveAssets();
 			AssetDatabase.Refresh();
 			EditorUtility.SetDirty(ohBehaveTree);
 			EditorUtility.SetDirty(this);
@@ -637,30 +563,6 @@ namespace AtomosZ.OhBehave.EditorTools
 			ohBehaveTree =
 				AssetDatabase.LoadAssetAtPath<OhBehaveTreeController>(
 					AssetDatabase.GUIDToAssetPath(controllerGUID));
-		}
-
-
-
-		[Serializable]
-		private class JsonNodeWrapper
-		{
-			public NodeEditorObject[] nodes;
-		}
-
-		[Serializable]
-		private class JsonData
-		{
-			public Vector2 origin;
-			public float zoomScale;
-			public JsonNodeWrapper nodeWrapper;
-		}
-
-		[Serializable]
-		private class JsonGUIDPair
-		{
-			public string blueprintGUID;
-			public string treeGUID;
-			public string jsonGUID;
 		}
 	}
 }

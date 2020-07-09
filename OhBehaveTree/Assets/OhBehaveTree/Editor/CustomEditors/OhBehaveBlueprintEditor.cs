@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
@@ -8,11 +9,12 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 	public class OhBehaveBlueprintEditor : Editor
 	{
 		private OhBehaveTreeBlueprint instance;
-
+		private SerializedProperty nodeList;
 
 		void OnEnable()
 		{
 			instance = (OhBehaveTreeBlueprint)target;
+			nodeList = serializedObject.FindProperty("savedNodes");
 		}
 
 
@@ -30,7 +32,7 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 					instance.FindYourControllerDumbass();
 				}
 				else
-				DrawBlueprintEditor();
+					DrawBlueprintEditor();
 			}
 
 			serializedObject.ApplyModifiedProperties();
@@ -49,6 +51,9 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 				EditorWindow.GetWindow<OhBehaveEditorWindow>().Open(
 					instance.ohBehaveTree);
 			}
+
+			EditorGUILayout.PropertyField(nodeList, true);
+
 		}
 
 		private void DrawSelectedNode()
@@ -71,7 +76,7 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 				{
 					GUI.enabled = false;
 					EditorGUILayout.IntField("Reference index", nodeObject.index);
-					EditorGUILayout.IntField("Parent reference index", nodeObject.parentIndex);
+					EditorGUILayout.IntField("Parent ref index", nodeObject.parentIndex);
 					GUI.enabled = true;
 				}
 				GUILayout.EndHorizontal();
