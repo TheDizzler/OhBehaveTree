@@ -147,7 +147,37 @@ namespace AtomosZ.OhBehave.EditorTools
 
 			if (startConnection != null)
 			{// we want to draw the line on-top of everything else
-				Handles.DrawLine(startConnection.rect.center, current.mousePosition);
+				if (Vector2.Distance(startConnection.rect.center, current.mousePosition) > Connection.lineOffset.y * 2f)
+				{
+					if (startConnection.type == ConnectionPointType.Out)
+					{
+						Handles.DrawAAPolyLine(Connection.lineThickness,
+							startConnection.rect.center, startConnection.rect.center + Connection.lineOffset,
+							current.mousePosition - Connection.lineOffset, current.mousePosition);
+					}
+					else
+					{
+						Handles.DrawAAPolyLine(Connection.lineThickness,
+							startConnection.rect.center, startConnection.rect.center - Connection.lineOffset,
+							current.mousePosition + Connection.lineOffset, current.mousePosition);
+					}
+				}
+				else
+				{
+					if (startConnection.type == ConnectionPointType.Out)
+					{
+						Handles.DrawAAPolyLine(10,
+							startConnection.rect.center, startConnection.rect.center + Connection.lineOffset,
+							current.mousePosition);
+					}
+					else
+					{
+						Handles.DrawAAPolyLine(10,
+							startConnection.rect.center, startConnection.rect.center - Connection.lineOffset,
+							current.mousePosition);
+					}
+				}
+
 				GUI.changed = true;
 				if (current.button == 1
 					&& current.type == EventType.MouseDown)
@@ -176,6 +206,7 @@ namespace AtomosZ.OhBehave.EditorTools
 				&& current.type == EventType.MouseUp
 				&& !zoomer.isScreenMoved)
 			{
+				savedMousePos = current.mousePosition;
 				CreateStandAloneContextMenu();
 			}
 
@@ -197,7 +228,8 @@ namespace AtomosZ.OhBehave.EditorTools
 		{
 			if (IsNodeSelected())
 			{
-				selectedNode.window.Deselect();
+				if (selectedNode.window != null) // window is sometimes null (after compiling scripts?)
+					selectedNode.window.Deselect();
 			}
 
 			selectedNode = nodeObject;
