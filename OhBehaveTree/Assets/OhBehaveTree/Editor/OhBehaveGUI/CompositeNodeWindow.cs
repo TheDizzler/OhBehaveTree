@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
@@ -25,16 +26,12 @@ namespace AtomosZ.OhBehave.EditorTools
 					{
 						LeftClick(e);
 					}
-					//else if (e.button == 1)
-					//{
-					//	if (GetRect().Contains(e.mousePosition))
-					//	{
-					//		treeBlueprint.CreateChildContextMenu(nodeObject);
-					//		e.Use();
-					//	}
-					//}
+					else if (e.button == 1)
+					{
+						RightClick(e);
+					}
 
-					break;
+			break;
 				case EventType.MouseUp:
 					if (isDragged)
 					{
@@ -59,6 +56,7 @@ namespace AtomosZ.OhBehave.EditorTools
 			}
 			return saveNeeded;
 		}
+
 
 		public override void OnGUI()
 		{

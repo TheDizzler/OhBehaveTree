@@ -226,6 +226,23 @@ namespace AtomosZ.OhBehave.EditorTools
 		}
 
 
+		protected void RightClick(Event e)
+		{
+			if (GetRect().Contains(e.mousePosition))
+			{
+				CreateNodeContextMenu();
+				e.Use();
+			}
+		}
+
+		protected void CreateNodeContextMenu()
+		{
+			var genericMenu = new GenericMenu();
+			genericMenu.AddItem(new GUIContent("Delete Node"), false,
+				() => treeBlueprint.DeleteNode(nodeObject));
+
+			genericMenu.ShowAsContext();
+		}
 
 		protected void CreateTitleBar()
 		{

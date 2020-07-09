@@ -46,12 +46,13 @@ namespace AtomosZ.OhBehave.EditorTools
 
 		[NonSerialized]
 		public Vector2 offset;
+		private OhBehaveTreeBlueprint treeBlueprint;
+
 		/// <summary>
 		/// Editor objects have a hard time serializing themselves.
 		/// </summary>
 		private NodeEditorObject parent;
-
-
+		private bool isConnectedToRoot;
 
 		public NodeEditorObject Parent
 		{

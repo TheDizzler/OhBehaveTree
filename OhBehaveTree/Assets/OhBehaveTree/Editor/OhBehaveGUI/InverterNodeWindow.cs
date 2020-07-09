@@ -19,6 +19,10 @@ namespace AtomosZ.OhBehave.EditorTools
 					{
 						LeftClick(e);
 					}
+					else if (e.button == 1)
+					{
+						RightClick(e);
+					}
 
 					break;
 				case EventType.MouseUp:
