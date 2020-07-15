@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -13,7 +14,7 @@ namespace AtomosZ.OhBehave.EditorTools
 	{
 		public NodeType nodeType;
 		public int index;
-		public int parentIndex;
+		public int parentIndex = OhBehaveTreeBlueprint.NO_PARENT_INDEX;
 
 		/// <summary>
 		/// A nice, user-friendly display name.
@@ -34,7 +35,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		public LeafNodeAction actionEvent;
 		public Rect windowRect;
 
-		
+
 
 		/// <summary>
 		/// Non-LeafNode Only.
@@ -73,11 +74,12 @@ namespace AtomosZ.OhBehave.EditorTools
 		}
 
 
-		public NodeEditorObject(NodeType type, int nodeIndex, int parentNodeObjectIndex)
+		public NodeEditorObject(NodeType type, int nodeIndex)
 		{
 			nodeType = type;
 			index = nodeIndex;
-			parentIndex = parentNodeObjectIndex;
+			if (nodeIndex == OhBehaveTreeBlueprint.ROOT_INDEX)
+				parentIndex = OhBehaveTreeBlueprint.ROOT_NODE_PARENT_INDEX;
 			parent = Parent;
 			CreateWindow();
 		}
@@ -137,6 +139,11 @@ namespace AtomosZ.OhBehave.EditorTools
 			return isValid || !isConnectedToRoot;
 		}
 
+		public void DrawConnectionWires()
+		{
+			window.DrawConnectionWires();
+		}
+
 		public NodeWindow GetWindow()
 		{
 			if (window == null)
@@ -147,19 +154,6 @@ namespace AtomosZ.OhBehave.EditorTools
 			return window;
 		}
 
-		public struct InvalidNodeMessage
-		{
-			public enum ErrorCode
-			{
-				Success,
-				NoChildren,
-				NoConnectionToRoot,
-				LeafActionNotSet,
-			};
-
-			public NodeEditorObject node;
-			public string errorCode;
-		}
 
 
 		private bool IsConnectedToRoot()
@@ -200,16 +194,24 @@ namespace AtomosZ.OhBehave.EditorTools
 			CreateWindow();
 		}
 
+
+		public static void ConnectNodes(NodeEditorObject parent, NodeEditorObject child)
+		{
+			parent.AddChild(child);
+			child.AddParent(parent.index);
+		}
+
+
 		/// <summary>
 		/// If node already has a parent, removes it first.
 		/// </summary>
 		/// <param name="newParentIndex"></param>
-		public void AddParent(int newParentIndex)
+		private void AddParent(int newParentIndex)
 		{
 			if (parentIndex != OhBehaveTreeBlueprint.NO_PARENT_INDEX)
 				window.ParentRemoved();
 			parentIndex = newParentIndex;
-			window.CreateConnectionToParent((IParentNodeWindow)Parent.window);
+			window.SetParentWindow((IParentNodeWindow)Parent.window);
 		}
 
 		public void RemoveParent()
@@ -230,6 +232,8 @@ namespace AtomosZ.OhBehave.EditorTools
 				GUI.changed = true;
 			}
 		}
+
+
 		public void ChildrenReordered(IList newOrderList)
 		{
 			int[] newOrder = new int[newOrderList.Count];
@@ -244,7 +248,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		}
 
 
-		public void AddChild(NodeEditorObject newChildNode)
+		private void AddChild(NodeEditorObject newChildNode)
 		{
 			if (children == null)
 				children = new List<int>();
@@ -326,6 +330,20 @@ namespace AtomosZ.OhBehave.EditorTools
 					Debug.LogWarning("TODO: CreateWindow of type " + nodeType);
 					break;
 			}
+		}
+
+		public struct InvalidNodeMessage
+		{
+			public enum ErrorCode
+			{
+				Success,
+				NoChildren,
+				NoConnectionToRoot,
+				LeafActionNotSet,
+			};
+
+			public NodeEditorObject node;
+			public string errorCode;
 		}
 	}
 }

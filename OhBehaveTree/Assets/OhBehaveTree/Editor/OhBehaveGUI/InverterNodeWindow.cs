@@ -59,8 +59,7 @@ namespace AtomosZ.OhBehave.EditorTools
 				RefreshConnection();
 			}
 
-			inPoint.OnGUI();
-			outPoint.OnGUI();
+			
 
 			Color clr = GUI.backgroundColor;
 
@@ -92,9 +91,12 @@ namespace AtomosZ.OhBehave.EditorTools
 				}
 			}
 			GUILayout.EndArea();
-
-
 			GUI.backgroundColor = clr;
+
+			inPoint.OnGUI();
+			outPoint.OnGUI();
+
+			outPoint.DrawConnectionTo(GetChildren());
 		}
 
 		public override void UpdateChildrenList()
@@ -104,7 +106,7 @@ namespace AtomosZ.OhBehave.EditorTools
 
 		public void CreateChildConnection(NodeWindow newChild)
 		{
-			newChild.CreateConnectionToParent(this);
+			newChild.SetParentWindow(this);
 		}
 
 		public void RemoveChildConnection(NodeWindow removeNode)

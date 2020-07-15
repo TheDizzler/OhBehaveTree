@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
@@ -103,48 +104,51 @@ namespace AtomosZ.OhBehave.EditorTools
 			if (inPoint != null) // only a root node would not have an inpoint
 				inPoint.OnGUI();
 			outPoint.OnGUI();
+		}
 
 
+		public override void DrawConnectionWires()
+		{
 			outPoint.DrawConnectionTo(GetChildren());
 		}
+
 
 		public override void UpdateChildrenList()
 		{
 			CreateChildList();
 		}
 
-		/// <summary>
-		/// TODO: This will need to be re-thunk to accomodate windows being total slaves to the NodeEditorObjects.
-		/// </summary>
-		/// <param name="newChild"></param>
+		
 		public void CreateChildConnection(NodeWindow newChild)
 		{
-			newChild.CreateConnectionToParent(this);
+			newChild.SetParentWindow(this);
 		}
 
-		/// <summary>
-		/// TODO: This will need to be re-thunk to accomodate windows being total slaves to the NodeEditorObjects.
-		/// </summary>
-		/// <param name="removedChild"></param>
+
 		public void RemoveChildConnection(NodeWindow removedChild)
 		{
+			Debug.LogWarning("child removed from window. Action required?");
 		}
 
 		private void CreateChildList()
 		{
 			List<string> nodeNames = new List<string>();
 			if (nodeObject.children != null)
+			{
 				foreach (var nodeIndex in nodeObject.children)
 				{
 					var node = treeBlueprint.GetNodeObject(nodeIndex);
 					if (node == null)
 					{
+						Debug.LogError("Missing child error");
 						nodeNames.Add("MISSING CHILD");
 					}
 					else
 						nodeNames.Add(node.displayName);
 
 				}
+			}
+
 			childNodesReorderable = new ReorderableList(nodeNames, typeof(string));
 			childNodesReorderable.displayAdd = false;
 			childNodesReorderable.displayRemove = false;

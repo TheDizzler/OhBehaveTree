@@ -16,6 +16,9 @@ namespace AtomosZ.OhBehave.EditorTools
 	{
 		public const int ROOT_INDEX = 0;
 		public const int NO_PARENT_INDEX = -1;
+		/// <summary>
+		/// Used to help find when reached root.
+		/// </summary>
 		public const int ROOT_NODE_PARENT_INDEX = -69;
 		public const int DefaultTreeRowHeight = 75;
 		public const string blueprintsPrefix = "BTO_";
@@ -69,7 +72,7 @@ namespace AtomosZ.OhBehave.EditorTools
 							OhBehaveEditorWindow.SequenceNodeStyle.size.x,
 							OhBehaveEditorWindow.SequenceNodeStyle.size.y);
 
-				NodeEditorObject newNode = new NodeEditorObject(NodeType.Sequence, ROOT_INDEX, ROOT_NODE_PARENT_INDEX)
+				NodeEditorObject newNode = new NodeEditorObject(NodeType.Sequence, ROOT_INDEX)
 				{
 					description = ohBehaveTree.description,
 					displayName = "Root",
@@ -91,14 +94,17 @@ namespace AtomosZ.OhBehave.EditorTools
 			if (serializedObject == null)
 				serializedObject = new SerializedObject(this);
 
+			bool dontDraw = false;
 			if (nodeObjects == null)
 			{
 				ConstructNodes();
+				dontDraw = true;
 				return;
 			}
 
 			bool isValidTree = true;
 			List<InvalidNodeMessage> errorMsgs = new List<InvalidNodeMessage>();
+			// draw connections between nodes
 			foreach (var node in nodeObjects.Values)
 			{
 				node.Offset(zoomer.GetContentOffset());
@@ -110,6 +116,13 @@ namespace AtomosZ.OhBehave.EditorTools
 					errorMsgs.Add(invalidMsg);
 				}
 
+				//if (!dontDraw)
+					node.DrawConnectionWires();
+			}
+
+			// draw rest
+			foreach (var node in nodeObjects.Values)
+			{
 				node.OnGUI();
 			}
 
@@ -139,6 +152,8 @@ namespace AtomosZ.OhBehave.EditorTools
 					// if this has not been consumed we can (?) assume that
 					//	the mouse was not released over a connection point
 					savedMousePos = current.mousePosition;
+					startConnection.isCreatingNewConnection = false;
+
 					if (startConnection.type == ConnectionPointType.Out)
 						CreateChildContextMenu(startConnection.nodeWindow.nodeObject, true);
 					else
@@ -252,8 +267,8 @@ namespace AtomosZ.OhBehave.EditorTools
 			}
 
 			// ok, let's do this
-			nodeParent.AddChild(nodeChild);
-			nodeChild.AddParent(nodeParent.index);
+			NodeEditorObject.ConnectNodes(nodeParent, nodeChild);
+
 
 			endConnection = null;
 			startConnection = null;
@@ -367,7 +382,7 @@ namespace AtomosZ.OhBehave.EditorTools
 				case NodeType.Selector:
 				case NodeType.Inverter:
 					NodeEditorObject newNode
-						= new NodeEditorObject(nodeType, ++lastNodeIndex, NO_PARENT_INDEX)
+						= new NodeEditorObject(nodeType, ++lastNodeIndex)
 						{
 							description = nodeType + " type node. Add description of desired behaviour",
 							displayName = nodeType.ToString(),
@@ -396,7 +411,7 @@ namespace AtomosZ.OhBehave.EditorTools
 				case NodeType.Selector:
 				case NodeType.Inverter:
 					NodeEditorObject newNode
-						= new NodeEditorObject(nodeType, ++lastNodeIndex, NO_PARENT_INDEX)
+						= new NodeEditorObject(nodeType, ++lastNodeIndex)
 						{
 							description = nodeType + " type node. Add description of desired behaviour",
 							displayName = nodeType.ToString(),
@@ -407,8 +422,8 @@ namespace AtomosZ.OhBehave.EditorTools
 								OhBehaveEditorWindow.SequenceNodeStyle.size)
 						};
 					AddNewNode(newNode, lastNodeIndex);
-					newNode.AddChild(childNode);
-					childNode.AddParent(newNode.index);
+
+					NodeEditorObject.ConnectNodes(newNode, childNode);
 					break;
 
 				case NodeType.Leaf:
@@ -438,7 +453,7 @@ namespace AtomosZ.OhBehave.EditorTools
 				case NodeType.Selector:
 				case NodeType.Inverter:
 					NodeEditorObject newNode
-						= new NodeEditorObject(nodeType, ++lastNodeIndex, parentNode.index)
+						= new NodeEditorObject(nodeType, ++lastNodeIndex)
 						{
 							description = nodeType + " type node. Add description of desired behaviour",
 							displayName = nodeType.ToString(),
@@ -450,7 +465,7 @@ namespace AtomosZ.OhBehave.EditorTools
 						};
 
 					AddNewNode(newNode, lastNodeIndex);
-					parentNode.AddChild(newNode);
+					NodeEditorObject.ConnectNodes(parentNode, newNode);
 					break;
 
 				default:

@@ -98,12 +98,20 @@ namespace AtomosZ.OhBehave.EditorTools
 			}
 		}
 
-		public abstract bool ProcessEvents(Event e);
-		public abstract void OnGUI();
+
 		/// <summary>
 		/// Keep list of children update-to-date. Used by Composite Nodes.
 		/// </summary>
 		public abstract void UpdateChildrenList();
+		public abstract bool ProcessEvents(Event e);
+		public abstract void OnGUI();
+	
+		public virtual void DrawConnectionWires()
+		{
+			return;
+		}
+
+		
 
 		public void Deselect()
 		{
@@ -151,12 +159,7 @@ namespace AtomosZ.OhBehave.EditorTools
 			parent = null;
 		}
 
-		/// <summary>
-		/// TODO: This will need to be re-thunk to accomodate windows being total slaves to the NodeEditorObjects.
-		/// Called from parent (CreateChildConnection())
-		/// </summary>
-		/// <param name="newParent"></param>
-		public void CreateConnectionToParent(IParentNodeWindow newParent)
+		public void SetParentWindow(IParentNodeWindow newParent)
 		{
 			if (parent != null)
 			{ // TODO: cleanup old connection
