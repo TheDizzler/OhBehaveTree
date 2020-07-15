@@ -148,6 +148,12 @@ namespace AtomosZ.OhBehave.EditorTools
 			childNodesReorderable = new ReorderableList(nodeNames, typeof(string));
 			childNodesReorderable.displayAdd = false;
 			childNodesReorderable.displayRemove = false;
+			childNodesReorderable.onReorderCallback += ChildrenReordered;
+		}
+
+		private void ChildrenReordered(ReorderableList list)
+		{
+			nodeObject.ChildrenReordered(list.list);
 		}
 	}
 }

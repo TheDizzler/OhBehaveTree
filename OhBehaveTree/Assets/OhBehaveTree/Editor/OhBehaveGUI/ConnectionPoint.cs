@@ -108,13 +108,18 @@ namespace AtomosZ.OhBehave.EditorTools
 			if (childrenIndices == null || childrenIndices.Count == 0)
 				return;
 
-			Handles.DrawAAPolyLine(ConnectionControls.lineThickness, rect.center, rect.center + ConnectionControls.lineOffset);
+			Vector3 lineStart = rect.center + ConnectionControls.lineOffset;
+			Handles.DrawAAPolyLine(ConnectionControls.lineThickness, rect.center, lineStart);
 
-			foreach (int i in childrenIndices)
+			int i = 0;
+			foreach (int nodeIndex in childrenIndices)
 			{
-				ConnectionPoint otherPoint = blueprint.GetNodeObject(i).GetWindow().inPoint;
-				Handles.DrawAAPolyLine(ConnectionControls.lineThickness, rect.center + ConnectionControls.lineOffset,
-					otherPoint.rect.center - ConnectionControls.lineOffset, otherPoint.rect.center);
+				ConnectionPoint otherPoint = blueprint.GetNodeObject(nodeIndex).GetWindow().inPoint;
+				Vector3 lineEnd = otherPoint.rect.center - ConnectionControls.lineOffset;
+				Handles.DrawAAPolyLine(ConnectionControls.lineThickness, lineStart,
+					lineEnd, otherPoint.rect.center);
+				Handles.Label((lineStart + lineEnd)/2, i.ToString());
+				++i;
 			}
 		}
 

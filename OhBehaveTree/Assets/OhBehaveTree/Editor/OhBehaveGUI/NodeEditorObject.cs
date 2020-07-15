@@ -230,6 +230,18 @@ namespace AtomosZ.OhBehave.EditorTools
 				GUI.changed = true;
 			}
 		}
+		public void ChildrenReordered(IList newOrderList)
+		{
+			int[] newOrder = new int[newOrderList.Count];
+			foreach (int childIndex in children)
+			{
+				NodeEditorObject childNode = treeBlueprint.GetNodeObject(childIndex);
+				newOrder[newOrderList.IndexOf(childNode.displayName)] = childIndex;
+			}
+
+			children.Clear();
+			children.AddRange(newOrder);
+		}
 
 
 		public void AddChild(NodeEditorObject newChildNode)
