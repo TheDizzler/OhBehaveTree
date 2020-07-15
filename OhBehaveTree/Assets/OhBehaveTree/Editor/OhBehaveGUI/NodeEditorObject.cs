@@ -34,8 +34,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		public LeafNodeAction actionEvent;
 		public Rect windowRect;
 
-		[NonSerialized]
-		public NodeWindow window;
+		
 
 		/// <summary>
 		/// Non-LeafNode Only.
@@ -46,8 +45,9 @@ namespace AtomosZ.OhBehave.EditorTools
 
 		[NonSerialized]
 		public Vector2 offset;
-		private OhBehaveTreeBlueprint treeBlueprint;
 
+		private OhBehaveTreeBlueprint treeBlueprint;
+		private NodeWindow window;
 		/// <summary>
 		/// Editor objects have a hard time serializing themselves.
 		/// </summary>
@@ -135,6 +135,16 @@ namespace AtomosZ.OhBehave.EditorTools
 
 			window.BranchBroken(isValid, isConnectedToRoot, invalidNodeMessage.errorCode);
 			return isValid || !isConnectedToRoot;
+		}
+
+		public NodeWindow GetWindow()
+		{
+			if (window == null)
+			{
+				CreateWindow();
+			}
+
+			return window;
 		}
 
 		public struct InvalidNodeMessage

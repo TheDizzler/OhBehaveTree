@@ -53,7 +53,7 @@ namespace AtomosZ.OhBehave.EditorTools
 			return saveNeeded;
 		}
 
-		
+
 		public override void OnGUI()
 		{
 			inPoint.OnGUI();
@@ -137,9 +137,6 @@ namespace AtomosZ.OhBehave.EditorTools
 			GUILayout.EndArea();
 
 			GUI.backgroundColor = clr;
-
-			if (connectionToParent != null)
-				connectionToParent.Draw();
 		}
 
 		public override void UpdateChildrenList()

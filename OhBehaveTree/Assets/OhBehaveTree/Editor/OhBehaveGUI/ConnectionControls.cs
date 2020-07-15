@@ -1,9 +1,15 @@
-﻿namespace AtomosZ.OhBehave.EditorTools
+﻿using UnityEngine;
+
+namespace AtomosZ.OhBehave.EditorTools
 {
-	public class ConnectionControls
+	public static class ConnectionControls
 	{
+		public static readonly Vector2 lineOffset = new Vector2(0, 40);
+		public static readonly float lineThickness = 8;
+
 		private static ConnectionPoint selectedInPoint;
 		private static ConnectionPoint selectedOutPoint;
+
 
 		internal static void OnClickInPoint(ConnectionPoint inPoint)
 		{

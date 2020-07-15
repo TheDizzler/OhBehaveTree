@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace AtomosZ.OhBehave.EditorTools
 {
+	/// <summary>
+	/// For simplicity, a NodeWindow should not store any data that is in a NodeEditorObject (ex: parent node, children, etc.)
+	/// </summary>
 	public abstract class NodeWindow
 	{
 		protected const float TITLEBAR_OFFSET = 15;
@@ -22,7 +25,6 @@ namespace AtomosZ.OhBehave.EditorTools
 		public ConnectionPoint outPoint;
 		public NodeStyle nodeStyle;
 		public IParentNodeWindow parent;
-		public Connection connectionToParent;
 
 		protected string nodeName;
 		protected GUIStyle currentStyle;
@@ -38,6 +40,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		/// </summary>
 		protected bool refreshConnection;
 		protected bool isValid;
+
 		private bool isConnectedToRoot;
 		private string errorMsg;
 		private double timeClicked = double.MinValue;
@@ -85,10 +88,8 @@ namespace AtomosZ.OhBehave.EditorTools
 			NodeEditorObject prntObj = nodeObject.Parent;
 			if (prntObj != null)
 			{
-				parent = (IParentNodeWindow)prntObj.window;
-				if (parent != null)
-					connectionToParent = new Connection(((NodeWindow)parent).outPoint, inPoint, OnClickRemoveConnection);
-				else
+				parent = (IParentNodeWindow)prntObj.GetWindow();
+				if (parent == null)
 					refreshConnection = true;
 			}
 			else
@@ -146,7 +147,8 @@ namespace AtomosZ.OhBehave.EditorTools
 
 		public void ParentRemoved()
 		{
-			OnClickRemoveConnection(connectionToParent);
+			parent.RemoveChildConnection(this);
+			parent = null;
 		}
 
 		/// <summary>
@@ -162,7 +164,6 @@ namespace AtomosZ.OhBehave.EditorTools
 			}
 
 			parent = newParent;
-			connectionToParent = new Connection(((NodeWindow)parent).outPoint, inPoint, OnClickRemoveConnection);
 		}
 
 		public void BranchBroken(bool isFine, bool isConnected, string errorCode)
@@ -177,10 +178,9 @@ namespace AtomosZ.OhBehave.EditorTools
 			NodeEditorObject prntObj = nodeObject.Parent;
 			if (prntObj != null)
 			{
-				parent = (IParentNodeWindow)prntObj.window;
+				parent = (IParentNodeWindow)prntObj.GetWindow();
 				if (parent != null)
 				{
-					connectionToParent = new Connection(((NodeWindow)parent).outPoint, inPoint, OnClickRemoveConnection);
 					refreshConnection = false;
 				}
 			}
@@ -289,24 +289,5 @@ namespace AtomosZ.OhBehave.EditorTools
 		{
 			nodeObject.windowRect.position += delta;
 		}
-
-
-		/// <summary>
-		/// TODO: This will need to be re-thunk to accomodate windows being total slaves to the NodeEditorObjects.
-		/// </summary>
-		/// <param name="connection"></param>
-		protected void OnClickRemoveConnection(Connection connection)
-		{
-			//parent.RemoveChildConnection(this); // this probably should not be called here
-			if (connection != connectionToParent)
-			{
-				throw new Exception("Huh? Connection and connectionToParent are not equal?");
-			}
-
-			connectionToParent = null;
-			parent = null;
-		}
-
-
 	}
 }

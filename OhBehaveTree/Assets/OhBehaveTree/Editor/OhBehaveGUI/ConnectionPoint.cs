@@ -1,11 +1,18 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEditor;
+using UnityEditorInternal;
 using UnityEngine;
 
 namespace AtomosZ.OhBehave.EditorTools
 {
 	public enum ConnectionPointType { In, Out }
 
+	/// <summary>
+	/// This class is for UI logic with the visual representation of the node only.
+	/// A connection point should have no knowledge of the points connected to it,
+	/// only the window it is attached to.
+	/// </summary>
 	public class ConnectionPoint
 	{
 		public Rect rect;
@@ -95,6 +102,23 @@ namespace AtomosZ.OhBehave.EditorTools
 		}
 
 
+
+		public void DrawConnectionTo(List<int> childrenIndices)
+		{
+			if (childrenIndices == null || childrenIndices.Count == 0)
+				return;
+
+			Handles.DrawAAPolyLine(ConnectionControls.lineThickness, rect.center, rect.center + ConnectionControls.lineOffset);
+
+			foreach (int i in childrenIndices)
+			{
+				ConnectionPoint otherPoint = blueprint.GetNodeObject(i).GetWindow().inPoint;
+				Handles.DrawAAPolyLine(ConnectionControls.lineThickness, rect.center + ConnectionControls.lineOffset,
+					otherPoint.rect.center - ConnectionControls.lineOffset, otherPoint.rect.center);
+			}
+		}
+
+
 		public void OnGUI()
 		{
 			if (isHovering)
@@ -145,12 +169,12 @@ namespace AtomosZ.OhBehave.EditorTools
 
 		private void DisconnectChild(NodeEditorObject node)
 		{
-			Debug.Log("Disconnect " + node.displayName);
+			Debug.Log("This does nothing but -> Disconnect " + node.displayName);
 		}
 
 		private void DisconnectParent()
 		{
-			Debug.Log("Disconnect parent!");
+			Debug.Log("This does nothing but -> Disconnect parent!");
 		}
 	}
 }

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
@@ -31,7 +30,7 @@ namespace AtomosZ.OhBehave.EditorTools
 						RightClick(e);
 					}
 
-			break;
+					break;
 				case EventType.MouseUp:
 					if (isDragged)
 					{
@@ -39,6 +38,7 @@ namespace AtomosZ.OhBehave.EditorTools
 						e.Use();
 					}
 					isDragged = false;
+
 					break;
 				case EventType.MouseDrag:
 					if (e.button == 0 && isDragged)
@@ -46,12 +46,14 @@ namespace AtomosZ.OhBehave.EditorTools
 						Drag(e.delta);
 						e.Use();
 					}
+
 					break;
 				case EventType.KeyDown:
 					if (isSelected && e.keyCode == KeyCode.Delete)
 					{
 						treeBlueprint.DeleteNode(nodeObject);
 					}
+
 					break;
 			}
 			return saveNeeded;
@@ -98,12 +100,12 @@ namespace AtomosZ.OhBehave.EditorTools
 
 			GUI.backgroundColor = clr;
 
-			if (inPoint != null)
+			if (inPoint != null) // only a root node would not have an inpoint
 				inPoint.OnGUI();
 			outPoint.OnGUI();
 
-			if (connectionToParent != null)
-				connectionToParent.Draw();
+
+			outPoint.DrawConnectionTo(GetChildren());
 		}
 
 		public override void UpdateChildrenList()

@@ -94,12 +94,7 @@ namespace AtomosZ.OhBehave.EditorTools
 			GUILayout.EndArea();
 
 
-
 			GUI.backgroundColor = clr;
-
-
-			if (connectionToParent != null)
-				connectionToParent.Draw();
 		}
 
 		public override void UpdateChildrenList()
