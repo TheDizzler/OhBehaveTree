@@ -21,19 +21,19 @@ namespace AtomosZ.OhBehave.EditorTools
 		public const string blueprintsPrefix = "BTO_";
 
 		public static string blueprintsPath = "Assets/OhBehaveTree/Editor/_Blueprints";
-		
+
 
 		public OhBehaveTreeController ohBehaveTree;
 		/// <summary>
 		/// Goddamn scriptable object LOVE losing data.
 		/// </summary>
 		public string controllerGUID;
-		
+
 		public List<NodeEditorObject> savedNodes;
 
 		[SerializeField]
 		private NodeEditorObject selectedNode;
-		
+
 		private Dictionary<int, NodeEditorObject> nodeObjects;
 		private SerializedObject serializedObject;
 		/// <summary>
@@ -46,7 +46,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		private ConnectionPoint endConnection;
 		private Vector2 savedMousePos;
 		private bool save;
-		
+
 
 		public void ConstructNodes()
 		{
@@ -75,9 +75,9 @@ namespace AtomosZ.OhBehave.EditorTools
 					displayName = "Root",
 					windowRect = winData,
 				};
-				
+
 				AddNewNode(newNode, 0);
-				
+
 
 				AssetDatabase.Refresh();
 				EditorUtility.SetDirty(this);
@@ -116,36 +116,11 @@ namespace AtomosZ.OhBehave.EditorTools
 
 			if (startConnection != null)
 			{// we want to draw the line on-top of everything else
-				if (Vector2.Distance(startConnection.rect.center, current.mousePosition) > Connection.lineOffset.y * 2f)
-				{
-					if (startConnection.type == ConnectionPointType.Out)
-					{
-						Handles.DrawAAPolyLine(Connection.lineThickness,
-							startConnection.rect.center, startConnection.rect.center + Connection.lineOffset,
-							current.mousePosition - Connection.lineOffset, current.mousePosition);
-					}
-					else
-					{
-						Handles.DrawAAPolyLine(Connection.lineThickness,
-							startConnection.rect.center, startConnection.rect.center - Connection.lineOffset,
-							current.mousePosition + Connection.lineOffset, current.mousePosition);
-					}
-				}
-				else
-				{
-					if (startConnection.type == ConnectionPointType.Out)
-					{
-						Handles.DrawAAPolyLine(10,
-							startConnection.rect.center, startConnection.rect.center + Connection.lineOffset,
-							current.mousePosition);
-					}
-					else
-					{
-						Handles.DrawAAPolyLine(10,
-							startConnection.rect.center, startConnection.rect.center - Connection.lineOffset,
-							current.mousePosition);
-					}
-				}
+
+				Handles.DrawAAPolyLine(ConnectionControls.lineThickness,
+					startConnection.rect.center,
+					current.mousePosition);
+
 
 				GUI.changed = true;
 				if (current.button == 1
@@ -197,8 +172,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		{
 			if (IsNodeSelected())
 			{
-				if (selectedNode.window != null) // window is sometimes null (after compiling scripts?)
-					selectedNode.window.Deselect();
+				selectedNode.GetWindow().Deselect();
 			}
 
 			selectedNode = nodeObject;
@@ -208,7 +182,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		{
 			if (!IsNodeSelected())
 				return;
-			selectedNode.window.Deselect();
+			selectedNode.GetWindow().Deselect();
 			selectedNode = null;
 		}
 
@@ -403,7 +377,7 @@ namespace AtomosZ.OhBehave.EditorTools
 						};
 
 					AddNewNode(newNode, lastNodeIndex);
-					
+
 					break;
 
 				default:
@@ -414,7 +388,7 @@ namespace AtomosZ.OhBehave.EditorTools
 
 		private void CreateParentNode(NodeEditorObject childNode, NodeType nodeType, bool createAtMousePosition)
 		{
-			Rect childWindowRect = childNode.window.GetRectNoOffset();
+			Rect childWindowRect = childNode.GetWindow().GetRectNoOffset();
 			childNode.RemoveParent();
 			switch (nodeType)
 			{
@@ -447,7 +421,7 @@ namespace AtomosZ.OhBehave.EditorTools
 
 		private void CreateChildNode(NodeEditorObject parentNode, NodeType nodeType, bool createAtMousePosition)
 		{
-			Rect parentWindowRect = parentNode.window.GetRectNoOffset();
+			Rect parentWindowRect = parentNode.GetWindow().GetRectNoOffset();
 			if (parentNode.nodeType == NodeType.Inverter)
 			{
 				if (parentNode.HasChildren())
@@ -515,7 +489,7 @@ namespace AtomosZ.OhBehave.EditorTools
 			save = true;
 		}
 
-	
+
 		/// <summary>
 		/// Only called when first constructed.
 		/// </summary>
