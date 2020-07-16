@@ -15,6 +15,7 @@ namespace AtomosZ.OhBehave.EditorTools
 	public class OhBehaveTreeBlueprint : ScriptableObject
 	{
 		public const int ROOT_INDEX = 0;
+		public const int MISSING_INDEX = -2;
 		public const int NO_PARENT_INDEX = -1;
 		/// <summary>
 		/// Used to help find when reached root.
@@ -94,11 +95,9 @@ namespace AtomosZ.OhBehave.EditorTools
 			if (serializedObject == null)
 				serializedObject = new SerializedObject(this);
 
-			bool dontDraw = false;
 			if (nodeObjects == null)
 			{
 				ConstructNodes();
-				dontDraw = true;
 				return;
 			}
 
@@ -116,8 +115,7 @@ namespace AtomosZ.OhBehave.EditorTools
 					errorMsgs.Add(invalidMsg);
 				}
 
-				//if (!dontDraw)
-					node.DrawConnectionWires();
+				node.DrawConnectionWires();
 			}
 
 			// draw rest
@@ -139,6 +137,7 @@ namespace AtomosZ.OhBehave.EditorTools
 				if (current.button == 1
 					&& current.type == EventType.MouseDown)
 				{
+					startConnection.isCreatingNewConnection = false;
 					startConnection = null;
 					endConnection = null;
 				}
@@ -216,6 +215,12 @@ namespace AtomosZ.OhBehave.EditorTools
 
 		public void EndPointSelected(ConnectionPoint endPoint)
 		{
+			if (startConnection == null)
+			{
+				Debug.LogWarning("trying to create a connection with no start point");
+				return;
+			}
+
 			if (endPoint.type != startConnection.type
 				&& endPoint.nodeWindow != startConnection.nodeWindow)
 			{
@@ -223,6 +228,7 @@ namespace AtomosZ.OhBehave.EditorTools
 			}
 			else
 			{ // cancel this new connection
+				startConnection.isCreatingNewConnection = false;
 				startConnection = null;
 			}
 		}
@@ -238,6 +244,7 @@ namespace AtomosZ.OhBehave.EditorTools
 
 		private void CompleteConnection()
 		{
+
 			NodeEditorObject nodeParent, nodeChild;
 			if (startConnection.type == ConnectionPointType.Out)
 			{
@@ -248,6 +255,21 @@ namespace AtomosZ.OhBehave.EditorTools
 			{
 				nodeParent = endConnection.nodeWindow.nodeObject;
 				nodeChild = startConnection.nodeWindow.nodeObject;
+			}
+
+			// check for loop
+			NodeEditorObject check = nodeParent;
+			while (check != null && check.index != ROOT_INDEX)
+			{
+				check = check.Parent;
+				if (check == nodeChild)
+				{
+					Debug.LogWarning("No loop for you!");
+					startConnection.isCreatingNewConnection = false;
+					endConnection = null;
+					startConnection = null;
+					return;
+				}
 			}
 
 			if (nodeParent.nodeType == NodeType.Inverter && nodeParent.HasChildren())
@@ -269,7 +291,7 @@ namespace AtomosZ.OhBehave.EditorTools
 			// ok, let's do this
 			NodeEditorObject.ConnectNodes(nodeParent, nodeChild);
 
-
+			startConnection.isCreatingNewConnection = false;
 			endConnection = null;
 			startConnection = null;
 			save = true;

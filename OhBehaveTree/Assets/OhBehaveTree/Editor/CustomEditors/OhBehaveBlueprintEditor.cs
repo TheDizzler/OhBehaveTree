@@ -38,6 +38,7 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 			serializedObject.ApplyModifiedProperties();
 		}
 
+
 		private void DrawBlueprintEditor()
 		{
 			//base.OnInspectorGUI();
@@ -55,6 +56,7 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 			EditorGUILayout.PropertyField(nodeList, true);
 
 		}
+
 
 		private void DrawSelectedNode()
 		{
@@ -84,7 +86,7 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 				GUILayout.BeginHorizontal();
 				{
 					EditorGUIUtility.labelWidth = 40f;
-					string newName = EditorGUILayout.DelayedTextField("Name", nodeObject.displayName);
+					string newName = EditorGUILayout.DelayedTextField("Display Name", nodeObject.displayName);
 					if (newName != nodeObject.displayName)
 					{
 						nodeObject.displayName = newName;
@@ -108,7 +110,6 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 				EditorGUIUtility.labelWidth = 0;
 
 				var selectedNodeProperty = serializedObject.FindProperty("selectedNode");
-				EditorGUILayout.PropertyField(selectedNodeProperty.FindPropertyRelative("displayName"));
 				switch (nodeObject.nodeType)
 				{
 					case NodeType.Leaf:

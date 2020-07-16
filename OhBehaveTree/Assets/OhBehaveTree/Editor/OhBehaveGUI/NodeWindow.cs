@@ -155,6 +155,9 @@ namespace AtomosZ.OhBehave.EditorTools
 
 		public void ParentRemoved()
 		{
+			if (parent == null)
+				return;
+
 			parent.RemoveChildConnection(this);
 			parent = null;
 		}
@@ -265,6 +268,7 @@ namespace AtomosZ.OhBehave.EditorTools
 
 				GUILayout.EndHorizontal();
 			}
+
 			GUILayout.BeginHorizontal();
 			{
 				GUILayout.Label(

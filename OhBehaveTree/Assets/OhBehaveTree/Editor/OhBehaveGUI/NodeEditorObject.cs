@@ -79,7 +79,11 @@ namespace AtomosZ.OhBehave.EditorTools
 			nodeType = type;
 			index = nodeIndex;
 			if (nodeIndex == OhBehaveTreeBlueprint.ROOT_INDEX)
+			{
+				isConnectedToRoot = true;
 				parentIndex = OhBehaveTreeBlueprint.ROOT_NODE_PARENT_INDEX;
+			}
+
 			parent = Parent;
 			CreateWindow();
 		}
@@ -239,8 +243,27 @@ namespace AtomosZ.OhBehave.EditorTools
 			int[] newOrder = new int[newOrderList.Count];
 			foreach (int childIndex in children)
 			{
+				if (childIndex == OhBehaveTreeBlueprint.MISSING_INDEX)
+				{
+					Debug.LogError("Reorder Error: MISSING_INDEX discovered in child list!");
+					continue;
+				}
+
 				NodeEditorObject childNode = treeBlueprint.GetNodeObject(childIndex);
-				newOrder[newOrderList.IndexOf(childNode.displayName)] = childIndex;
+				int newIndex = OhBehaveTreeBlueprint.MISSING_INDEX;
+				foreach (var item in newOrderList)
+				{
+					if (((ReorderableItem)item).index == childIndex)
+						newIndex = newOrderList.IndexOf(((ReorderableItem)item));
+				}
+
+				if (newIndex == OhBehaveTreeBlueprint.MISSING_INDEX)
+				{
+					Debug.LogError("Reorder Error: child " + childIndex + " not found in list!");
+					continue;
+				}
+
+				newOrder[newIndex] = childIndex;
 			}
 
 			children.Clear();

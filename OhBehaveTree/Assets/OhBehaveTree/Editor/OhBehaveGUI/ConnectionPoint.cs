@@ -26,7 +26,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		private bool isHovering;
 		private Color hoverBGColor;
 		private bool isConnected = false;
-		
+
 
 		public ConnectionPoint(NodeWindow node, ConnectionPointType type, Action<ConnectionPoint> OnClickConnectionPoint)
 		{
@@ -112,20 +112,33 @@ namespace AtomosZ.OhBehave.EditorTools
 
 			isConnected = true;
 
-			Vector3 lineStart = rect.center + ConnectionControls.lineOffset;
+			Vector2 lineStart = rect.center + ConnectionControls.lineOffset;
 			Handles.DrawAAPolyLine(ConnectionControls.lineThickness, rect.center, lineStart);
+			Vector2 furthestLeft = lineStart;
+			Vector2 furthestRight = lineStart;
 
 			int i = 0;
 			foreach (int nodeIndex in childrenIndices)
 			{
 				ConnectionPoint otherPoint = blueprint.GetNodeObject(nodeIndex).GetWindow().inPoint;
 				otherPoint.isConnected = true;
-				Vector3 lineEnd = otherPoint.rect.center - ConnectionControls.lineOffset;
-				Handles.DrawAAPolyLine(ConnectionControls.lineThickness, lineStart,
-					lineEnd, otherPoint.rect.center);
-				Handles.Label((lineStart + lineEnd) / 2, i.ToString(), EditorStyles.boldLabel);
+
+				Vector2 downLineStart = new Vector2(otherPoint.rect.center.x, lineStart.y);
+				if (downLineStart.x > furthestRight.x)
+					furthestRight.x = downLineStart.x;
+				else if (downLineStart.x < furthestLeft.x)
+					furthestLeft.x = downLineStart.x;
+
+				Handles.DrawAAPolyLine(ConnectionControls.lineThickness,
+					downLineStart, otherPoint.rect.center);
+
+				Handles.Label((downLineStart + otherPoint.rect.center) / 2, i.ToString(), EditorStyles.boldLabel);
 				++i;
 			}
+
+			Handles.DrawAAPolyLine(ConnectionControls.lineThickness,
+				furthestLeft, furthestRight);
+
 		}
 
 
@@ -134,7 +147,7 @@ namespace AtomosZ.OhBehave.EditorTools
 			Color clr = GUI.backgroundColor;
 			if (isHovering || isCreatingNewConnection)
 				GUI.backgroundColor = hoverBGColor;
-			
+
 			GUI.Label(rect, "", isConnected ? connectedStyle : unConnectedstyle);
 
 			GUI.backgroundColor = clr;

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
@@ -8,7 +7,7 @@ namespace AtomosZ.OhBehave.EditorTools
 {
 	public abstract class CompositeNodeWindow : NodeWindow, IParentNodeWindow
 	{
-		public ReorderableList childNodesReorderable;
+		private ReorderableList childNodesReorderable;
 
 		public CompositeNodeWindow(NodeEditorObject node) : base(node) { }
 
@@ -86,12 +85,16 @@ namespace AtomosZ.OhBehave.EditorTools
 				}
 
 
-				if (childNodesReorderable == null)
+				if (childNodesReorderable != null)
+					childNodesReorderable.DoLayoutList();
+				else if (Event.current.type == EventType.Repaint)
+				{
 					CreateChildList();
-				childNodesReorderable.DoLayoutList();
+				}
 
 				if (Event.current.type == EventType.Repaint)
 				{
+
 					Rect lastrect = GUILayoutUtility.GetLastRect();
 					nodeObject.windowRect.height = lastrect.yMax;
 				}
@@ -118,7 +121,7 @@ namespace AtomosZ.OhBehave.EditorTools
 			CreateChildList();
 		}
 
-		
+
 		public void CreateChildConnection(NodeWindow newChild)
 		{
 			newChild.SetParentWindow(this);
@@ -132,32 +135,59 @@ namespace AtomosZ.OhBehave.EditorTools
 
 		private void CreateChildList()
 		{
-			List<string> nodeNames = new List<string>();
 			if (nodeObject.children != null)
 			{
-				foreach (var nodeIndex in nodeObject.children)
+				if (nodeObject.children.Count == 0)
 				{
-					var node = treeBlueprint.GetNodeObject(nodeIndex);
+					return;
+					//nodeItems
+
+				}
+
+				ReorderableItem[] nodeItems = new ReorderableItem[nodeObject.children.Count];
+				for (int i = 0; i < nodeObject.children.Count; ++i)
+				{
+					var node = treeBlueprint.GetNodeObject(nodeObject.children[i]);
 					if (node == null)
 					{
 						Debug.LogError("Missing child error");
-						nodeNames.Add("MISSING CHILD");
+						nodeItems[i] = new ReorderableItem(OhBehaveTreeBlueprint.MISSING_INDEX, "MISSING CHILD");
 					}
 					else
-						nodeNames.Add(node.displayName);
+					{
+						nodeItems[i] = new ReorderableItem(node.index, node.displayName);
+					}
 
 				}
-			}
 
-			childNodesReorderable = new ReorderableList(nodeNames, typeof(string));
-			childNodesReorderable.displayAdd = false;
-			childNodesReorderable.displayRemove = false;
-			childNodesReorderable.onReorderCallback += ChildrenReordered;
+				childNodesReorderable = new ReorderableList(nodeItems, typeof(ReorderableItem), true, true, false, false);
+				childNodesReorderable.onReorderCallback += ChildrenReordered;
+				childNodesReorderable.drawElementCallback = DrawChildren;
+			}
+		}
+
+		private void DrawChildren(Rect rect, int index, bool isActive, bool isFocused)
+		{
+			ReorderableItem item = (ReorderableItem)childNodesReorderable.list[index];
+			EditorGUI.LabelField(rect, new GUIContent(item.displayName + " (index: " + item.index + ")"));
 		}
 
 		private void ChildrenReordered(ReorderableList list)
 		{
 			nodeObject.ChildrenReordered(list.list);
+		}
+	}
+
+	[System.Serializable]
+	public class ReorderableItem
+	{
+		public int index;
+		public string displayName;
+
+		public ReorderableItem(int index, string displayName)
+		{
+			this.index = index;
+			this.displayName = displayName;
 		}
 	}
 }
