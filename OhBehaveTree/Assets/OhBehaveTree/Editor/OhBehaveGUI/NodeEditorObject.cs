@@ -185,6 +185,12 @@ namespace AtomosZ.OhBehave.EditorTools
 
 		public void ChangeNodeType(NodeType newType)
 		{
+			if (index == OhBehaveTreeBlueprint.ROOT_INDEX)
+			{
+				Debug.LogWarning("Change denied: I am root");
+				return;
+			}
+
 			if (newType == NodeType.Leaf)
 			{
 				if (HasChildren())
