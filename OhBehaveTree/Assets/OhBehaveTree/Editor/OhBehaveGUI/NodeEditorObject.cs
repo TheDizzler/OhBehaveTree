@@ -191,12 +191,10 @@ namespace AtomosZ.OhBehave.EditorTools
 				return;
 			}
 
-			if (newType == NodeType.Leaf)
+			if (HasChildren() && (newType == NodeType.Leaf || (newType == NodeType.Inverter && children.Count > 1)))
 			{
-				if (HasChildren())
-				{
-					Debug.LogError("Must handle children potentially losing their parent!");
-				}
+				for (int i = children.Count - 1; i >= 0; --i)
+					DisconnectNodes(this, treeBlueprint.GetNodeObject(children[i]));
 			}
 
 			nodeType = newType;
