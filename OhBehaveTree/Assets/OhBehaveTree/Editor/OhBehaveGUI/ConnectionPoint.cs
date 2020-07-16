@@ -105,10 +105,15 @@ namespace AtomosZ.OhBehave.EditorTools
 
 
 
-		public void DrawConnectionTo(List<int> childrenIndices)
+		public bool DrawConnectionTo(List<int> childrenIndices, out int[] newChildOrder)
 		{
 			if (childrenIndices == null || childrenIndices.Count == 0)
-				return;
+			{
+				newChildOrder = new int[0];
+				return false;
+			}
+
+			newChildOrder = new int[childrenIndices.Count];
 
 			isConnected = true;
 
@@ -117,9 +122,22 @@ namespace AtomosZ.OhBehave.EditorTools
 			Vector2 furthestLeft = lineStart;
 			Vector2 furthestRight = lineStart;
 
+			Dictionary<float, int> nodeLocationIndex = new Dictionary<float, int>();
+			List<float> order = new List<float>();
 			int i = 0;
 			foreach (int nodeIndex in childrenIndices)
 			{
+				if (nodeIndex == OhBehaveTreeBlueprint.ROOT_INDEX)
+				{
+					Debug.LogError("WTF: trying to draw a connection to the root.");
+					continue;
+				}
+				if (blueprint.GetNodeObject(nodeIndex) == null)
+				{
+					Debug.LogWarning("Child index " + nodeIndex + " invalid. Delayed removal?");
+					continue;
+				}
+
 				ConnectionPoint otherPoint = blueprint.GetNodeObject(nodeIndex).GetWindow().inPoint;
 				otherPoint.isConnected = true;
 
@@ -133,12 +151,45 @@ namespace AtomosZ.OhBehave.EditorTools
 					downLineStart, otherPoint.rect.center);
 
 				Handles.Label((downLineStart + otherPoint.rect.center) / 2, i.ToString(), EditorStyles.boldLabel);
+				order.Add(downLineStart.x);
+				nodeLocationIndex[downLineStart.x] = nodeIndex;
 				++i;
 			}
 
 			Handles.DrawAAPolyLine(ConnectionControls.lineThickness,
 				furthestLeft, furthestRight);
 
+			if(Event.current.type == EventType.Repaint)
+				return false;
+
+			order.Sort();
+
+			bool reordered = false;
+			for (i = 0; i < order.Count; ++i)
+			{
+				newChildOrder[i] = nodeLocationIndex[order[i]];
+				if (newChildOrder[i] != childrenIndices[i])
+				{
+					reordered = true;
+				}
+			}
+
+			// this should be safe to delete. Keep it around for a little while just in case.
+			for (i = 0; i < newChildOrder.Length; ++i)
+			{ 
+				for (int j = 0; j < newChildOrder.Length; ++j)
+				{
+					if (i == j)
+						continue;
+					if (newChildOrder[i] == newChildOrder[j])
+					{
+						Debug.LogError("found dups: " + Event.current.type);
+						return false;
+					}
+				}
+			}
+
+			return reordered;
 		}
 
 

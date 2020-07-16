@@ -150,7 +150,7 @@ namespace AtomosZ.OhBehave.EditorTools
 
 		public List<int> GetChildren()
 		{
-			return nodeObject.children;
+			return nodeObject.GetChildren();
 		}
 
 		public void ParentRemoved()
@@ -158,7 +158,6 @@ namespace AtomosZ.OhBehave.EditorTools
 			if (parent == null)
 				return;
 
-			parent.RemoveChildConnection(this);
 			parent = null;
 		}
 

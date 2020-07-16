@@ -51,10 +51,12 @@ namespace AtomosZ.OhBehave.EditorTools
 			}
 
 			CreateStyles();
-			zoomer = new EditorZoomer();
+			if (zoomer == null)
+				zoomer = new EditorZoomer();
 			if (treeBlueprint != null)
 			{
 				treeBlueprint.ConstructNodes();
+				zoomer.Reset(treeBlueprint.zoomerSettings);
 			}
 		}
 
@@ -101,6 +103,8 @@ namespace AtomosZ.OhBehave.EditorTools
 
 			treeBlueprint.ConstructNodes();
 
+			if (zoomer != null)
+				zoomer.Reset(treeBlueprint.zoomerSettings);
 			window.Show();
 		}
 
@@ -117,7 +121,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		}
 
 
-		void OnGUI()
+		public void Update()
 		{
 			if (Selection.activeGameObject != null)
 			{
@@ -133,8 +137,6 @@ namespace AtomosZ.OhBehave.EditorTools
 				}
 			}
 
-
-
 			if (treeBlueprint == null)
 			{
 				if (Selection.activeObject != null)
@@ -146,56 +148,59 @@ namespace AtomosZ.OhBehave.EditorTools
 						Repaint();
 					}
 				}
-
 			}
-			else
+		}
+
+
+		void OnGUI()
+		{
+			if (InPointStyle == null)
 			{
-
-				if (InPointStyle == null)
-				{
-					CreateStyles();
-				}
-
-				{   // Just keeping this around for future reference.
-					if (NodeEditPopup.instance != null)
-					{
-						if (Event.current.type == EventType.MouseDown
-							&& EditorWindow.mouseOverWindow != NodeEditPopup.instance)
-							NodeEditPopup.instance.Hide();
-					}
-				}
-
-
-				if (zoomer == null)
-					zoomer = new EditorZoomer();
-
-				zoomer.HandleEvents(Event.current);
-
-				DrawHorizontalUILine(Color.gray);
-
-				Rect lastRect = GUILayoutUtility.GetLastRect();
-				if (Event.current.type == EventType.Repaint)
-				{
-					zoomRect.position = new Vector2(
-						ZOOM_BORDER,
-						lastRect.yMax + lastRect.height + ZOOM_BORDER);
-					zoomRect.size = new Vector2(
-						window.position.width - ZOOM_BORDER * 2,
-						window.position.height - (lastRect.yMax + ZOOM_BORDER * 2 + areaBelowZoomHeight));
-				}
-
-
-				zoomer.Begin(zoomRect);
-				{
-					treeBlueprint.OnGui(Event.current, zoomer);
-				}
-				zoomer.End(new Rect(0, zoomRect.yMax + zoomRect.position.y - 50, window.position.width, window.position.height));
-
-
-				//DrawHorizontalUILine(Color.gray);
-
-				EditorGUILayout.Vector2Field("mouse", Event.current.mousePosition);
+				CreateStyles();
 			}
+
+			{   // Just keeping this around for future reference.
+				if (NodeEditPopup.instance != null)
+				{
+					if (Event.current.type == EventType.MouseDown
+						&& EditorWindow.mouseOverWindow != NodeEditPopup.instance)
+						NodeEditPopup.instance.Hide();
+				}
+			}
+
+
+			if (zoomer == null)
+			{
+				zoomer = new EditorZoomer();
+				zoomer.Reset(treeBlueprint.zoomerSettings);
+			}
+
+			zoomer.HandleEvents(Event.current);
+
+			DrawHorizontalUILine(Color.gray);
+
+			Rect lastRect = GUILayoutUtility.GetLastRect();
+			if (Event.current.type == EventType.Repaint)
+			{
+				zoomRect.position = new Vector2(
+					ZOOM_BORDER,
+					lastRect.yMax + lastRect.height + ZOOM_BORDER);
+				zoomRect.size = new Vector2(
+					window.position.width - ZOOM_BORDER * 2,
+					window.position.height - (lastRect.yMax + ZOOM_BORDER * 2 + areaBelowZoomHeight));
+			}
+
+
+			zoomer.Begin(zoomRect);
+			{
+				treeBlueprint.OnGui(Event.current, zoomer);
+			}
+			zoomer.End(new Rect(0, zoomRect.yMax + zoomRect.position.y - 50, window.position.width, window.position.height));
+
+
+			//DrawHorizontalUILine(Color.gray);
+
+			EditorGUILayout.Vector2Field("mouse", Event.current.mousePosition);
 
 
 			if (GUI.changed)

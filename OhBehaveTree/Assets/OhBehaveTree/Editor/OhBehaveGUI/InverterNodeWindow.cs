@@ -80,8 +80,8 @@ namespace AtomosZ.OhBehave.EditorTools
 					nodeObject.ChangeNodeType(newType);
 				}
 
-				if (nodeObject.children != null && nodeObject.children.Count == 1)
-					GUILayout.Label("NOT " + treeBlueprint.GetNodeObject(nodeObject.children[0]).displayName);
+				if (nodeObject.HasChildren() && nodeObject.GetChildren().Count == 1)
+					GUILayout.Label("NOT " + treeBlueprint.GetNodeObject(nodeObject.GetChildren()[0]).displayName);
 				else
 					GUILayout.Label("Dangeling Inverter");
 				if (Event.current.type == EventType.Repaint)
@@ -96,7 +96,7 @@ namespace AtomosZ.OhBehave.EditorTools
 			inPoint.OnGUI();
 			outPoint.OnGUI();
 
-			outPoint.DrawConnectionTo(GetChildren());
+			outPoint.DrawConnectionTo(GetChildren(), out int[] newChildOrder); // inverter can only have one child so we could simplify this
 		}
 
 		public override void UpdateChildrenList()
@@ -107,10 +107,6 @@ namespace AtomosZ.OhBehave.EditorTools
 		public void CreateChildConnection(NodeWindow newChild)
 		{
 			newChild.SetParentWindow(this);
-		}
-
-		public void RemoveChildConnection(NodeWindow removeNode)
-		{
 		}
 	}
 }

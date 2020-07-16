@@ -34,9 +34,12 @@ namespace AtomosZ.OhBehave.EditorTools
 		public string controllerGUID;
 
 		public List<NodeEditorObject> savedNodes;
+		public ZoomerSettings zoomerSettings;
 
 		[SerializeField]
 		private NodeEditorObject selectedNode;
+
+
 
 		private Dictionary<int, NodeEditorObject> nodeObjects;
 		private SerializedObject serializedObject;
@@ -82,12 +85,13 @@ namespace AtomosZ.OhBehave.EditorTools
 
 				AddNewNode(newNode, 0);
 
-
+				zoomerSettings = new ZoomerSettings();
 				AssetDatabase.Refresh();
 				EditorUtility.SetDirty(this);
 				save = true;
 			}
 		}
+
 
 
 		public void OnGui(Event current, EditorZoomer zoomer)
@@ -169,7 +173,7 @@ namespace AtomosZ.OhBehave.EditorTools
 			}
 
 			zoomer.DisplayInvalid(isValidTree, errorMsgs);
-
+			zoomer.Update(zoomerSettings);
 
 			PendingDeletes();
 
@@ -216,8 +220,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		public void EndPointSelected(ConnectionPoint endPoint)
 		{
 			if (startConnection == null)
-			{
-				Debug.LogWarning("trying to create a connection with no start point");
+			{// probably mouse up over node after mouse down elsewhere				
 				return;
 			}
 
@@ -275,17 +278,15 @@ namespace AtomosZ.OhBehave.EditorTools
 			if (nodeParent.nodeType == NodeType.Inverter && nodeParent.HasChildren())
 			{
 				// orphan the olde child
-				var oldChild = GetNodeObject(nodeParent.children[0]);
-				oldChild.RemoveParent();
-				nodeParent.RemoveChild(oldChild.index);
+				var oldChild = GetNodeObject(nodeParent.GetChildren()[0]);
+				NodeEditorObject.DisconnectNodes(nodeParent, oldChild);
 			}
 
 			var oldParent = GetNodeObject(nodeChild.parentIndex);
 			if (oldParent != null)
 			{
 				// remove from old parent
-				oldParent.RemoveChild(nodeChild.index);
-				nodeChild.RemoveParent();
+				NodeEditorObject.DisconnectNodes(oldParent, nodeChild);
 			}
 
 			// ok, let's do this
@@ -367,6 +368,7 @@ namespace AtomosZ.OhBehave.EditorTools
 			EditorUtility.SetDirty(this);
 		}
 
+
 		private void PendingDeletes()
 		{
 			if (deleteTasks.Count == 0)
@@ -426,7 +428,8 @@ namespace AtomosZ.OhBehave.EditorTools
 		private void CreateParentNode(NodeEditorObject childNode, NodeType nodeType, bool createAtMousePosition)
 		{
 			Rect childWindowRect = childNode.GetWindow().GetRectNoOffset();
-			childNode.RemoveParent();
+			NodeEditorObject.DisconnectNodes(childNode.Parent, childNode);
+			save = true;
 			switch (nodeType)
 			{
 				case NodeType.Sequence:
@@ -463,8 +466,7 @@ namespace AtomosZ.OhBehave.EditorTools
 			{
 				if (parentNode.HasChildren())
 				{
-					GetNodeObject(parentNode.children[0]).RemoveParent();
-					parentNode.RemoveChild(parentNode.children[0]);
+					DisconnectNodes(parentNode, GetNodeObject(parentNode.GetChildren()[0]));
 				}
 			}
 

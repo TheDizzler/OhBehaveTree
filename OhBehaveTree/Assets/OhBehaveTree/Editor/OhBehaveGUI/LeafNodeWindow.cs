@@ -88,7 +88,8 @@ namespace AtomosZ.OhBehave.EditorTools
 					foldoutStyle = OhBehaveEditorWindow.normalFoldoutStyle;
 
 				bool wasExpanded = isExpanded;
-				isExpanded = EditorGUILayout.Foldout(isExpanded, new GUIContent("Actions"), true, foldoutStyle);
+				if (Event.current.type != EventType.Repaint)
+					isExpanded = EditorGUILayout.Foldout(isExpanded, new GUIContent("Actions"), true, foldoutStyle);
 				if (wasExpanded != isExpanded)
 					GUI.changed = true;
 
@@ -98,21 +99,7 @@ namespace AtomosZ.OhBehave.EditorTools
 					if (!isValid)
 						labelStyle.normal.textColor = Color.red;
 
-					if (nodeObject.startEvent.GetPersistentEventCount() == 0)
-					{
-						EditorGUILayout.LabelField("Action Start:", labelStyle);
-						EditorGUILayout.LabelField("\tNo Methods Set", labelStyle);
-					}
-					else
-					{
-						EditorGUILayout.LabelField("Action Start:");
-						for (int i = 0; i < nodeObject.startEvent.GetPersistentEventCount(); ++i)
-						{
-							EditorGUILayout.LabelField("\t" + nodeObject.startEvent.GetPersistentMethodName(i));
-						}
-					}
-
-					if (nodeObject.actionEvent.GetPersistentEventCount() == 0)
+					if (nodeObject.actionEvent == null)
 					{
 						EditorGUILayout.LabelField("Action:", labelStyle);
 						EditorGUILayout.LabelField("\tNo Methods Set", labelStyle);
@@ -120,10 +107,7 @@ namespace AtomosZ.OhBehave.EditorTools
 					else
 					{
 						EditorGUILayout.LabelField("Action Start:");
-						for (int i = 0; i < nodeObject.actionEvent.GetPersistentEventCount(); ++i)
-						{
-							EditorGUILayout.LabelField("\t" + nodeObject.actionEvent.GetPersistentMethodName(i));
-						}
+						EditorGUILayout.LabelField("\t" + nodeObject.actionEvent.name);
 					}
 				}
 

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -28,13 +27,8 @@ namespace AtomosZ.OhBehave.EditorTools
 		/// <summary>
 		/// LeafNode Only.
 		/// </summary>
-		public LeafNodeAction startEvent;
-		/// <summary>
-		/// LeafNode Only.
-		/// </summary>
-		public LeafNodeAction actionEvent;
+		public MonoScript actionEvent;
 		public Rect windowRect;
-
 
 
 		/// <summary>
@@ -42,7 +36,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		/// Decorators should only have 1 child.
 		/// </summary>
 		[SerializeField]
-		public List<int> children;
+		private List<int> children;
 
 		[NonSerialized]
 		public Vector2 offset;
@@ -143,9 +137,15 @@ namespace AtomosZ.OhBehave.EditorTools
 			return isValid || !isConnectedToRoot;
 		}
 
+
 		public void DrawConnectionWires()
 		{
 			window.DrawConnectionWires();
+		}
+
+		public List<int> GetChildren()
+		{
+			return children;
 		}
 
 		public NodeWindow GetWindow()
@@ -169,8 +169,7 @@ namespace AtomosZ.OhBehave.EditorTools
 
 		private bool HasAction()
 		{
-			return startEvent != null && startEvent.GetPersistentEventCount() != 0
-				&& actionEvent != null && actionEvent.GetPersistentEventCount() != 0;
+			return actionEvent != null;
 		}
 
 		public void OnGUI()
@@ -205,6 +204,12 @@ namespace AtomosZ.OhBehave.EditorTools
 			child.AddParent(parent.index);
 		}
 
+		public static void DisconnectNodes(NodeEditorObject parent, NodeEditorObject child)
+		{
+			child.RemoveParent();
+			if (parent != null)
+				parent.RemoveChild(child.index);
+		}
 
 		/// <summary>
 		/// If node already has a parent, removes it first.
@@ -218,11 +223,15 @@ namespace AtomosZ.OhBehave.EditorTools
 			window.SetParentWindow((IParentNodeWindow)Parent.window);
 		}
 
-		public void RemoveParent()
+		private void RemoveParent()
 		{
-			window.ParentRemoved();
-			parent = null;
-			parentIndex = OhBehaveTreeBlueprint.NO_PARENT_INDEX;
+			if (parent != null)
+			{
+				//parent.RemoveChild(index);
+				window.ParentRemoved();
+				parent = null;
+				parentIndex = OhBehaveTreeBlueprint.NO_PARENT_INDEX;
+			}
 		}
 
 		/// <summary>
@@ -238,36 +247,12 @@ namespace AtomosZ.OhBehave.EditorTools
 		}
 
 
-		public void ChildrenReordered(IList newOrderList)
+
+		public void NewChildOrder(int[] newChildOrder)
 		{
-			int[] newOrder = new int[newOrderList.Count];
-			foreach (int childIndex in children)
-			{
-				if (childIndex == OhBehaveTreeBlueprint.MISSING_INDEX)
-				{
-					Debug.LogError("Reorder Error: MISSING_INDEX discovered in child list!");
-					continue;
-				}
-
-				NodeEditorObject childNode = treeBlueprint.GetNodeObject(childIndex);
-				int newIndex = OhBehaveTreeBlueprint.MISSING_INDEX;
-				foreach (var item in newOrderList)
-				{
-					if (((ReorderableItem)item).index == childIndex)
-						newIndex = newOrderList.IndexOf(((ReorderableItem)item));
-				}
-
-				if (newIndex == OhBehaveTreeBlueprint.MISSING_INDEX)
-				{
-					Debug.LogError("Reorder Error: child " + childIndex + " not found in list!");
-					continue;
-				}
-
-				newOrder[newIndex] = childIndex;
-			}
-
 			children.Clear();
-			children.AddRange(newOrder);
+			children.AddRange(newChildOrder);
+			window.UpdateChildrenList();
 		}
 
 
@@ -286,7 +271,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		}
 
 
-		public void RemoveChild(int childIndex)
+		private void RemoveChild(int childIndex)
 		{
 			if (children == null)
 			{
@@ -315,9 +300,10 @@ namespace AtomosZ.OhBehave.EditorTools
 				// this node has children. Warn before deleting?
 				var ohBehave = EditorWindow.GetWindow<OhBehaveEditorWindow>();
 				var treeBlueprint = ohBehave.treeBlueprint;
-				foreach (int nodeIndex in children)
+
+				for (int i = children.Count - 1; i >= 0; --i)
 				{
-					NodeEditorObject child = treeBlueprint.GetNodeObject(nodeIndex);
+					NodeEditorObject child = treeBlueprint.GetNodeObject(children[i]);
 					child.RemoveParent();
 				}
 			}

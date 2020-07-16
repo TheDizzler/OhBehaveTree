@@ -113,17 +113,13 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 				switch (nodeObject.nodeType)
 				{
 					case NodeType.Leaf:
-						var startEventProp = selectedNodeProperty.FindPropertyRelative("startEvent");
-						EditorGUILayout.PropertyField(startEventProp);
-
 						var actionEventProp = selectedNodeProperty.FindPropertyRelative("actionEvent");
 						EditorGUILayout.PropertyField(actionEventProp);
 						break;
 					case NodeType.Selector:
 					case NodeType.Sequence:
 						GUI.enabled = false;
-						var children = nodeObject.children;
-						EditorGUILayout.PropertyField(selectedNodeProperty.FindPropertyRelative("children"));
+						EditorGUILayout.PropertyField(selectedNodeProperty.FindPropertyRelative("children"), true);
 						GUI.enabled = true;
 						break;
 				}

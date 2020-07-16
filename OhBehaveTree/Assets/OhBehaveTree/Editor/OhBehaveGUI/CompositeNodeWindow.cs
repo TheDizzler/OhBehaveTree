@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Collections.Generic;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
@@ -56,6 +56,7 @@ namespace AtomosZ.OhBehave.EditorTools
 
 					break;
 			}
+
 			return saveNeeded;
 		}
 
@@ -84,7 +85,6 @@ namespace AtomosZ.OhBehave.EditorTools
 					nodeObject.ChangeNodeType(newType);
 				}
 
-
 				if (childNodesReorderable != null)
 					childNodesReorderable.DoLayoutList();
 				else if (Event.current.type == EventType.Repaint)
@@ -94,13 +94,11 @@ namespace AtomosZ.OhBehave.EditorTools
 
 				if (Event.current.type == EventType.Repaint)
 				{
-
 					Rect lastrect = GUILayoutUtility.GetLastRect();
 					nodeObject.windowRect.height = lastrect.yMax;
 				}
 			}
 			GUILayout.EndArea();
-
 
 			GUI.backgroundColor = clr;
 
@@ -112,7 +110,10 @@ namespace AtomosZ.OhBehave.EditorTools
 
 		public override void DrawConnectionWires()
 		{
-			outPoint.DrawConnectionTo(GetChildren());
+			if (outPoint.DrawConnectionTo(GetChildren(), out int[] newChildOrder))
+			{
+				nodeObject.NewChildOrder(newChildOrder);
+			}
 		}
 
 
@@ -128,26 +129,20 @@ namespace AtomosZ.OhBehave.EditorTools
 		}
 
 
-		public void RemoveChildConnection(NodeWindow removedChild)
-		{
-			Debug.LogWarning("child removed from window. Action required?");
-		}
-
 		private void CreateChildList()
 		{
-			if (nodeObject.children != null)
+			if (nodeObject.HasChildren())
 			{
-				if (nodeObject.children.Count == 0)
+				var children = nodeObject.GetChildren();
+				if (children.Count == 0)
 				{
 					return;
-					//nodeItems
-
 				}
 
-				ReorderableItem[] nodeItems = new ReorderableItem[nodeObject.children.Count];
-				for (int i = 0; i < nodeObject.children.Count; ++i)
+				ReorderableItem[] nodeItems = new ReorderableItem[children.Count];
+				for (int i = 0; i < children.Count; ++i)
 				{
-					var node = treeBlueprint.GetNodeObject(nodeObject.children[i]);
+					var node = treeBlueprint.GetNodeObject(children[i]);
 					if (node == null)
 					{
 						Debug.LogError("Missing child error");
@@ -161,20 +156,17 @@ namespace AtomosZ.OhBehave.EditorTools
 				}
 
 				childNodesReorderable = new ReorderableList(nodeItems, typeof(ReorderableItem), true, true, false, false);
-				childNodesReorderable.onReorderCallback += ChildrenReordered;
-				childNodesReorderable.drawElementCallback = DrawChildren;
+				//childNodesReorderable.onReorderCallback = ChildrenReordered;
+				childNodesReorderable.drawElementCallback = DrawListItem;
 			}
+			else
+				childNodesReorderable = new ReorderableList(new List<int>(), typeof(int));
 		}
 
-		private void DrawChildren(Rect rect, int index, bool isActive, bool isFocused)
+		private void DrawListItem(Rect rect, int index, bool isActive, bool isFocused)
 		{
 			ReorderableItem item = (ReorderableItem)childNodesReorderable.list[index];
 			EditorGUI.LabelField(rect, new GUIContent(item.displayName + " (index: " + item.index + ")"));
-		}
-
-		private void ChildrenReordered(ReorderableList list)
-		{
-			nodeObject.ChildrenReordered(list.list);
 		}
 	}
 
