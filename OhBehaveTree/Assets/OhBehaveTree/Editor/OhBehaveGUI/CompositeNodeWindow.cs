@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
@@ -158,9 +159,15 @@ namespace AtomosZ.OhBehave.EditorTools
 				childNodesReorderable = new ReorderableList(nodeItems, typeof(ReorderableItem), true, true, false, false);
 				//childNodesReorderable.onReorderCallback = ChildrenReordered;
 				childNodesReorderable.drawElementCallback = DrawListItem;
+				childNodesReorderable.drawHeaderCallback = DrawHeader;
 			}
 			else
 				childNodesReorderable = new ReorderableList(new List<int>(), typeof(int));
+		}
+
+		private void DrawHeader(Rect rect)
+		{
+			EditorGUI.LabelField(rect, nodeObject.nodeType == NodeType.Sequence ? "Execute All" : "Execute until Success");
 		}
 
 		private void DrawListItem(Rect rect, int index, bool isActive, bool isFocused)
