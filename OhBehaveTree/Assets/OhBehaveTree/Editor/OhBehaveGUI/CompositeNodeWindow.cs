@@ -161,7 +161,7 @@ namespace AtomosZ.OhBehave.EditorTools
 				childNodesReorderable.drawHeaderCallback = DrawHeader;
 			}
 			else
-				childNodesReorderable = new ReorderableList(new List<int>(), typeof(int));
+				childNodesReorderable = new ReorderableList(new List<int>(), typeof(int), false, true, false, false);
 		}
 
 		private void ChildrenReordered(ReorderableList newOrderList)
