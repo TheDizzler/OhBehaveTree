@@ -168,6 +168,10 @@ namespace AtomosZ.OhBehave.EditorTools
 				}
 			}
 
+			if (treeBlueprint == null)
+			{
+				return;
+			}
 
 			if (zoomer == null)
 			{
