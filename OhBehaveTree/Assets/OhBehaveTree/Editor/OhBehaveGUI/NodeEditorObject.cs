@@ -251,7 +251,10 @@ namespace AtomosZ.OhBehave.EditorTools
 		}
 
 
-
+		/// <summary>
+		/// Reorders ReorderableList in response to child window moving.
+		/// </summary>
+		/// <param name="newChildOrder"></param>
 		public void NewChildOrder(int[] newChildOrder)
 		{
 			children.Clear();
@@ -259,6 +262,32 @@ namespace AtomosZ.OhBehave.EditorTools
 			window.UpdateChildrenList();
 		}
 
+		/// <summary>
+		/// Reorders child windows in response to ReorderableList item dragging.
+		/// </summary>
+		/// <param name="newOrder"></param>
+		public void ReorderPhysicalChildren(List<int> newOrder)
+		{
+			List<Vector2> positions = new List<Vector2>();
+			foreach (var child in children)
+			{
+				var childNode = treeBlueprint.GetNodeObject(child);
+				Vector2 pos = childNode.windowRect.position;
+				positions.Add(pos);
+			}
+
+			for (int i = 0; i < newOrder.Count; ++i)
+			{
+				var childNode = treeBlueprint.GetNodeObject(newOrder[i]);
+				childNode.windowRect.position = positions[i];
+			}
+		}
+
+
+		public void SwitchedPlaces(int childIndexA, int childIndexB)
+		{
+			Debug.Log("a: " + childIndexA + " b: " + childIndexB);
+		}
 
 		private void AddChild(NodeEditorObject newChildNode)
 		{

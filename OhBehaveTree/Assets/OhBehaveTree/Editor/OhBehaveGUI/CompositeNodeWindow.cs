@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
@@ -157,12 +156,24 @@ namespace AtomosZ.OhBehave.EditorTools
 				}
 
 				childNodesReorderable = new ReorderableList(nodeItems, typeof(ReorderableItem), true, true, false, false);
-				//childNodesReorderable.onReorderCallback = ChildrenReordered;
+				childNodesReorderable.onReorderCallback = ChildrenReordered;
 				childNodesReorderable.drawElementCallback = DrawListItem;
 				childNodesReorderable.drawHeaderCallback = DrawHeader;
 			}
 			else
 				childNodesReorderable = new ReorderableList(new List<int>(), typeof(int));
+		}
+
+		private void ChildrenReordered(ReorderableList newOrderList)
+		{
+			List<int> orgOrder = nodeObject.GetChildren();
+			List<int> newOrder = new List<int>();
+			for (int i = 0; i < newOrderList.count; ++i)
+			{
+				newOrder.Add(((ReorderableItem)newOrderList.list[i]).index);
+			}
+
+			nodeObject.ReorderPhysicalChildren(newOrder);
 		}
 
 		private void DrawHeader(Rect rect)
