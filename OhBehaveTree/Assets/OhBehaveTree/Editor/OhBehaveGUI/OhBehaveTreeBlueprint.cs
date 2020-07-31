@@ -188,7 +188,7 @@ namespace AtomosZ.OhBehave.EditorTools
 
 		public void SelectNode(NodeEditorObject nodeObject)
 		{
-			if (IsNodeSelected())
+			if (IsNodeSelected() && selectedNode != nodeObject)
 			{
 				selectedNode.GetWindow().Deselect();
 			}
