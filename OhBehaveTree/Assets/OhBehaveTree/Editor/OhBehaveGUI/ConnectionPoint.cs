@@ -183,7 +183,7 @@ namespace AtomosZ.OhBehave.EditorTools
 						continue;
 					if (newChildOrder[i] == newChildOrder[j])
 					{
-						Debug.LogError("found dups: " + Event.current.type);
+						Debug.LogWarning("found dups: " + Event.current.type + ". If was re-ording list, should be safe to ignore.");
 						return false;
 					}
 				}

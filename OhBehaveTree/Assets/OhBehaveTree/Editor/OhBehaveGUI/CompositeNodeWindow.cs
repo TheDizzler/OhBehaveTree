@@ -87,13 +87,13 @@ namespace AtomosZ.OhBehave.EditorTools
 
 				if (childNodesReorderable != null)
 				{
-					try
-					{
+					//try
+					//{
 						childNodesReorderable.DoLayoutList();
-					}
-					catch (System.Exception)
-					{// only happens of Repaint after deleting a node. I think we can safely ignore it.
-					}
+					//}
+					//catch (System.Exception)
+					//{// only happens on Repaint after deleting a node. I think we can safely ignore it.
+					//}
 				}
 				else if (Event.current.type == EventType.Repaint)
 				{
