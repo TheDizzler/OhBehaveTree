@@ -226,7 +226,7 @@ namespace AtomosZ.OhBehave.EditorTools
 
 				case ConnectionPointType.Out:
 					var children = nodeWindow.GetChildren();
-					if (children.Count > 0)
+					if (children != null && children.Count > 0)
 					{
 						var disconnectMenu = new GenericMenu();
 						disconnectMenu.allowDuplicateNames = true;

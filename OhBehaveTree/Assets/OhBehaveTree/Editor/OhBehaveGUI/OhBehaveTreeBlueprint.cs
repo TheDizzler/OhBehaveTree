@@ -175,8 +175,6 @@ namespace AtomosZ.OhBehave.EditorTools
 			zoomer.DisplayInvalid(isValidTree, errorMsgs);
 			zoomer.Update(zoomerSettings);
 
-			PendingDeletes();
-
 			if (save)
 			{
 				Save();
@@ -369,7 +367,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		}
 
 
-		private void PendingDeletes()
+		public void PendingDeletes()
 		{
 			if (deleteTasks.Count == 0)
 				return;
