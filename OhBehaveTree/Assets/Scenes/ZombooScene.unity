@@ -173,6 +173,7 @@ MonoBehaviour:
   m_Material: {fileID: 0}
   m_Color: {r: 0, g: 1, b: 0.12943077, a: 1}
   m_RaycastTarget: 1
+  m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -689,7 +690,7 @@ PrefabInstance:
         type: 3}
       propertyPath: ohBehaveAI
       value: 
-      objectReference: {fileID: 11400000, guid: a0f005af147af0540a4dfeca45450041,
+      objectReference: {fileID: 11400000, guid: c098bdf67df85ca4aadc3d3cefa8ec27,
         type: 2}
     - target: {fileID: 542418724697479626, guid: f29b78fecf27e894fbf80a21cdb566dd,
         type: 3}

@@ -7,7 +7,7 @@ namespace AtomosZ.OhBehave.EditorTools
 {
 	public abstract class CompositeNodeWindow : NodeWindow, IParentNodeWindow
 	{
-		public ReorderableList childNodesReorderable;
+		private ReorderableList childNodesReorderable;
 
 		public CompositeNodeWindow(NodeEditorObject node) : base(node) { }
 
@@ -27,11 +27,7 @@ namespace AtomosZ.OhBehave.EditorTools
 					}
 					else if (e.button == 1)
 					{
-						if (GetRect().Contains(e.mousePosition))
-						{
-							treeBlueprint.CreateChildContextMenu(nodeObject);
-							e.Use();
-						}
+						RightClick(e);
 					}
 
 					break;
@@ -42,6 +38,7 @@ namespace AtomosZ.OhBehave.EditorTools
 						e.Use();
 					}
 					isDragged = false;
+
 					break;
 				case EventType.MouseDrag:
 					if (e.button == 0 && isDragged)
@@ -49,16 +46,20 @@ namespace AtomosZ.OhBehave.EditorTools
 						Drag(e.delta);
 						e.Use();
 					}
+
 					break;
 				case EventType.KeyDown:
 					if (isSelected && e.keyCode == KeyCode.Delete)
 					{
 						treeBlueprint.DeleteNode(nodeObject);
 					}
+
 					break;
 			}
+
 			return saveNeeded;
 		}
+
 
 		public override void OnGUI()
 		{
@@ -84,10 +85,12 @@ namespace AtomosZ.OhBehave.EditorTools
 					nodeObject.ChangeNodeType(newType);
 				}
 
-
-				if (childNodesReorderable == null)
+				if (childNodesReorderable != null)
+					childNodesReorderable.DoLayoutList();
+				else if (Event.current.type == EventType.Repaint)
+				{
 					CreateChildList();
-				childNodesReorderable.DoLayoutList();
+				}
 
 				if (Event.current.type == EventType.Repaint)
 				{
@@ -97,48 +100,104 @@ namespace AtomosZ.OhBehave.EditorTools
 			}
 			GUILayout.EndArea();
 
-
 			GUI.backgroundColor = clr;
 
-			if (inPoint != null)
+			if (inPoint != null) // only a root node would not have an inpoint
 				inPoint.OnGUI();
 			outPoint.OnGUI();
-
-			if (connectionToParent != null)
-				connectionToParent.Draw();
 		}
+
+
+		public override void DrawConnectionWires()
+		{
+			if (outPoint.DrawConnectionTo(GetChildren(), out int[] newChildOrder))
+			{
+				nodeObject.NewChildOrder(newChildOrder);
+			}
+		}
+
 
 		public override void UpdateChildrenList()
 		{
 			CreateChildList();
 		}
 
-		/// <summary>
-		/// TODO: This will need to be re-thunk to accomodate windows being total slaves to the NodeEditorObjects.
-		/// </summary>
-		/// <param name="newChild"></param>
+
 		public void CreateChildConnection(NodeWindow newChild)
 		{
-			newChild.CreateConnectionToParent(this);
+			newChild.SetParentWindow(this);
 		}
 
-		/// <summary>
-		/// TODO: This will need to be re-thunk to accomodate windows being total slaves to the NodeEditorObjects.
-		/// </summary>
-		/// <param name="removedChild"></param>
-		public void RemoveChildConnection(NodeWindow removedChild)
-		{
-		}
 
 		private void CreateChildList()
 		{
-			List<string> nodeNames = new List<string>();
-			if (nodeObject.children != null)
-				foreach (var nodeIndex in nodeObject.children)
-					nodeNames.Add(treeBlueprint.GetNodeObject(nodeIndex).displayName);
-			childNodesReorderable = new ReorderableList(nodeNames, typeof(string));
-			childNodesReorderable.displayAdd = false;
-			childNodesReorderable.displayRemove = false;
+			if (nodeObject.HasChildren())
+			{
+				var children = nodeObject.GetChildren();
+				if (children.Count == 0)
+				{
+					return;
+				}
+
+				ReorderableItem[] nodeItems = new ReorderableItem[children.Count];
+				for (int i = 0; i < children.Count; ++i)
+				{
+					var node = treeBlueprint.GetNodeObject(children[i]);
+					if (node == null)
+					{
+						Debug.LogError("Missing child error");
+						nodeItems[i] = new ReorderableItem(OhBehaveTreeBlueprint.MISSING_INDEX, "MISSING CHILD");
+					}
+					else
+					{
+						nodeItems[i] = new ReorderableItem(node.index, node.displayName);
+					}
+
+				}
+
+				childNodesReorderable = new ReorderableList(nodeItems, typeof(ReorderableItem), true, true, false, false);
+				childNodesReorderable.onReorderCallback = ChildrenReordered;
+				childNodesReorderable.drawElementCallback = DrawListItem;
+				childNodesReorderable.drawHeaderCallback = DrawHeader;
+			}
+			else
+				childNodesReorderable = new ReorderableList(new List<int>(), typeof(int));
+		}
+
+		private void ChildrenReordered(ReorderableList newOrderList)
+		{
+			List<int> orgOrder = nodeObject.GetChildren();
+			List<int> newOrder = new List<int>();
+			for (int i = 0; i < newOrderList.count; ++i)
+			{
+				newOrder.Add(((ReorderableItem)newOrderList.list[i]).index);
+			}
+
+			nodeObject.ReorderPhysicalChildren(newOrder);
+		}
+
+		private void DrawHeader(Rect rect)
+		{
+			EditorGUI.LabelField(rect, nodeObject.nodeType == NodeType.Sequence ? "Execute All" : "Execute until Success");
+		}
+
+		private void DrawListItem(Rect rect, int index, bool isActive, bool isFocused)
+		{
+			ReorderableItem item = (ReorderableItem)childNodesReorderable.list[index];
+			EditorGUI.LabelField(rect, new GUIContent(item.displayName + " (index: " + item.index + ")"));
+		}
+	}
+
+	[System.Serializable]
+	public class ReorderableItem
+	{
+		public int index;
+		public string displayName;
+
+		public ReorderableItem(int index, string displayName)
+		{
+			this.index = index;
+			this.displayName = displayName;
 		}
 	}
 }

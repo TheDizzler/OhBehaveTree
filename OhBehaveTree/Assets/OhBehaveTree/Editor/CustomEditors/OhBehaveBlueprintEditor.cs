@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
@@ -8,11 +9,12 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 	public class OhBehaveBlueprintEditor : Editor
 	{
 		private OhBehaveTreeBlueprint instance;
-
+		private SerializedProperty nodeList;
 
 		void OnEnable()
 		{
 			instance = (OhBehaveTreeBlueprint)target;
+			nodeList = serializedObject.FindProperty("savedNodes");
 		}
 
 
@@ -30,11 +32,12 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 					instance.FindYourControllerDumbass();
 				}
 				else
-				DrawBlueprintEditor();
+					DrawBlueprintEditor();
 			}
 
 			serializedObject.ApplyModifiedProperties();
 		}
+
 
 		private void DrawBlueprintEditor()
 		{
@@ -49,7 +52,11 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 				EditorWindow.GetWindow<OhBehaveEditorWindow>().Open(
 					instance.ohBehaveTree);
 			}
+
+			EditorGUILayout.PropertyField(nodeList, true);
+
 		}
+
 
 		private void DrawSelectedNode()
 		{
@@ -71,7 +78,7 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 				{
 					GUI.enabled = false;
 					EditorGUILayout.IntField("Reference index", nodeObject.index);
-					EditorGUILayout.IntField("Parent reference index", nodeObject.parentIndex);
+					EditorGUILayout.IntField("Parent ref index", nodeObject.parentIndex);
 					GUI.enabled = true;
 				}
 				GUILayout.EndHorizontal();
@@ -79,7 +86,7 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 				GUILayout.BeginHorizontal();
 				{
 					EditorGUIUtility.labelWidth = 40f;
-					string newName = EditorGUILayout.DelayedTextField("Name", nodeObject.displayName);
+					string newName = EditorGUILayout.DelayedTextField("Display Name", nodeObject.displayName);
 					if (newName != nodeObject.displayName)
 					{
 						nodeObject.displayName = newName;
@@ -103,21 +110,16 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 				EditorGUIUtility.labelWidth = 0;
 
 				var selectedNodeProperty = serializedObject.FindProperty("selectedNode");
-				EditorGUILayout.PropertyField(selectedNodeProperty.FindPropertyRelative("displayName"));
 				switch (nodeObject.nodeType)
 				{
 					case NodeType.Leaf:
-						var startEventProp = selectedNodeProperty.FindPropertyRelative("startEvent");
-						EditorGUILayout.PropertyField(startEventProp);
-
 						var actionEventProp = selectedNodeProperty.FindPropertyRelative("actionEvent");
 						EditorGUILayout.PropertyField(actionEventProp);
 						break;
 					case NodeType.Selector:
 					case NodeType.Sequence:
 						GUI.enabled = false;
-						var children = nodeObject.children;
-						EditorGUILayout.PropertyField(selectedNodeProperty.FindPropertyRelative("children"));
+						EditorGUILayout.PropertyField(selectedNodeProperty.FindPropertyRelative("children"), true);
 						GUI.enabled = true;
 						break;
 				}

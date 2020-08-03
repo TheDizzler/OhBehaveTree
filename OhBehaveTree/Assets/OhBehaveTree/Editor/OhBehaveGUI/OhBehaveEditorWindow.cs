@@ -5,7 +5,6 @@ namespace AtomosZ.OhBehave.EditorTools
 {
 	public class OhBehaveEditorWindow : EditorWindow
 	{
-
 		private const float ZOOM_BORDER = 10;
 
 		public static NodeStyle SelectorNodeStyle;
@@ -14,6 +13,9 @@ namespace AtomosZ.OhBehave.EditorTools
 		public static NodeStyle InverterNodeStyle;
 		public static GUIStyle InPointStyle;
 		public static GUIStyle OutPointStyle;
+		public static GUIStyle normalFoldoutStyle;
+		public static GUIStyle invalidFoldoutStyle;
+		public static GUIStyle warningTextStyle;
 
 		public OhBehaveTreeBlueprint treeBlueprint;
 		public EditorZoomer zoomer;
@@ -29,10 +31,10 @@ namespace AtomosZ.OhBehave.EditorTools
 		private void OnEnable()
 		{
 			if (window != null)
-			{
-				Debug.LogWarning("Editor Window already existed");
+			{ // no need to reconstruct everything
 				return;
 			}
+
 			window = GetWindow<OhBehaveEditorWindow>();
 			window.titleContent = new GUIContent("OhBehave!");
 
@@ -49,13 +51,13 @@ namespace AtomosZ.OhBehave.EditorTools
 			}
 
 			CreateStyles();
-
+			if (zoomer == null)
+				zoomer = new EditorZoomer();
 			if (treeBlueprint != null)
 			{
 				treeBlueprint.ConstructNodes();
+				zoomer.Reset(treeBlueprint.zoomerSettings);
 			}
-
-			zoomer = new EditorZoomer();
 		}
 
 		private void CreateStyles()
@@ -79,6 +81,13 @@ namespace AtomosZ.OhBehave.EditorTools
 			OutPointStyle.normal.background = InPointStyle.normal.background;
 			OutPointStyle.hover.background = InPointStyle.hover.background;
 
+			normalFoldoutStyle = new GUIStyle(EditorStyles.foldout);
+			invalidFoldoutStyle = new GUIStyle(EditorStyles.foldout);
+			invalidFoldoutStyle.normal.textColor = Color.red;
+			invalidFoldoutStyle.onNormal.textColor = Color.red;
+
+			warningTextStyle = new GUIStyle();
+			warningTextStyle.normal.textColor = Color.red;
 		}
 
 		public void Open(OhBehaveTreeController ohBehaveController)
@@ -94,6 +103,8 @@ namespace AtomosZ.OhBehave.EditorTools
 
 			treeBlueprint.ConstructNodes();
 
+			if (zoomer != null)
+				zoomer.Reset(treeBlueprint.zoomerSettings);
 			window.Show();
 		}
 
@@ -110,7 +121,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		}
 
 
-		void OnGUI()
+		public void Update()
 		{
 			if (Selection.activeGameObject != null)
 			{
@@ -126,8 +137,6 @@ namespace AtomosZ.OhBehave.EditorTools
 				}
 			}
 
-
-
 			if (treeBlueprint == null)
 			{
 				if (Selection.activeObject != null)
@@ -139,56 +148,59 @@ namespace AtomosZ.OhBehave.EditorTools
 						Repaint();
 					}
 				}
-
 			}
-			else
+		}
+
+
+		void OnGUI()
+		{
+			if (InPointStyle == null)
 			{
-
-				if (InPointStyle == null)
-				{
-					CreateStyles();
-				}
-
-				{   // Just keeping this around for future reference.
-					if (NodeEditPopup.instance != null)
-					{
-						if (Event.current.type == EventType.MouseDown
-							&& EditorWindow.mouseOverWindow != NodeEditPopup.instance)
-							NodeEditPopup.instance.Hide();
-					}
-				}
-
-
-				if (zoomer == null)
-					zoomer = new EditorZoomer();
-
-				zoomer.HandleEvents(Event.current);
-
-				DrawHorizontalUILine(Color.gray);
-
-				Rect lastRect = GUILayoutUtility.GetLastRect();
-				if (Event.current.type == EventType.Repaint)
-				{
-					zoomRect.position = new Vector2(
-						ZOOM_BORDER,
-						lastRect.yMax + lastRect.height + ZOOM_BORDER);
-					zoomRect.size = new Vector2(
-						window.position.width - ZOOM_BORDER * 2,
-						window.position.height - (lastRect.yMax + ZOOM_BORDER * 2 + areaBelowZoomHeight));
-				}
-
-
-				zoomer.Begin(zoomRect);
-				{
-					treeBlueprint.OnGui(Event.current, zoomer);
-				}
-				zoomer.End(new Rect(0, zoomRect.yMax + zoomRect.position.y - 50, window.position.width, window.position.height));
-
-
-				//DrawHorizontalUILine(Color.gray);
-
-				EditorGUILayout.Vector2Field("mouse", Event.current.mousePosition);
+				CreateStyles();
 			}
+
+			{   // Just keeping this around for future reference.
+				if (NodeEditPopup.instance != null)
+				{
+					if (Event.current.type == EventType.MouseDown
+						&& EditorWindow.mouseOverWindow != NodeEditPopup.instance)
+						NodeEditPopup.instance.Hide();
+				}
+			}
+
+
+			if (zoomer == null)
+			{
+				zoomer = new EditorZoomer();
+				zoomer.Reset(treeBlueprint.zoomerSettings);
+			}
+
+			zoomer.HandleEvents(Event.current);
+
+			DrawHorizontalUILine(Color.gray);
+
+			Rect lastRect = GUILayoutUtility.GetLastRect();
+			if (Event.current.type == EventType.Repaint)
+			{
+				zoomRect.position = new Vector2(
+					ZOOM_BORDER,
+					lastRect.yMax + lastRect.height + ZOOM_BORDER);
+				zoomRect.size = new Vector2(
+					window.position.width - ZOOM_BORDER * 2,
+					window.position.height - (lastRect.yMax + ZOOM_BORDER * 2 + areaBelowZoomHeight));
+			}
+
+
+			zoomer.Begin(zoomRect);
+			{
+				treeBlueprint.OnGui(Event.current, zoomer);
+			}
+			zoomer.End(new Rect(0, zoomRect.yMax + zoomRect.position.y - 50, window.position.width, window.position.height));
+
+
+			//DrawHorizontalUILine(Color.gray);
+
+			EditorGUILayout.Vector2Field("mouse", Event.current.mousePosition);
 
 
 			if (GUI.changed)
@@ -229,17 +241,38 @@ namespace AtomosZ.OhBehave.EditorTools
 		/// <returns></returns>
 		private OhBehaveTreeBlueprint GetBlueprintFor(OhBehaveTreeController ohBehaveController)
 		{
-			string[] guids = AssetDatabase.FindAssets("BTO_", new string[] { OhBehaveTreeBlueprint.blueprintsPath });
-			for (int i = 0; i < guids.Length; i++)
+			if (string.IsNullOrEmpty(ohBehaveController.blueprintGUID))
 			{
-				string path = AssetDatabase.GUIDToAssetPath(guids[i]);
-				OhBehaveTreeBlueprint temp = (OhBehaveTreeBlueprint)
-					AssetDatabase.LoadAssetAtPath(path, typeof(OhBehaveTreeBlueprint));
-				if (temp != null && temp.ohBehaveTree == ohBehaveController)
-					return temp;
+				Debug.LogError("FFS - Controller lost it's blueprints GUID");
+				return null;
 			}
 
-			return null;
+			var blueprint = AssetDatabase.LoadAssetAtPath<OhBehaveTreeBlueprint>(
+					AssetDatabase.GUIDToAssetPath(ohBehaveController.blueprintGUID));
+			if (blueprint.controllerGUID != AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(ohBehaveController)))
+			{
+				Debug.LogError("FFS - Controller and Blueprints GUID don't match :/");
+				return null;
+			}
+
+			return blueprint;
+
+			//string[] guids = AssetDatabase.FindAssets("BTO_", new string[] { OhBehaveTreeBlueprint.blueprintsPath });
+			//for (int i = 0; i < guids.Length; i++)
+			//{
+			//	string path = AssetDatabase.GUIDToAssetPath(guids[i]);
+			//	OhBehaveTreeBlueprint temp = (OhBehaveTreeBlueprint)
+			//		AssetDatabase.LoadAssetAtPath(path, typeof(OhBehaveTreeBlueprint));
+			//	if (temp != null && temp.ohBehaveTree == ohBehaveController)
+			//		return temp;
+			//	else if (temp.ohBehaveTree == null)
+			//	{
+			//		Debug.LogWarning("Why do these POS scriptable objects keep losing track of their assets?");
+
+			//	}
+			//}
+
+			//return null;
 		}
 	}
 }

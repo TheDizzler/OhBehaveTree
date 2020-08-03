@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-//using Leguar.TotalJSON;
 using UnityEditor;
 using UnityEngine;
+using static AtomosZ.OhBehave.EditorTools.NodeEditorObject;
 
 namespace AtomosZ.OhBehave.EditorTools
 {
@@ -15,7 +15,11 @@ namespace AtomosZ.OhBehave.EditorTools
 	public class OhBehaveTreeBlueprint : ScriptableObject
 	{
 		public const int ROOT_INDEX = 0;
+		public const int MISSING_INDEX = -2;
 		public const int NO_PARENT_INDEX = -1;
+		/// <summary>
+		/// Used to help find when reached root.
+		/// </summary>
 		public const int ROOT_NODE_PARENT_INDEX = -69;
 		public const int DefaultTreeRowHeight = 75;
 		public const string blueprintsPrefix = "BTO_";
@@ -27,15 +31,22 @@ namespace AtomosZ.OhBehave.EditorTools
 		/// <summary>
 		/// Goddamn scriptable object LOVE losing data.
 		/// </summary>
-		public string controllerFilePath;
+		public string controllerGUID;
+
+		public List<NodeEditorObject> savedNodes;
+		public ZoomerSettings zoomerSettings;
 
 		[SerializeField]
 		private NodeEditorObject selectedNode;
+
+
+
 		private Dictionary<int, NodeEditorObject> nodeObjects;
 		private SerializedObject serializedObject;
 		/// <summary>
 		/// For keeping track of indices when assigning an index to a new node.
 		/// </summary>
+		[SerializeField]
 		private int lastNodeIndex = ROOT_INDEX;
 		private List<NodeEditorObject> deleteTasks = new List<NodeEditorObject>();
 		private ConnectionPoint startConnection;
@@ -48,36 +59,8 @@ namespace AtomosZ.OhBehave.EditorTools
 		{
 			if (nodeObjects == null)
 			{
-				nodeObjects = new Dictionary<int, NodeEditorObject>();
-				string blueprintPath = AssetDatabase.GetAssetPath(this);
-				string jsonFilepath = Application.dataPath + "/../"
-					+ Path.GetDirectoryName(blueprintPath) + "/"
-					+ Path.GetFileNameWithoutExtension(blueprintPath)
-					+ ".json";
-				if (!File.Exists(jsonFilepath))
-				{
-					Debug.LogError("Could not find json file for " + blueprintPath);
-				}
-				else
-				{
-					StreamReader reader = new StreamReader(jsonFilepath);
-					string fileString = reader.ReadToEnd();
-					reader.Close();
-
-					JsonData data = JsonUtility.FromJson<JsonData>(fileString);
-					var ohBehave = EditorWindow.GetWindow<OhBehaveEditorWindow>();
-					ohBehave.zoomer.SetScale(data.zoomScale);
-					ohBehave.zoomer.SetOrigin(data.origin);
-
-					JsonNodeWrapper nodes = data.nodeWrapper;
-
-					foreach (var node in nodes.nodes)
-					{
-						nodeObjects.Add(node.index, node);
-						if (node.index > lastNodeIndex)
-							lastNodeIndex = node.index;
-					}
-				}
+				//LoadFromJson();
+				InitializeNodeDictionary();
 			}
 
 			serializedObject = new SerializedObject(this);
@@ -93,17 +76,22 @@ namespace AtomosZ.OhBehave.EditorTools
 							OhBehaveEditorWindow.SequenceNodeStyle.size.x,
 							OhBehaveEditorWindow.SequenceNodeStyle.size.y);
 
-				NodeEditorObject newNode = new NodeEditorObject(NodeType.Sequence, ROOT_INDEX, ROOT_NODE_PARENT_INDEX)
+				NodeEditorObject newNode = new NodeEditorObject(NodeType.Sequence, ROOT_INDEX)
 				{
 					description = ohBehaveTree.description,
 					displayName = "Root",
 					windowRect = winData,
 				};
-				nodeObjects.Add(0, newNode);
 
+				AddNewNode(newNode, 0);
+
+				zoomerSettings = new ZoomerSettings();
+				AssetDatabase.Refresh();
+				EditorUtility.SetDirty(this);
 				save = true;
 			}
 		}
+
 
 
 		public void OnGui(Event current, EditorZoomer zoomer)
@@ -118,24 +106,42 @@ namespace AtomosZ.OhBehave.EditorTools
 			}
 
 			bool isValidTree = true;
+			List<InvalidNodeMessage> errorMsgs = new List<InvalidNodeMessage>();
+			// draw connections between nodes
 			foreach (var node in nodeObjects.Values)
 			{
 				node.Offset(zoomer.GetContentOffset());
 				if (node.ProcessEvents(current))
 					save = true;
-				if (!node.CheckIsValid())
+				if (!node.CheckIsValid(out InvalidNodeMessage invalidMsg))
+				{
 					isValidTree = false;
+					errorMsgs.Add(invalidMsg);
+				}
+
+				node.DrawConnectionWires();
+			}
+
+			// draw rest
+			foreach (var node in nodeObjects.Values)
+			{
 				node.OnGUI();
 			}
 
 
 			if (startConnection != null)
 			{// we want to draw the line on-top of everything else
-				Handles.DrawLine(startConnection.rect.center, current.mousePosition);
+
+				Handles.DrawAAPolyLine(ConnectionControls.lineThickness,
+					startConnection.rect.center,
+					current.mousePosition);
+
+
 				GUI.changed = true;
 				if (current.button == 1
 					&& current.type == EventType.MouseDown)
 				{
+					startConnection.isCreatingNewConnection = false;
 					startConnection = null;
 					endConnection = null;
 				}
@@ -149,6 +155,8 @@ namespace AtomosZ.OhBehave.EditorTools
 					// if this has not been consumed we can (?) assume that
 					//	the mouse was not released over a connection point
 					savedMousePos = current.mousePosition;
+					startConnection.isCreatingNewConnection = false;
+
 					if (startConnection.type == ConnectionPointType.Out)
 						CreateChildContextMenu(startConnection.nodeWindow.nodeObject, true);
 					else
@@ -160,11 +168,12 @@ namespace AtomosZ.OhBehave.EditorTools
 				&& current.type == EventType.MouseUp
 				&& !zoomer.isScreenMoved)
 			{
+				savedMousePos = current.mousePosition;
 				CreateStandAloneContextMenu();
 			}
 
-			zoomer.DisplayInvalid(isValidTree);
-
+			zoomer.DisplayInvalid(isValidTree, errorMsgs);
+			zoomer.Update(zoomerSettings);
 
 			PendingDeletes();
 
@@ -181,7 +190,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		{
 			if (IsNodeSelected())
 			{
-				selectedNode.window.Deselect();
+				selectedNode.GetWindow().Deselect();
 			}
 
 			selectedNode = nodeObject;
@@ -191,7 +200,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		{
 			if (!IsNodeSelected())
 				return;
-			selectedNode.window.Deselect();
+			selectedNode.GetWindow().Deselect();
 			selectedNode = null;
 		}
 
@@ -210,6 +219,11 @@ namespace AtomosZ.OhBehave.EditorTools
 
 		public void EndPointSelected(ConnectionPoint endPoint)
 		{
+			if (startConnection == null)
+			{// probably mouse up over node after mouse down elsewhere				
+				return;
+			}
+
 			if (endPoint.type != startConnection.type
 				&& endPoint.nodeWindow != startConnection.nodeWindow)
 			{
@@ -217,6 +231,7 @@ namespace AtomosZ.OhBehave.EditorTools
 			}
 			else
 			{ // cancel this new connection
+				startConnection.isCreatingNewConnection = false;
 				startConnection = null;
 			}
 		}
@@ -232,6 +247,7 @@ namespace AtomosZ.OhBehave.EditorTools
 
 		private void CompleteConnection()
 		{
+
 			NodeEditorObject nodeParent, nodeChild;
 			if (startConnection.type == ConnectionPointType.Out)
 			{
@@ -244,26 +260,39 @@ namespace AtomosZ.OhBehave.EditorTools
 				nodeChild = startConnection.nodeWindow.nodeObject;
 			}
 
+			// check for loop
+			NodeEditorObject check = nodeParent;
+			while (check != null && check.index != ROOT_INDEX)
+			{
+				check = check.Parent;
+				if (check == nodeChild)
+				{
+					Debug.LogWarning("No loop for you!");
+					startConnection.isCreatingNewConnection = false;
+					endConnection = null;
+					startConnection = null;
+					return;
+				}
+			}
+
 			if (nodeParent.nodeType == NodeType.Inverter && nodeParent.HasChildren())
 			{
 				// orphan the olde child
-				var oldChild = GetNodeObject(nodeParent.children[0]);
-				oldChild.RemoveParent();
-				nodeParent.RemoveChild(oldChild.index);
+				var oldChild = GetNodeObject(nodeParent.GetChildren()[0]);
+				NodeEditorObject.DisconnectNodes(nodeParent, oldChild);
 			}
 
 			var oldParent = GetNodeObject(nodeChild.parentIndex);
 			if (oldParent != null)
 			{
 				// remove from old parent
-				oldParent.RemoveChild(nodeChild.index);
-				nodeChild.RemoveParent();
+				NodeEditorObject.DisconnectNodes(oldParent, nodeChild);
 			}
 
 			// ok, let's do this
-			nodeParent.AddChild(nodeChild);
-			nodeChild.AddParent(nodeParent.index);
+			NodeEditorObject.ConnectNodes(nodeParent, nodeChild);
 
+			startConnection.isCreatingNewConnection = false;
 			endConnection = null;
 			startConnection = null;
 			save = true;
@@ -316,7 +345,14 @@ namespace AtomosZ.OhBehave.EditorTools
 			{
 				return null;
 			}
-			return nodeObjects[nodeIndex];
+
+			if (!nodeObjects.TryGetValue(nodeIndex, out NodeEditorObject node))
+			{
+				Debug.LogError("GetNodeObject() Error! " + nodeIndex + " does not exist in!");
+				return null;
+			}
+
+			return node;
 		}
 
 
@@ -327,30 +363,11 @@ namespace AtomosZ.OhBehave.EditorTools
 
 		private void Save()
 		{
-			var ohBehave = EditorWindow.GetWindow<OhBehaveEditorWindow>();
-			JsonData data = new JsonData();
-			data.origin = ohBehave.zoomer.GetOrigin();
-			data.zoomScale = ohBehave.zoomer.GetScale();
-
-			JsonNodeWrapper wrappedNodes = new JsonNodeWrapper();
-			List<NodeEditorObject> nodes = new List<NodeEditorObject>();
-			foreach (var node in nodeObjects.Values)
-				nodes.Add(node);
-			wrappedNodes.nodes = nodes.ToArray();
-			data.nodeWrapper = wrappedNodes;
-
-			string jsonString = JsonUtility.ToJson(data, true);
-
-			string jsonFilepath = Application.dataPath + "/../"
-				+ Path.GetDirectoryName(AssetDatabase.GetAssetPath(this)) + "/"
-				+ Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(this))
-				+ ".json";
-			StreamWriter writer = new StreamWriter(jsonFilepath);
-			writer.WriteLine(jsonString);
-			writer.Close();
-
+			AssetDatabase.SaveAssets();
 			AssetDatabase.Refresh();
+			EditorUtility.SetDirty(this);
 		}
+
 
 		private void PendingDeletes()
 		{
@@ -364,13 +381,15 @@ namespace AtomosZ.OhBehave.EditorTools
 					continue;
 				}
 
-				node.NotifyNeigboursOfDelete();
+				node.NotifyFamilyOfDelete();
 
 
 				if (!nodeObjects.Remove(node.index))
 				{
 					Debug.LogWarning(node.displayName + " index " + node.index + " was NOT found.");
 				}
+
+				savedNodes.Remove(node);
 			}
 
 			GUI.changed = true;
@@ -387,7 +406,7 @@ namespace AtomosZ.OhBehave.EditorTools
 				case NodeType.Selector:
 				case NodeType.Inverter:
 					NodeEditorObject newNode
-						= new NodeEditorObject(nodeType, ++lastNodeIndex, NO_PARENT_INDEX)
+						= new NodeEditorObject(nodeType, ++lastNodeIndex)
 						{
 							description = nodeType + " type node. Add description of desired behaviour",
 							displayName = nodeType.ToString(),
@@ -395,8 +414,9 @@ namespace AtomosZ.OhBehave.EditorTools
 								savedMousePos + EditorWindow.GetWindow<OhBehaveEditorWindow>().zoomer.GetContentOffset(),
 								OhBehaveEditorWindow.SequenceNodeStyle.size)
 						};
-					nodeObjects.Add(lastNodeIndex, newNode);
-					save = true;
+
+					AddNewNode(newNode, lastNodeIndex);
+
 					break;
 
 				default:
@@ -407,15 +427,16 @@ namespace AtomosZ.OhBehave.EditorTools
 
 		private void CreateParentNode(NodeEditorObject childNode, NodeType nodeType, bool createAtMousePosition)
 		{
-			Rect childWindowRect = childNode.window.GetRectNoOffset();
-			childNode.RemoveParent();
+			Rect childWindowRect = childNode.GetWindow().GetRectNoOffset();
+			NodeEditorObject.DisconnectNodes(childNode.Parent, childNode);
+			save = true;
 			switch (nodeType)
 			{
 				case NodeType.Sequence:
 				case NodeType.Selector:
 				case NodeType.Inverter:
 					NodeEditorObject newNode
-						= new NodeEditorObject(nodeType, ++lastNodeIndex, NO_PARENT_INDEX)
+						= new NodeEditorObject(nodeType, ++lastNodeIndex)
 						{
 							description = nodeType + " type node. Add description of desired behaviour",
 							displayName = nodeType.ToString(),
@@ -425,10 +446,9 @@ namespace AtomosZ.OhBehave.EditorTools
 									childWindowRect.y - childWindowRect.height - DefaultTreeRowHeight),
 								OhBehaveEditorWindow.SequenceNodeStyle.size)
 						};
-					nodeObjects.Add(lastNodeIndex, newNode);
-					newNode.AddChild(childNode);
-					childNode.AddParent(newNode.index);
-					save = true;
+					AddNewNode(newNode, lastNodeIndex);
+
+					NodeEditorObject.ConnectNodes(newNode, childNode);
 					break;
 
 				case NodeType.Leaf:
@@ -441,13 +461,12 @@ namespace AtomosZ.OhBehave.EditorTools
 
 		private void CreateChildNode(NodeEditorObject parentNode, NodeType nodeType, bool createAtMousePosition)
 		{
-			Rect parentWindowRect = parentNode.window.GetRectNoOffset();
+			Rect parentWindowRect = parentNode.GetWindow().GetRectNoOffset();
 			if (parentNode.nodeType == NodeType.Inverter)
 			{
 				if (parentNode.HasChildren())
 				{
-					GetNodeObject(parentNode.children[0]).RemoveParent();
-					parentNode.RemoveChild(parentNode.children[0]);
+					DisconnectNodes(parentNode, GetNodeObject(parentNode.GetChildren()[0]));
 				}
 			}
 
@@ -458,7 +477,7 @@ namespace AtomosZ.OhBehave.EditorTools
 				case NodeType.Selector:
 				case NodeType.Inverter:
 					NodeEditorObject newNode
-						= new NodeEditorObject(nodeType, ++lastNodeIndex, parentNode.index)
+						= new NodeEditorObject(nodeType, ++lastNodeIndex)
 						{
 							description = nodeType + " type node. Add description of desired behaviour",
 							displayName = nodeType.ToString(),
@@ -468,9 +487,9 @@ namespace AtomosZ.OhBehave.EditorTools
 									parentWindowRect.y + parentWindowRect.height + DefaultTreeRowHeight),
 								OhBehaveEditorWindow.SequenceNodeStyle.size)
 						};
-					nodeObjects.Add(lastNodeIndex, newNode);
-					parentNode.AddChild(newNode);
-					save = true;
+
+					AddNewNode(newNode, lastNodeIndex);
+					NodeEditorObject.ConnectNodes(parentNode, newNode);
 					break;
 
 				default:
@@ -491,22 +510,37 @@ namespace AtomosZ.OhBehave.EditorTools
 		}
 
 
+		private void InitializeNodeDictionary()
+		{
+			nodeObjects = new Dictionary<int, NodeEditorObject>();
+			foreach (var node in savedNodes)
+			{
+				nodeObjects[node.index] = node;
+				if (node.index > lastNodeIndex)
+					lastNodeIndex = node.index;
+			}
+		}
 
-
-
+		private void AddNewNode(NodeEditorObject newNode, int nodeIndex)
+		{
+			nodeObjects.Add(nodeIndex, newNode);
+			savedNodes.Add(newNode);
+			save = true;
+		}
 
 
 		/// <summary>
 		/// Only called when first constructed.
 		/// </summary>
-		/// <param name="path">Path to new OhbehaveTreeController</param>
-		public void Initialize(string path)
+		/// <param name="controllerFilepath">Path to new OhBehaveTreeController</param>
+		public void Initialize(string controllerFilepath)
 		{
 			if (ohBehaveTree != null)
 			{
 				throw new System.Exception("Initialize() should never be called "
 					+ "on a OhBehaveTreeBlueprint more than once!");
 			}
+
 
 			if (!AssetDatabase.IsValidFolder(blueprintsPath))
 			{
@@ -516,53 +550,32 @@ namespace AtomosZ.OhBehave.EditorTools
 				blueprintsPath = AssetDatabase.GUIDToAssetPath(guid);
 			}
 
+
 			AssetDatabase.CreateAsset(this,
 				blueprintsPath + "/" + blueprintsPrefix
-					+ Path.GetFileNameWithoutExtension(path)
+					+ Path.GetFileNameWithoutExtension(controllerFilepath)
 					+ GetInstanceID() + ".asset");
 
-			var statemachine = CreateInstance<OhBehaveTreeController>();
-			statemachine.Initialize(path);
-			ohBehaveTree = statemachine;
-			controllerFilePath = path;
+			ohBehaveTree = CreateInstance<OhBehaveTreeController>();
+			AssetDatabase.Refresh();
+			ohBehaveTree.Initialize(controllerFilepath);
+			string blueprintGUID = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(this));
+			controllerGUID = AssetDatabase.AssetPathToGUID(controllerFilepath);
+			ohBehaveTree.blueprintGUID = blueprintGUID;
 
-			JsonData data = new JsonData();
-			data.origin = Vector2.zero;
-			data.zoomScale = 1;
-			JsonNodeWrapper wrappedNodes = new JsonNodeWrapper();
-			wrappedNodes.nodes = new NodeEditorObject[0];
-			data.nodeWrapper = wrappedNodes;
-			string jsonString = JsonUtility.ToJson(data, true);
+			savedNodes = new List<NodeEditorObject>();
 
-			string jsonFilepath = Application.dataPath + "/../"
-				+ Path.GetDirectoryName(AssetDatabase.GetAssetPath(this)) + "/"
-				+ Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(this))
-				+ ".json";
-			StreamWriter writer = new StreamWriter(jsonFilepath);
-			writer.WriteLine(jsonString);
-			writer.Close();
+			AssetDatabase.SaveAssets();
+			AssetDatabase.Refresh();
+			EditorUtility.SetDirty(ohBehaveTree);
+			EditorUtility.SetDirty(this);
 		}
 
 		public void FindYourControllerDumbass()
 		{
-			ohBehaveTree = (OhBehaveTreeController)
-				AssetDatabase.LoadAssetAtPath(controllerFilePath, typeof(OhBehaveTreeController));
-		}
-
-
-
-		[Serializable]
-		private class JsonNodeWrapper
-		{
-			public NodeEditorObject[] nodes;
-		}
-
-		[Serializable]
-		private class JsonData
-		{
-			public Vector2 origin;
-			public float zoomScale;
-			public JsonNodeWrapper nodeWrapper;
+			ohBehaveTree =
+				AssetDatabase.LoadAssetAtPath<OhBehaveTreeController>(
+					AssetDatabase.GUIDToAssetPath(controllerGUID));
 		}
 	}
 }

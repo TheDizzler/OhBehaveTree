@@ -11,7 +11,13 @@ namespace AtomosZ.OhBehave
 
 		public GameObject functionSource;
 
+		public string blueprintGUID;
 
+
+		/// <summary>
+		/// This should only be called when first created in the editor.
+		/// </summary>
+		/// <param name="path"></param>
 		public void Initialize(string path)
 		{
 			AssetDatabase.CreateAsset(this, path);

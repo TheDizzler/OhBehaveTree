@@ -6,7 +6,7 @@ namespace AtomosZ.OhBehave.EditorTools
 	public class LeafNodeWindow : NodeWindow
 	{
 		private bool isExpanded;
-
+		private GUIStyle foldoutStyle;
 
 		public LeafNodeWindow(NodeEditorObject node) : base(node) { }
 
@@ -22,7 +22,10 @@ namespace AtomosZ.OhBehave.EditorTools
 					{
 						LeftClick(e);
 					}
-
+					else if (e.button == 1)
+					{
+						RightClick(e);
+					}
 					break;
 				case EventType.MouseUp:
 					if (isDragged)
@@ -53,7 +56,6 @@ namespace AtomosZ.OhBehave.EditorTools
 
 		public override void OnGUI()
 		{
-			inPoint.OnGUI();
 			if (refreshConnection)
 			{
 				RefreshConnection();
@@ -70,55 +72,56 @@ namespace AtomosZ.OhBehave.EditorTools
 			GUILayout.BeginArea(GetRect(), content, currentStyle);
 			{
 
-					CreateTitleBar();
+				CreateTitleBar();
 
-					NodeType newType = (NodeType)EditorGUILayout.EnumPopup(nodeObject.nodeType);
-					if (newType != nodeObject.nodeType)
+				NodeType newType = (NodeType)EditorGUILayout.EnumPopup(nodeObject.nodeType);
+				if (newType != nodeObject.nodeType)
+				{
+					nodeObject.ChangeNodeType(newType);
+				}
+
+				if (!isValid)
+				{
+					foldoutStyle = OhBehaveEditorWindow.invalidFoldoutStyle;
+				}
+				else
+					foldoutStyle = OhBehaveEditorWindow.normalFoldoutStyle;
+
+				bool wasExpanded = isExpanded;
+				if (Event.current.type != EventType.Repaint)
+					isExpanded = EditorGUILayout.Foldout(isExpanded, new GUIContent("Actions"), true, foldoutStyle);
+				if (wasExpanded != isExpanded)
+					GUI.changed = true;
+
+				if (isExpanded)
+				{
+					GUIStyle labelStyle = new GUIStyle(EditorStyles.label);
+					if (!isValid)
+						labelStyle.normal.textColor = Color.red;
+
+					if (nodeObject.actionEvent == null)
 					{
-						nodeObject.ChangeNodeType(newType);
+						EditorGUILayout.LabelField("Action:", labelStyle);
+						EditorGUILayout.LabelField("\tNo Methods Set", labelStyle);
 					}
-
-					isExpanded = EditorGUILayout.Foldout(isExpanded, new GUIContent("Actions"));
-					if (isExpanded)
+					else
 					{
 						EditorGUILayout.LabelField("Action Start:");
-						if (nodeObject.startEvent.GetPersistentEventCount() == 0)
-						{
-							EditorGUILayout.LabelField("\tNo Methods Set");
-						}
-
-						for (int i = 0; i < nodeObject.startEvent.GetPersistentEventCount(); ++i)
-						{
-							EditorGUILayout.LabelField("\t" + nodeObject.startEvent.GetPersistentMethodName(i));
-						}
-
-						EditorGUILayout.LabelField("Action:");
-						if (nodeObject.actionEvent.GetPersistentEventCount() == 0)
-						{
-							EditorGUILayout.LabelField("\tNo Methods Set");
-						}
-
-						for (int i = 0; i < nodeObject.actionEvent.GetPersistentEventCount(); ++i)
-						{
-							EditorGUILayout.LabelField("\t" + nodeObject.actionEvent.GetPersistentMethodName(i));
-						}
+						EditorGUILayout.LabelField("\t" + nodeObject.actionEvent.name);
 					}
+				}
 
-					if (Event.current.type == EventType.Repaint)
-					{
-						Rect lastrect = GUILayoutUtility.GetLastRect();
-						nodeObject.windowRect.height = lastrect.yMax + 10;
-					}
+				if (Event.current.type == EventType.Repaint)
+				{
+					Rect lastrect = GUILayoutUtility.GetLastRect();
+					nodeObject.windowRect.height = lastrect.yMax + 10;
+				}
 			}
 			GUILayout.EndArea();
 
-
-
 			GUI.backgroundColor = clr;
 
-
-			if (connectionToParent != null)
-				connectionToParent.Draw();
+			inPoint.OnGUI();
 		}
 
 		public override void UpdateChildrenList()

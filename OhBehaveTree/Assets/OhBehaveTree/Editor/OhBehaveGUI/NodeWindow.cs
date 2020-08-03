@@ -1,13 +1,18 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
 namespace AtomosZ.OhBehave.EditorTools
 {
+	/// <summary>
+	/// For simplicity, a NodeWindow should not store any data that is in a NodeEditorObject (ex: parent node, children, etc.)
+	/// </summary>
 	public abstract class NodeWindow
 	{
 		protected const float TITLEBAR_OFFSET = 15;
-		protected static Texture invalidTexture = EditorGUIUtility.FindTexture("Assets/OhBehaveTree/Editor/Node Broken Branch.png");
+		public static Texture brokenBranchImage = EditorGUIUtility.FindTexture("Assets/OhBehaveTree/Editor/Node Broken Branch.png");
+		public static Texture disconnectedBranchImage = EditorGUIUtility.FindTexture("Assets/OhBehaveTree/Editor/Node Disconnected Branch.png");
 		public static float DoubleClickTime = .3f;
 
 		/// <summary>
@@ -19,25 +24,27 @@ namespace AtomosZ.OhBehave.EditorTools
 		public ConnectionPoint inPoint;
 		public ConnectionPoint outPoint;
 		public NodeStyle nodeStyle;
-
+		public IParentNodeWindow parent;
 
 		protected string nodeName;
 		protected GUIStyle currentStyle;
 		protected Color bgColor;
 		protected GUIStyle labelStyle;
 
-		public IParentNodeWindow parent;
-		public Connection connectionToParent;
 		protected OhBehaveTreeBlueprint treeBlueprint;
 		protected bool isDragged;
 		protected bool isSelected;
 		/// <summary>
-		/// If a child node is constructed before the parent the connection can
-		/// not be constructed, so hold off on the construction until it's possible.
+		/// If a child node is constructed before the parent the connection is invalid, 
+		/// so hold off on the construction until it's possible.
 		/// </summary>
 		protected bool refreshConnection;
+		protected bool isValid;
+
+		private bool isConnectedToRoot;
+		private string errorMsg;
 		private double timeClicked = double.MinValue;
-		private bool isValid;
+
 
 		public NodeWindow(NodeEditorObject nodeObj)
 		{
@@ -81,10 +88,8 @@ namespace AtomosZ.OhBehave.EditorTools
 			NodeEditorObject prntObj = nodeObject.Parent;
 			if (prntObj != null)
 			{
-				parent = (IParentNodeWindow)prntObj.window;
-				if (parent != null)
-					connectionToParent = new Connection(((NodeWindow)parent).outPoint, inPoint, OnClickRemoveConnection);
-				else
+				parent = (IParentNodeWindow)prntObj.GetWindow();
+				if (parent == null)
 					refreshConnection = true;
 			}
 			else
@@ -94,19 +99,25 @@ namespace AtomosZ.OhBehave.EditorTools
 		}
 
 
-		public abstract bool ProcessEvents(Event e);
-		public abstract void OnGUI();
 		/// <summary>
 		/// Keep list of children update-to-date. Used by Composite Nodes.
 		/// </summary>
 		public abstract void UpdateChildrenList();
+		public abstract bool ProcessEvents(Event e);
+		public abstract void OnGUI();
+	
+		public virtual void DrawConnectionWires()
+		{
+			return;
+		}
+
+		
 
 		public void Deselect()
 		{
 			isSelected = false;
 			labelStyle.normal.textColor = Color.black;
 		}
-
 
 		public Rect GetRect()
 		{
@@ -120,17 +131,37 @@ namespace AtomosZ.OhBehave.EditorTools
 			return nodeObject.windowRect;
 		}
 
-		public void ParentRemoved()
+		public virtual string GetName()
 		{
-			OnClickRemoveConnection(connectionToParent);
+			return nodeObject.displayName;
 		}
 
-		/// <summary>
-		/// TODO: This will need to be re-thunk to accomodate windows being total slaves to the NodeEditorObjects.
-		/// Called from parent (CreateChildConnection())
-		/// </summary>
-		/// <param name="newParent"></param>
-		public void CreateConnectionToParent(IParentNodeWindow newParent)
+		public bool TryGetParentName(out string parentName)
+		{
+			if (parent == null)
+			{
+				parentName = "";
+				return false;
+			}
+
+			parentName = parent.GetName();
+			return true;
+		}
+
+		public List<int> GetChildren()
+		{
+			return nodeObject.GetChildren();
+		}
+
+		public void ParentRemoved()
+		{
+			if (parent == null)
+				return;
+
+			parent = null;
+		}
+
+		public void SetParentWindow(IParentNodeWindow newParent)
 		{
 			if (parent != null)
 			{ // TODO: cleanup old connection
@@ -138,12 +169,13 @@ namespace AtomosZ.OhBehave.EditorTools
 			}
 
 			parent = newParent;
-			connectionToParent = new Connection(((NodeWindow)parent).outPoint, inPoint, OnClickRemoveConnection);
 		}
 
-		public void BranchBroken(bool isFine)
+		public void BranchBroken(bool isFine, bool isConnected, string errorCode)
 		{
 			isValid = isFine;
+			isConnectedToRoot = isConnected;
+			errorMsg = errorCode;
 		}
 
 		protected void RefreshConnection()
@@ -151,10 +183,9 @@ namespace AtomosZ.OhBehave.EditorTools
 			NodeEditorObject prntObj = nodeObject.Parent;
 			if (prntObj != null)
 			{
-				parent = (IParentNodeWindow)prntObj.window;
+				parent = (IParentNodeWindow)prntObj.GetWindow();
 				if (parent != null)
 				{
-					connectionToParent = new Connection(((NodeWindow)parent).outPoint, inPoint, OnClickRemoveConnection);
 					refreshConnection = false;
 				}
 			}
@@ -205,13 +236,38 @@ namespace AtomosZ.OhBehave.EditorTools
 		}
 
 
+		protected void RightClick(Event e)
+		{
+			if (GetRect().Contains(e.mousePosition))
+			{
+				CreateNodeContextMenu();
+				e.Use();
+			}
+		}
+
+		protected void CreateNodeContextMenu()
+		{
+			var genericMenu = new GenericMenu();
+			genericMenu.AddItem(new GUIContent("Delete Node"), false,
+				() => treeBlueprint.DeleteNode(nodeObject));
+
+			genericMenu.ShowAsContext();
+		}
 
 		protected void CreateTitleBar()
 		{
 			if (isValid)
 				GUILayout.Space(TITLEBAR_OFFSET);
 			else
-				GUILayout.Label(invalidTexture);
+			{
+				GUILayout.BeginHorizontal();
+
+				GUILayout.Label(isConnectedToRoot ? brokenBranchImage : disconnectedBranchImage);
+				GUILayout.Label(errorMsg, OhBehaveEditorWindow.warningTextStyle);
+
+				GUILayout.EndHorizontal();
+			}
+
 			GUILayout.BeginHorizontal();
 			{
 				GUILayout.Label(
@@ -239,24 +295,5 @@ namespace AtomosZ.OhBehave.EditorTools
 		{
 			nodeObject.windowRect.position += delta;
 		}
-
-
-		/// <summary>
-		/// TODO: This will need to be re-thunk to accomodate windows being total slaves to the NodeEditorObjects.
-		/// </summary>
-		/// <param name="connection"></param>
-		protected void OnClickRemoveConnection(Connection connection)
-		{
-			//parent.RemoveChildConnection(this); // this probably should not be called here
-			if (connection != connectionToParent)
-			{
-				throw new Exception("Huh? Connection and connectionToParent are not equal?");
-			}
-
-			connectionToParent = null;
-			parent = null;
-		}
-
-
 	}
 }

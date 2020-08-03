@@ -1,4 +1,6 @@
-﻿using UnityEditor;
+﻿using System;
+using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 namespace AtomosZ.OhBehave.EditorTools
@@ -28,14 +30,26 @@ namespace AtomosZ.OhBehave.EditorTools
 		/// </summary>
 		private bool lastWasDragging;
 		private Vector2 prePanZoomOrigin;
-		private GUIStyle warningTextStyle;
-		private bool displayWarning;
+
+		private Rect errorWindowRect;
+		private bool displayErrors;
+		private bool isErrorWindowDragged;
+		private int numErrorsLast = 0;
+		private List<NodeEditorObject.InvalidNodeMessage> errorMsgs;
 
 
-		public EditorZoomer()
+		public void Reset(ZoomerSettings settings = null)
 		{
-			warningTextStyle = new GUIStyle();
-			warningTextStyle.normal.textColor = Color.red;
+			if (settings == null)
+			{
+				zoomOrigin = Vector2.zero;
+				zoomScale = 1;
+			}
+			else
+			{
+				zoomOrigin = settings.zoomOrigin;
+				zoomScale = settings.zoomScale;
+			}
 		}
 
 		public void Begin(Rect zoomRect)
@@ -46,8 +60,8 @@ namespace AtomosZ.OhBehave.EditorTools
 
 
 			Vector2 offset = GetContentOffset();
-			float xFactor = offset.x / bgTexture.width;
-			float yFactor = offset.y / bgTexture.height;
+			//float xFactor = offset.x / bgTexture.width;
+			//float yFactor = offset.y / bgTexture.height;
 
 			//GUI.DrawTextureWithTexCoords(zoomAreaRect, bgTexture, // texcoords are between 0 and 1! 1 == fullwrap!
 			//	new Rect(xFactor, -yFactor, zoomAreaRect.width / (bgTexture.width * zoomScale),
@@ -68,9 +82,10 @@ namespace AtomosZ.OhBehave.EditorTools
 		}
 
 
-		public void DisplayInvalid(bool isValidTree)
+		public void DisplayInvalid(bool isValidTree, List<NodeEditorObject.InvalidNodeMessage> errMsgs)
 		{
-			displayWarning = !isValidTree;
+			displayErrors = !isValidTree;
+			errorMsgs = errMsgs;
 		}
 
 		public void End(Rect postZoomArea)
@@ -101,43 +116,82 @@ namespace AtomosZ.OhBehave.EditorTools
 			}
 			GUI.EndGroup();
 
-			if (displayWarning)
+			if (displayErrors)
 			{
-				GUI.BeginGroup(zoomAreaRect, EditorStyles.helpBox);
-				{
-					GUILayout.BeginArea(
-						new Rect(zoomAreaRect.xMax - sliderWidth * 4f, zoomAreaRect.yMax - 100,
-							sliderWidth * 3.3f, sliderHeight * .5f),
-						EditorStyles.helpBox);
-					{
-						GUILayout.Label("Tree Invalid - Please fix broken branches", warningTextStyle);
-					}
-
-					GUILayout.EndArea();
-				}
-				GUI.EndGroup();
+				DrawErrorWindow();
 			}
+
 			GUI.BeginGroup(postZoomArea);
 		}
 
-		public float GetScale()
+
+		private void DrawErrorWindow()
 		{
-			return zoomScale;
+			if (numErrorsLast != errorMsgs.Count)
+			{
+				numErrorsLast = errorMsgs.Count;
+				errorWindowRect = new Rect(zoomAreaRect.xMax - sliderWidth * 4f, zoomAreaRect.yMax - 100,
+				sliderWidth * 3.3f, sliderHeight * .5f * errorMsgs.Count);
+			}
+
+			Event e = Event.current;
+			if (errorWindowRect.Contains(e.mousePosition))
+			{
+				switch (e.type)
+				{
+					case EventType.MouseDown:
+						if (e.button == 0)
+						{
+							isErrorWindowDragged = true;
+							//GUI.changed = true;
+							e.Use();
+						}
+						break;
+					case EventType.MouseUp:
+						if (isErrorWindowDragged)
+						{
+							e.Use();
+						}
+						isErrorWindowDragged = false;
+						break;
+					case EventType.MouseDrag:
+						if (e.button == 0 && isErrorWindowDragged)
+						{
+							errorWindowRect.position += e.delta;
+							e.Use();
+						}
+						break;
+				}
+			}
+
+
+			GUI.BeginGroup(zoomAreaRect, EditorStyles.helpBox);
+			{
+				if (Event.current.type != EventType.Repaint)
+				{
+					GUILayout.BeginArea(errorWindowRect, EditorStyles.helpBox);
+					{
+						GUILayout.Label("Tree Invalid - Please fix broken branches", OhBehaveEditorWindow.warningTextStyle);
+						foreach (NodeEditorObject.InvalidNodeMessage error in errorMsgs)
+						{
+							GUILayout.BeginHorizontal();
+
+							GUILayout.Label(NodeWindow.brokenBranchImage);
+							GUILayout.Label(error.node.displayName + " : " + error.errorCode);
+
+							GUILayout.EndHorizontal();
+						}
+					}
+					GUILayout.EndArea();
+				}
+			}
+			GUI.EndGroup();
 		}
 
-		public Vector2 GetOrigin()
+		public void Update(ZoomerSettings zoomerSettings)
 		{
-			return zoomOrigin;
-		}
-
-		public void SetScale(float savedScale)
-		{
-			zoomScale = savedScale;
-		}
-
-		public void SetOrigin(Vector2 savedOrigin)
-		{
-			zoomOrigin = savedOrigin;
+			zoomerSettings.zoomOrigin = zoomOrigin;
+			zoomerSettings.zoomScale = zoomScale;
 		}
 
 		public Vector2 GetContentOffset()
@@ -229,5 +283,12 @@ namespace AtomosZ.OhBehave.EditorTools
 			result.y += pivotPoint.y;
 			return result;
 		}
+	}
+
+	[Serializable]
+	public class ZoomerSettings
+	{
+		public Vector2 zoomOrigin = Vector2.zero;
+		public float zoomScale = 1;
 	}
 }

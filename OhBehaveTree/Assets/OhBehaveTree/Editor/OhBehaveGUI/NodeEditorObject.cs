@@ -13,7 +13,7 @@ namespace AtomosZ.OhBehave.EditorTools
 	{
 		public NodeType nodeType;
 		public int index;
-		public int parentIndex;
+		public int parentIndex = OhBehaveTreeBlueprint.NO_PARENT_INDEX;
 
 		/// <summary>
 		/// A nice, user-friendly display name.
@@ -27,40 +27,39 @@ namespace AtomosZ.OhBehave.EditorTools
 		/// <summary>
 		/// LeafNode Only.
 		/// </summary>
-		public LeafNodeAction startEvent;
-		/// <summary>
-		/// LeafNode Only.
-		/// </summary>
-		public LeafNodeAction actionEvent;
+		public MonoScript actionEvent;
 		public Rect windowRect;
 
-		[NonSerialized]
-		public NodeWindow window;
 
 		/// <summary>
 		/// Non-LeafNode Only.
 		/// Decorators should only have 1 child.
 		/// </summary>
 		[SerializeField]
-		public List<int> children;
+		private List<int> children;
 
 		[NonSerialized]
 		public Vector2 offset;
+
+		private OhBehaveTreeBlueprint treeBlueprint;
+		private NodeWindow window;
 		/// <summary>
 		/// Editor objects have a hard time serializing themselves.
 		/// </summary>
 		private NodeEditorObject parent;
-
-
+		private bool isConnectedToRoot;
 
 		public NodeEditorObject Parent
 		{
 			get
 			{
-				if (parent == null)
+				if (parent == null) // this is ALWAYS null! WHY???
 				{
-					var ohBehave = EditorWindow.GetWindow<OhBehaveEditorWindow>();
-					var treeBlueprint = ohBehave.treeBlueprint;
+					if (treeBlueprint == null)
+					{
+						var ohBehave = EditorWindow.GetWindow<OhBehaveEditorWindow>();
+						treeBlueprint = ohBehave.treeBlueprint;
+					}
 					parent = treeBlueprint.GetNodeObject(parentIndex);
 				}
 
@@ -69,14 +68,20 @@ namespace AtomosZ.OhBehave.EditorTools
 		}
 
 
-		public NodeEditorObject(NodeType type, int nodeIndex, int parentNodeObjectIndex)
+		public NodeEditorObject(NodeType type, int nodeIndex)
 		{
 			nodeType = type;
 			index = nodeIndex;
-			parentIndex = parentNodeObjectIndex;
+			if (nodeIndex == OhBehaveTreeBlueprint.ROOT_INDEX)
+			{
+				isConnectedToRoot = true;
+				parentIndex = OhBehaveTreeBlueprint.ROOT_NODE_PARENT_INDEX;
+			}
+
 			parent = Parent;
 			CreateWindow();
 		}
+
 
 		/// <summary>
 		/// Returns true if save needed.
@@ -93,14 +98,78 @@ namespace AtomosZ.OhBehave.EditorTools
 			return window.ProcessEvents(current);
 		}
 
-		public bool CheckIsValid()
+		public bool CheckIsValid(out InvalidNodeMessage invalidNodeMessage)
 		{
-			bool isValid = nodeType == NodeType.Leaf
-				|| (nodeType == NodeType.Inverter && HasChildren() && children.Count == 1)
-				|| HasChildren();
+			bool isValid;
+			invalidNodeMessage.node = this;
+			invalidNodeMessage.errorCode = InvalidNodeMessage.ErrorCode.Success.ToString();
 
-			window.BranchBroken(isValid);
-			return isValid;
+			switch (nodeType)
+			{
+				case NodeType.Leaf:
+					isValid = HasAction();
+					if (!isValid)
+					{
+						invalidNodeMessage.errorCode = InvalidNodeMessage.ErrorCode.LeafActionNotSet.ToString();
+					}
+					break;
+				case NodeType.Inverter:
+					isValid = HasChildren() && children.Count == 1;
+					if (!isValid)
+					{
+						invalidNodeMessage.errorCode = InvalidNodeMessage.ErrorCode.NoChildren.ToString();
+					}
+					break;
+				default:
+					isValid = HasChildren();
+					if (!isValid)
+					{
+						invalidNodeMessage.errorCode = InvalidNodeMessage.ErrorCode.NoChildren.ToString();
+					}
+					break;
+			}
+
+			isConnectedToRoot = IsConnectedToRoot();
+			if (!isConnectedToRoot)
+				invalidNodeMessage.errorCode += " | " + InvalidNodeMessage.ErrorCode.NoConnectionToRoot.ToString();
+
+			window.BranchBroken(isValid, isConnectedToRoot, invalidNodeMessage.errorCode);
+			return isValid || !isConnectedToRoot;
+		}
+
+
+		public void DrawConnectionWires()
+		{
+			window.DrawConnectionWires();
+		}
+
+		public List<int> GetChildren()
+		{
+			return children;
+		}
+
+		public NodeWindow GetWindow()
+		{
+			if (window == null)
+			{
+				CreateWindow();
+			}
+
+			return window;
+		}
+
+
+
+		private bool IsConnectedToRoot()
+		{
+			if (Parent != null && (Parent.isConnectedToRoot || Parent.index == OhBehaveTreeBlueprint.ROOT_INDEX))
+				return true;
+			return index == OhBehaveTreeBlueprint.ROOT_INDEX;
+		}
+
+		private bool HasAction()
+		{
+			return actionEvent != null;
 		}
 
 		public void OnGUI()
@@ -116,35 +185,57 @@ namespace AtomosZ.OhBehave.EditorTools
 
 		public void ChangeNodeType(NodeType newType)
 		{
-			if (newType == NodeType.Leaf)
+			if (index == OhBehaveTreeBlueprint.ROOT_INDEX)
 			{
-				if (HasChildren())
-				{
-					Debug.LogError("Must handle children potentially losing their parent!");
-				}
+				Debug.LogWarning("Change denied: I am root");
+				return;
+			}
+
+			if (HasChildren() && (newType == NodeType.Leaf || (newType == NodeType.Inverter && children.Count > 1)))
+			{
+				for (int i = children.Count - 1; i >= 0; --i)
+					DisconnectNodes(this, treeBlueprint.GetNodeObject(children[i]));
 			}
 
 			nodeType = newType;
 			CreateWindow();
 		}
 
+
+		public static void ConnectNodes(NodeEditorObject parent, NodeEditorObject child)
+		{
+			parent.AddChild(child);
+			child.AddParent(parent.index);
+		}
+
+		public static void DisconnectNodes(NodeEditorObject parent, NodeEditorObject child)
+		{
+			child.RemoveParent();
+			if (parent != null)
+				parent.RemoveChild(child.index);
+		}
+
 		/// <summary>
 		/// If node already has a parent, removes it first.
 		/// </summary>
 		/// <param name="newParentIndex"></param>
-		public void AddParent(int newParentIndex)
+		private void AddParent(int newParentIndex)
 		{
 			if (parentIndex != OhBehaveTreeBlueprint.NO_PARENT_INDEX)
 				window.ParentRemoved();
 			parentIndex = newParentIndex;
-			window.CreateConnectionToParent((IParentNodeWindow)Parent.window);
+			window.SetParentWindow((IParentNodeWindow)Parent.window);
 		}
 
-		public void RemoveParent()
+		private void RemoveParent()
 		{
-			window.ParentRemoved();
-			parent = null;
-			parentIndex = OhBehaveTreeBlueprint.NO_PARENT_INDEX;
+			if (parent != null)
+			{
+				//parent.RemoveChild(index);
+				window.ParentRemoved();
+				parent = null;
+				parentIndex = OhBehaveTreeBlueprint.NO_PARENT_INDEX;
+			}
 		}
 
 		/// <summary>
@@ -160,7 +251,45 @@ namespace AtomosZ.OhBehave.EditorTools
 		}
 
 
-		public void AddChild(NodeEditorObject newChildNode)
+		/// <summary>
+		/// Reorders ReorderableList in response to child window moving.
+		/// </summary>
+		/// <param name="newChildOrder"></param>
+		public void NewChildOrder(int[] newChildOrder)
+		{
+			children.Clear();
+			children.AddRange(newChildOrder);
+			window.UpdateChildrenList();
+		}
+
+		/// <summary>
+		/// Reorders child windows in response to ReorderableList item dragging.
+		/// </summary>
+		/// <param name="newOrder"></param>
+		public void ReorderPhysicalChildren(List<int> newOrder)
+		{
+			List<Vector2> positions = new List<Vector2>();
+			foreach (var child in children)
+			{
+				var childNode = treeBlueprint.GetNodeObject(child);
+				Vector2 pos = childNode.windowRect.position;
+				positions.Add(pos);
+			}
+
+			for (int i = 0; i < newOrder.Count; ++i)
+			{
+				var childNode = treeBlueprint.GetNodeObject(newOrder[i]);
+				childNode.windowRect.position = positions[i];
+			}
+		}
+
+
+		public void SwitchedPlaces(int childIndexA, int childIndexB)
+		{
+			Debug.Log("a: " + childIndexA + " b: " + childIndexB);
+		}
+
+		private void AddChild(NodeEditorObject newChildNode)
 		{
 			if (children == null)
 				children = new List<int>();
@@ -175,7 +304,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		}
 
 
-		public void RemoveChild(int childIndex)
+		private void RemoveChild(int childIndex)
 		{
 			if (children == null)
 			{
@@ -194,7 +323,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		/// <summary>
 		/// Called when a node gets deleted to keep now orphaned nodes and parent node in sink.
 		/// </summary>
-		public void NotifyNeigboursOfDelete()
+		public void NotifyFamilyOfDelete()
 		{
 			if (parentIndex != OhBehaveTreeBlueprint.NO_PARENT_INDEX)
 				Parent.RemoveChild(index);
@@ -204,9 +333,10 @@ namespace AtomosZ.OhBehave.EditorTools
 				// this node has children. Warn before deleting?
 				var ohBehave = EditorWindow.GetWindow<OhBehaveEditorWindow>();
 				var treeBlueprint = ohBehave.treeBlueprint;
-				foreach (int nodeIndex in children)
+
+				for (int i = children.Count - 1; i >= 0; --i)
 				{
-					NodeEditorObject child = treeBlueprint.GetNodeObject(nodeIndex);
+					NodeEditorObject child = treeBlueprint.GetNodeObject(children[i]);
 					child.RemoveParent();
 				}
 			}
@@ -242,6 +372,20 @@ namespace AtomosZ.OhBehave.EditorTools
 					Debug.LogWarning("TODO: CreateWindow of type " + nodeType);
 					break;
 			}
+		}
+
+		public struct InvalidNodeMessage
+		{
+			public enum ErrorCode
+			{
+				Success,
+				NoChildren,
+				NoConnectionToRoot,
+				LeafActionNotSet,
+			};
+
+			public NodeEditorObject node;
+			public string errorCode;
 		}
 	}
 }
