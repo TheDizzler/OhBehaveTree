@@ -689,7 +689,7 @@ PrefabInstance:
         type: 3}
       propertyPath: ohBehaveAI
       value: 
-      objectReference: {fileID: 11400000, guid: 8d77701190c9fb440a4ff09433572516,
+      objectReference: {fileID: 11400000, guid: a0f005af147af0540a4dfeca45450041,
         type: 2}
     - target: {fileID: 542418724697479626, guid: f29b78fecf27e894fbf80a21cdb566dd,
         type: 3}
