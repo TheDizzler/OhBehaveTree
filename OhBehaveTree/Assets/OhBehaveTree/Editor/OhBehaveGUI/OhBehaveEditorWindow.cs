@@ -149,6 +149,8 @@ namespace AtomosZ.OhBehave.EditorTools
 					}
 				}
 			}
+			else
+				treeBlueprint.PendingDeletes();
 		}
 
 
