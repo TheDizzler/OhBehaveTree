@@ -86,7 +86,15 @@ namespace AtomosZ.OhBehave.EditorTools
 				}
 
 				if (childNodesReorderable != null)
-					childNodesReorderable.DoLayoutList();
+				{
+					//try
+					//{
+						childNodesReorderable.DoLayoutList();
+					//}
+					//catch (System.Exception)
+					//{// only happens on Repaint after deleting a node. I think we can safely ignore it.
+					//}
+				}
 				else if (Event.current.type == EventType.Repaint)
 				{
 					CreateChildList();
@@ -159,9 +167,10 @@ namespace AtomosZ.OhBehave.EditorTools
 				childNodesReorderable.onReorderCallback = ChildrenReordered;
 				childNodesReorderable.drawElementCallback = DrawListItem;
 				childNodesReorderable.drawHeaderCallback = DrawHeader;
+				GUI.changed = true;
 			}
 			else
-				childNodesReorderable = new ReorderableList(new List<int>(), typeof(int));
+				childNodesReorderable = new ReorderableList(new List<int>(), typeof(int), false, true, false, false);
 		}
 
 		private void ChildrenReordered(ReorderableList newOrderList)

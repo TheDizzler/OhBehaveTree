@@ -279,8 +279,14 @@ namespace AtomosZ.OhBehave.EditorTools
 			for (int i = 0; i < newOrder.Count; ++i)
 			{
 				var childNode = treeBlueprint.GetNodeObject(newOrder[i]);
-				childNode.windowRect.position = positions[i];
+				Vector2 pos = childNode.windowRect.position;
+				pos.x = positions[i].x;
+				childNode.windowRect.position = pos;
 			}
+
+			//children.Clear();
+			//children.AddRange(newOrder);
+			//window.UpdateChildrenList();
 		}
 
 

@@ -113,8 +113,9 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 				switch (nodeObject.nodeType)
 				{
 					case NodeType.Leaf:
-						var actionEventProp = selectedNodeProperty.FindPropertyRelative("actionEvent");
-						EditorGUILayout.PropertyField(actionEventProp);
+						//var actionEventProp = selectedNodeProperty.FindPropertyRelative("actionEvent");
+						//EditorGUILayout.PropertyField(actionEventProp);
+						EditorGUILayout.LabelField("What do actions?");
 						break;
 					case NodeType.Selector:
 					case NodeType.Sequence:

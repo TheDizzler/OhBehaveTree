@@ -149,6 +149,8 @@ namespace AtomosZ.OhBehave.EditorTools
 					}
 				}
 			}
+			else
+				treeBlueprint.PendingDeletes();
 		}
 
 
@@ -168,6 +170,10 @@ namespace AtomosZ.OhBehave.EditorTools
 				}
 			}
 
+			if (treeBlueprint == null)
+			{
+				return;
+			}
 
 			if (zoomer == null)
 			{

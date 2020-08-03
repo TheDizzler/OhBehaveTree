@@ -159,7 +159,7 @@ namespace AtomosZ.OhBehave.EditorTools
 			Handles.DrawAAPolyLine(ConnectionControls.lineThickness,
 				furthestLeft, furthestRight);
 
-			if(Event.current.type == EventType.Repaint)
+			if (Event.current.type == EventType.Repaint)
 				return false;
 
 			order.Sort();
@@ -176,14 +176,14 @@ namespace AtomosZ.OhBehave.EditorTools
 
 			// this should be safe to delete. Keep it around for a little while just in case.
 			for (i = 0; i < newChildOrder.Length; ++i)
-			{ 
+			{
 				for (int j = 0; j < newChildOrder.Length; ++j)
 				{
 					if (i == j)
 						continue;
 					if (newChildOrder[i] == newChildOrder[j])
 					{
-						Debug.LogError("found dups: " + Event.current.type);
+						Debug.LogWarning("found dups: " + Event.current.type + ". If was re-ording list, should be safe to ignore.");
 						return false;
 					}
 				}
@@ -220,20 +220,22 @@ namespace AtomosZ.OhBehave.EditorTools
 
 					var genericMenu = new GenericMenu();
 					genericMenu.AddItem(new GUIContent("Remove Connection to " + parentName), false,
-						() => DisconnectParent());
+						() => DisconnectParent(nodeWindow.parent));
 					genericMenu.ShowAsContext();
 					break;
 
 				case ConnectionPointType.Out:
 					var children = nodeWindow.GetChildren();
-					if (children.Count > 0)
+					if (children != null && children.Count > 0)
 					{
 						var disconnectMenu = new GenericMenu();
 						disconnectMenu.allowDuplicateNames = true;
-						foreach (int childIndex in children)
+						for (int i = 0; i < children.Count; ++i)
 						{
-							var node = blueprint.GetNodeObject(childIndex);
-							disconnectMenu.AddItem(new GUIContent("Remove Connection to " + node.displayName), false, () => DisconnectChild(node));
+							var childNode = blueprint.GetNodeObject(children[i]);
+							disconnectMenu.AddItem(new GUIContent(
+								"Remove Connection to " + "(" + i + ") " + childNode.displayName),
+								false, () => DisconnectChild(childNode));
 						}
 
 						disconnectMenu.ShowAsContext();
@@ -242,14 +244,17 @@ namespace AtomosZ.OhBehave.EditorTools
 			}
 		}
 
-		private void DisconnectChild(NodeEditorObject node)
+		private void DisconnectChild(NodeEditorObject childNode)
 		{
-			Debug.Log("This does nothing but -> Disconnect " + node.displayName);
+			NodeEditorObject.DisconnectNodes(nodeWindow.nodeObject, childNode);
 		}
 
-		private void DisconnectParent()
+		/// <summary>
+		/// Called when Remove Connection selected from context menu.
+		/// </summary>
+		private void DisconnectParent(IParentNodeWindow parent)
 		{
-			Debug.Log("This does nothing but -> Disconnect parent!");
+			NodeEditorObject.DisconnectNodes(((NodeWindow)parent).nodeObject, nodeWindow.nodeObject);
 		}
 	}
 }

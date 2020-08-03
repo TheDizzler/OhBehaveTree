@@ -105,13 +105,13 @@ namespace AtomosZ.OhBehave.EditorTools
 		public abstract void UpdateChildrenList();
 		public abstract bool ProcessEvents(Event e);
 		public abstract void OnGUI();
-	
+
 		public virtual void DrawConnectionWires()
 		{
 			return;
 		}
 
-		
+
 
 		public void Deselect()
 		{
@@ -228,9 +228,13 @@ namespace AtomosZ.OhBehave.EditorTools
 			else
 			{
 				GUI.changed = true;
-				Deselect();
+
 				if (treeBlueprint.GetSelectedNode() == nodeObject)
+				{
+					Deselect();
 					treeBlueprint.SelectNode(null);
+				}
+
 				currentStyle = nodeStyle.defaultStyle;
 			}
 		}

@@ -71,7 +71,6 @@ namespace AtomosZ.OhBehave.EditorTools
 
 			GUILayout.BeginArea(GetRect(), content, currentStyle);
 			{
-
 				CreateTitleBar();
 
 				NodeType newType = (NodeType)EditorGUILayout.EnumPopup(nodeObject.nodeType);
@@ -99,16 +98,17 @@ namespace AtomosZ.OhBehave.EditorTools
 					if (!isValid)
 						labelStyle.normal.textColor = Color.red;
 
-					if (nodeObject.actionEvent == null)
-					{
-						EditorGUILayout.LabelField("Action:", labelStyle);
-						EditorGUILayout.LabelField("\tNo Methods Set", labelStyle);
-					}
-					else
-					{
-						EditorGUILayout.LabelField("Action Start:");
-						EditorGUILayout.LabelField("\t" + nodeObject.actionEvent.name);
-					}
+					EditorGUILayout.LabelField("What do actions?");
+					//if (nodeObject.actionEvent == null)
+					//{
+					//	EditorGUILayout.LabelField("Action:", labelStyle);
+					//	EditorGUILayout.LabelField("\tNo Methods Set", labelStyle);
+					//}
+					//else
+					//{
+					//	EditorGUILayout.LabelField("Action Start:");
+					//	EditorGUILayout.LabelField("\t" + nodeObject.actionEvent.name);
+					//}
 				}
 
 				if (Event.current.type == EventType.Repaint)
