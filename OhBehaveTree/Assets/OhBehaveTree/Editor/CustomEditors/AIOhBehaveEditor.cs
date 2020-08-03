@@ -89,11 +89,6 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 						(OhBehaveTreeController)aiBehaviourTree.objectReferenceValue);
 				}
 			}
-			if (aiBehaviourTree.objectReferenceValue != null)
-			{
-				((OhBehaveTreeController)aiBehaviourTree.objectReferenceValue).functionSource =
-					instance.gameObject;
-			}
 
 			serializedObject.ApplyModifiedProperties();
 		}

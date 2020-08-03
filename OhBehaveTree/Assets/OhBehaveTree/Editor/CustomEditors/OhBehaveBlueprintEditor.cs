@@ -10,11 +10,15 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 	{
 		private OhBehaveTreeBlueprint instance;
 		private SerializedProperty nodeList;
+		private OhBehaveActions source;
+		private OhBehaveTreeController treeController;
 
 		void OnEnable()
 		{
 			instance = (OhBehaveTreeBlueprint)target;
 			nodeList = serializedObject.FindProperty("savedNodes");
+			source = instance.ohBehaveTree.behaviorSource;
+			treeController = instance.ohBehaveTree;
 		}
 
 
@@ -45,15 +49,25 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 			GUI.enabled = false;
 			EditorGUILayout.ObjectField("Script", target, typeof(OhBehaveAI), false);
 			EditorGUILayout.ObjectField("OhBehaveTree", instance.ohBehaveTree, typeof(OhBehaveTreeController), false);
+			EditorGUILayout.PropertyField(nodeList, true);
 			GUI.enabled = true;
+
+			EditorGUI.BeginChangeCheck();
+			EditorGUILayout.ObjectField("Behaviour Source", source, typeof(OhBehaveActions), true);
+
+
+			serializedObject.ApplyModifiedProperties();
+
+			if (EditorGUI.EndChangeCheck())
+			{
+				Debug.LogWarning("Data source changed! Probably need some kind of popup warning here.");
+			}
 
 			if (GUILayout.Button("Open In Editor"))
 			{
 				EditorWindow.GetWindow<OhBehaveEditorWindow>().Open(
 					instance.ohBehaveTree);
 			}
-
-			EditorGUILayout.PropertyField(nodeList, true);
 
 		}
 
@@ -113,9 +127,24 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 				switch (nodeObject.nodeType)
 				{
 					case NodeType.Leaf:
-						//var actionEventProp = selectedNodeProperty.FindPropertyRelative("actionEvent");
-						//EditorGUILayout.PropertyField(actionEventProp);
 						EditorGUILayout.LabelField("What do actions?");
+						GUI.enabled = false;
+						EditorGUILayout.ObjectField("Behaviour Source", source, typeof(OhBehaveActions), true);
+						GUI.enabled = true;
+						EditorGUILayout.ObjectField(nodeObject.actionMethod); // gotta figure out how to connect this to UnityEvent?
+
+						if (treeController.methods != null && treeController.methods.Count > 0)
+						{
+							// Create the dropdown in the inspector for the found methods
+							List<string> methodNames = new List<string>();
+							foreach (var method in treeController.methods)
+							{
+								methodNames.Add(method.ToString());
+							}
+
+							EditorGUILayout.Popup("Function List", 0, methodNames.ToArray());
+						}
+
 						break;
 					case NodeType.Selector:
 					case NodeType.Sequence:
