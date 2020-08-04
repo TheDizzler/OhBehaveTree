@@ -13,15 +13,16 @@ namespace AtomosZ.OhBehave
 		public string description;
 		public ICompositeNode rootNode;
 
-		public OhBehaveActions behaviorSource;
-		public List<MethodInfo> methods = null;
-		private BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly;
-
-
-
-
 		public string blueprintGUID;
 
+		public OhBehaveActions behaviorSource;
+		public List<MethodInfo> sharedMethods = null;
+		public List<MethodInfo> privateMethods = null;
+		public List<string> sharedMethodNames = null;
+		public List<string> privateMethodNames = null;
+
+
+		private BindingFlags flags = BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.Instance;
 
 
 
@@ -41,7 +42,8 @@ namespace AtomosZ.OhBehave
 
 		public void EditorNeedsRefresh()
 		{
-			methods = null;
+			sharedMethods = null;
+			sharedMethodNames = null;
 			GetFunctions();
 		}
 
@@ -56,31 +58,41 @@ namespace AtomosZ.OhBehave
 		{
 			if (behaviorSource == null)
 			{
-				methods = null;
+				sharedMethods = null;
+				privateMethods = null;
+				sharedMethodNames = null;
+				privateMethodNames = null;
 				return;
 			}
 
-			List<MethodInfo> allMethods = new List<MethodInfo>();
-			methods = new List<MethodInfo>();
 
-			allMethods.AddRange(behaviorSource.GetType().GetMethods(flags));
+			sharedMethods = new List<MethodInfo>();
+			privateMethods = new List<MethodInfo>();
+			sharedMethodNames = new List<string>();
+			privateMethodNames = new List<string>();
 
-			foreach (MethodInfo element in allMethods)
+			foreach (MethodInfo element in behaviorSource.GetType().GetMethods(flags))
 			{
 				foreach (var param in element.GetParameters())
 				{
 					if (param.ParameterType == typeof(LeafNode))
 					{ // at least one of the params must be a LeafNode
-						methods.Add(element);
+						privateMethods.Add(element);
+						privateMethodNames.Add(element.Name);
 						break;
 					}
 				}
 			}
+
+			sharedMethods.Add(null);
+			sharedMethods.AddRange(privateMethods);
+			sharedMethodNames.Add("No action selected");
+			sharedMethodNames.AddRange(privateMethodNames);
 		}
 
 		private void OnEnable()
 		{
-			if (methods == null)
+			if (sharedMethods == null)
 				GetFunctions();
 		}
 	}

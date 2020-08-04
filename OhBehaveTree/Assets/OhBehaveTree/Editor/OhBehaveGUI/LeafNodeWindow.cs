@@ -87,8 +87,8 @@ namespace AtomosZ.OhBehave.EditorTools
 					foldoutStyle = OhBehaveEditorWindow.normalFoldoutStyle;
 
 				bool wasExpanded = isExpanded;
-				if (Event.current.type != EventType.Repaint)
-					isExpanded = EditorGUILayout.Foldout(isExpanded, new GUIContent("Actions"), true, foldoutStyle);
+
+				isExpanded = EditorGUILayout.Foldout(isExpanded, new GUIContent("Actions"), true, foldoutStyle);
 				if (wasExpanded != isExpanded)
 					GUI.changed = true;
 
@@ -99,16 +99,16 @@ namespace AtomosZ.OhBehave.EditorTools
 						labelStyle.normal.textColor = Color.red;
 
 					EditorGUILayout.LabelField("What do actions?");
-					//if (nodeObject.actionEvent == null)
-					//{
-					//	EditorGUILayout.LabelField("Action:", labelStyle);
-					//	EditorGUILayout.LabelField("\tNo Methods Set", labelStyle);
-					//}
-					//else
-					//{
-					//	EditorGUILayout.LabelField("Action Start:");
-					//	EditorGUILayout.LabelField("\t" + nodeObject.actionEvent.name);
-					//}
+					if (string.IsNullOrEmpty(nodeObject.actionName))
+					{
+						EditorGUILayout.LabelField("Action:", labelStyle);
+						EditorGUILayout.LabelField("\tNo Methods Set", labelStyle);
+					}
+					else
+					{
+						EditorGUILayout.LabelField("Action:");
+						EditorGUILayout.LabelField("\t" + nodeObject.actionName);
+					}
 				}
 
 				if (Event.current.type == EventType.Repaint)

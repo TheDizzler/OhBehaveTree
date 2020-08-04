@@ -39,16 +39,10 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 			EditorGUILayout.PropertyField(behaviorSource);
 
 
-			if (treeController.methods != null && treeController.methods.Count > 0)
+			if (treeController.sharedMethods != null && treeController.sharedMethods.Count > 0)
 			{
 				// Create the dropdown in the inspector for the found methods
-				List<string> methodNames = new List<string>();
-				foreach (var method in treeController.methods)
-				{
-					methodNames.Add(method.ToString());
-				}
-
-				EditorGUILayout.Popup("Function List", 0, methodNames.ToArray());
+				EditorGUILayout.Popup("Function List", 0, treeController.privateMethodNames.ToArray());
 			}
 
 

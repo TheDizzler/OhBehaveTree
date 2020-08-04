@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
@@ -12,6 +11,8 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 		private SerializedProperty nodeList;
 		private OhBehaveActions source;
 		private OhBehaveTreeController treeController;
+
+
 
 		void OnEnable()
 		{
@@ -48,27 +49,17 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 			//base.OnInspectorGUI();
 			GUI.enabled = false;
 			EditorGUILayout.ObjectField("Script", target, typeof(OhBehaveAI), false);
-			EditorGUILayout.ObjectField("OhBehaveTree", instance.ohBehaveTree, typeof(OhBehaveTreeController), false);
+			EditorGUILayout.ObjectField("OhBehaveTree", instance.ohBehaveTree, typeof(OhBehaveTreeController), false); // put a link here for convenience
 			EditorGUILayout.PropertyField(nodeList, true);
+			EditorGUILayout.ObjectField("Behaviour Source", source, typeof(OhBehaveActions), true);
 			GUI.enabled = true;
 
-			EditorGUI.BeginChangeCheck();
-			EditorGUILayout.ObjectField("Behaviour Source", source, typeof(OhBehaveActions), true);
-
-
-			serializedObject.ApplyModifiedProperties();
-
-			if (EditorGUI.EndChangeCheck())
-			{
-				Debug.LogWarning("Data source changed! Probably need some kind of popup warning here.");
-			}
 
 			if (GUILayout.Button("Open In Editor"))
 			{
 				EditorWindow.GetWindow<OhBehaveEditorWindow>().Open(
 					instance.ohBehaveTree);
 			}
-
 		}
 
 
@@ -130,19 +121,32 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 						EditorGUILayout.LabelField("What do actions?");
 						GUI.enabled = false;
 						EditorGUILayout.ObjectField("Behaviour Source", source, typeof(OhBehaveActions), true);
-						GUI.enabled = true;
-						EditorGUILayout.ObjectField(nodeObject.actionMethod); // gotta figure out how to connect this to UnityEvent?
+						int methodIndex;
 
-						if (treeController.methods != null && treeController.methods.Count > 0)
+						if (string.IsNullOrEmpty(nodeObject.actionName))
+						{
+							EditorGUILayout.TextField("No method selected");
+							methodIndex = 0;
+						}
+						else
+						{
+							EditorGUILayout.TextField(nodeObject.actionName);
+							methodIndex = treeController.sharedMethodNames.IndexOf(nodeObject.actionName);
+						}
+
+						GUI.enabled = true;
+
+						if (treeController.sharedMethods != null && treeController.sharedMethods.Count > 0)
 						{
 							// Create the dropdown in the inspector for the found methods
-							List<string> methodNames = new List<string>();
-							foreach (var method in treeController.methods)
+							int newSelection = EditorGUILayout.Popup("Function List", methodIndex, treeController.sharedMethodNames.ToArray());
+							if (newSelection != methodIndex)
 							{
-								methodNames.Add(method.ToString());
+								if (newSelection == 0)
+									nodeObject.actionName = "";
+									else
+								nodeObject.actionName = treeController.sharedMethodNames[newSelection];
 							}
-
-							EditorGUILayout.Popup("Function List", 0, methodNames.ToArray());
 						}
 
 						break;

@@ -25,11 +25,13 @@ namespace AtomosZ.OhBehave.EditorTools
 		/// </summary>
 		public string description;
 
+		public Rect windowRect;
+
+
 		/// <summary>
 		/// LeafNode Only.
 		/// </summary>
-		public MethodInfo actionMethod;
-		public Rect windowRect;
+		public string actionName;
 
 
 		/// <summary>
@@ -170,8 +172,7 @@ namespace AtomosZ.OhBehave.EditorTools
 
 		private bool HasAction()
 		{
-			//return actionEvent != null;
-			return false;
+			return !string.IsNullOrEmpty(actionName);
 		}
 
 		public void OnGUI()
