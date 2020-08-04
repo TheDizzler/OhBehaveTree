@@ -297,7 +297,7 @@ namespace AtomosZ.OhBehave.EditorTools
 
 		protected void Drag(Vector2 delta)
 		{
-			nodeObject.windowRect.position += delta;
+			nodeObject.MoveWindowPosition(delta, treeBlueprint.childrenMoveWithParent);
 		}
 	}
 }

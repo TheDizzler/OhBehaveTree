@@ -35,6 +35,7 @@ namespace AtomosZ.OhBehave.EditorTools
 
 		public List<NodeEditorObject> savedNodes;
 		public ZoomerSettings zoomerSettings;
+		public bool childrenMoveWithParent;
 
 		[SerializeField]
 		private NodeEditorObject selectedNode;

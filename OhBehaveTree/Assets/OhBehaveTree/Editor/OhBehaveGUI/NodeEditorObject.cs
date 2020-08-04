@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
@@ -281,17 +280,28 @@ namespace AtomosZ.OhBehave.EditorTools
 
 			for (int i = 0; i < newOrder.Count; ++i)
 			{
-				var childNode = treeBlueprint.GetNodeObject(newOrder[i]);
+				var childNode = treeBlueprint.GetNodeObjectByIndex(newOrder[i]);
 				Vector2 pos = childNode.windowRect.position;
 				pos.x = positions[i].x;
-				childNode.windowRect.position = pos;
+				Vector2 difference = pos - childNode.windowRect.position;
+				childNode.MoveWindowPosition(difference, treeBlueprint.childrenMoveWithParent);
 			}
-
-			//children.Clear();
-			//children.AddRange(newOrder);
-			//window.UpdateChildrenList();
 		}
 
+
+		public void MoveWindowPosition(Vector2 delta, bool repositionChildren)
+		{
+			if (repositionChildren && HasChildren())
+			{
+				foreach (int childIndex in children)
+				{
+					var child = treeBlueprint.GetNodeObjectByIndex(childIndex);
+					child.MoveWindowPosition(delta, true);
+				}
+			}
+
+			windowRect.position += delta;
+		}
 
 		public void SwitchedPlaces(int childIndexA, int childIndexB)
 		{
