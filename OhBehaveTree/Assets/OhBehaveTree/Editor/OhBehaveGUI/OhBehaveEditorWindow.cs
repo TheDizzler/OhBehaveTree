@@ -203,7 +203,8 @@ namespace AtomosZ.OhBehave.EditorTools
 			}
 			zoomer.End(new Rect(0, zoomRect.yMax + zoomRect.position.y - 50, window.position.width, window.position.height));
 
-			treeBlueprint.childrenMoveWithParent = EditorGUILayout.Toggle("Reposition children on move", treeBlueprint.childrenMoveWithParent);
+
+			treeBlueprint.childrenMoveWithParent = EditorGUILayout.ToggleLeft("Reposition children with Parent", treeBlueprint.childrenMoveWithParent);
 			EditorGUILayout.Vector2Field("mouse", Event.current.mousePosition);
 
 
