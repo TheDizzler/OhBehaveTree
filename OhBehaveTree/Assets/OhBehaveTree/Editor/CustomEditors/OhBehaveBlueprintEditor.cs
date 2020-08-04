@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
@@ -10,11 +9,17 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 	{
 		private OhBehaveTreeBlueprint instance;
 		private SerializedProperty nodeList;
+		private OhBehaveActions source;
+		private OhBehaveTreeController treeController;
+
+
 
 		void OnEnable()
 		{
 			instance = (OhBehaveTreeBlueprint)target;
 			nodeList = serializedObject.FindProperty("savedNodes");
+			source = instance.ohBehaveTree.behaviorSource;
+			treeController = instance.ohBehaveTree;
 		}
 
 
@@ -44,17 +49,17 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 			//base.OnInspectorGUI();
 			GUI.enabled = false;
 			EditorGUILayout.ObjectField("Script", target, typeof(OhBehaveAI), false);
-			EditorGUILayout.ObjectField("OhBehaveTree", instance.ohBehaveTree, typeof(OhBehaveTreeController), false);
+			EditorGUILayout.ObjectField("OhBehaveTree", instance.ohBehaveTree, typeof(OhBehaveTreeController), false); // put a link here for convenience
+			EditorGUILayout.PropertyField(nodeList, true);
+			EditorGUILayout.ObjectField("Behaviour Source", source, typeof(OhBehaveActions), true);
 			GUI.enabled = true;
+
 
 			if (GUILayout.Button("Open In Editor"))
 			{
 				EditorWindow.GetWindow<OhBehaveEditorWindow>().Open(
 					instance.ohBehaveTree);
 			}
-
-			EditorGUILayout.PropertyField(nodeList, true);
-
 		}
 
 
@@ -113,9 +118,37 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 				switch (nodeObject.nodeType)
 				{
 					case NodeType.Leaf:
-						//var actionEventProp = selectedNodeProperty.FindPropertyRelative("actionEvent");
-						//EditorGUILayout.PropertyField(actionEventProp);
 						EditorGUILayout.LabelField("What do actions?");
+						GUI.enabled = false;
+						EditorGUILayout.ObjectField("Behaviour Source", source, typeof(OhBehaveActions), true);
+						int methodIndex;
+
+						if (string.IsNullOrEmpty(nodeObject.actionName))
+						{
+							EditorGUILayout.TextField("No method selected");
+							methodIndex = 0;
+						}
+						else
+						{
+							EditorGUILayout.TextField(nodeObject.actionName);
+							methodIndex = treeController.sharedMethodNames.IndexOf(nodeObject.actionName);
+						}
+
+						GUI.enabled = true;
+
+						if (treeController.sharedMethods != null && treeController.sharedMethods.Count > 0)
+						{
+							// Create the dropdown in the inspector for the found methods
+							int newSelection = EditorGUILayout.Popup("Function List", methodIndex, treeController.sharedMethodNames.ToArray());
+							if (newSelection != methodIndex)
+							{
+								if (newSelection == 0)
+									nodeObject.actionName = "";
+									else
+								nodeObject.actionName = treeController.sharedMethodNames[newSelection];
+							}
+						}
+
 						break;
 					case NodeType.Selector:
 					case NodeType.Sequence:

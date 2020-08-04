@@ -79,16 +79,15 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 					}
 				}
 			}
-			else if (GUILayout.Button("Open AIOhBehaveEditor"))
+			else
 			{
-				EditorWindow.GetWindow<OhBehaveEditorWindow>().Open(
-					(OhBehaveTreeController)aiBehaviourTree.objectReferenceValue);
-			}
+				// do something here to verify tree is well-formed. If not, display angry button.
 
-			if (aiBehaviourTree.objectReferenceValue != null)
-			{
-				((OhBehaveTreeController)aiBehaviourTree.objectReferenceValue).functionSource =
-					instance.gameObject;
+				if (GUILayout.Button("Open AIOhBehaveEditor"))
+				{
+					EditorWindow.GetWindow<OhBehaveEditorWindow>().Open(
+						(OhBehaveTreeController)aiBehaviourTree.objectReferenceValue);
+				}
 			}
 
 			serializedObject.ApplyModifiedProperties();

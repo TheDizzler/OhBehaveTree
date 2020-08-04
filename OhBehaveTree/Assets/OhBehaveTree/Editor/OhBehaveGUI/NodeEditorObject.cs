@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
@@ -24,11 +25,13 @@ namespace AtomosZ.OhBehave.EditorTools
 		/// </summary>
 		public string description;
 
+		public Rect windowRect;
+
+
 		/// <summary>
 		/// LeafNode Only.
 		/// </summary>
-		public MonoScript actionEvent;
-		public Rect windowRect;
+		public string actionName;
 
 
 		/// <summary>
@@ -169,7 +172,7 @@ namespace AtomosZ.OhBehave.EditorTools
 
 		private bool HasAction()
 		{
-			return actionEvent != null;
+			return !string.IsNullOrEmpty(actionName);
 		}
 
 		public void OnGUI()
