@@ -63,7 +63,7 @@ namespace AtomosZ.OhBehave.EditorTools
 						var ohBehave = EditorWindow.GetWindow<OhBehaveEditorWindow>();
 						treeBlueprint = ohBehave.treeBlueprint;
 					}
-					parent = treeBlueprint.GetNodeObject(parentIndex);
+					parent = treeBlueprint.GetNodeObjectByIndex(parentIndex);
 				}
 
 				return parent;
@@ -197,7 +197,7 @@ namespace AtomosZ.OhBehave.EditorTools
 			if (HasChildren() && (newType == NodeType.Leaf || (newType == NodeType.Inverter && children.Count > 1)))
 			{
 				for (int i = children.Count - 1; i >= 0; --i)
-					DisconnectNodes(this, treeBlueprint.GetNodeObject(children[i]));
+					DisconnectNodes(this, treeBlueprint.GetNodeObjectByIndex(children[i]));
 			}
 
 			nodeType = newType;
@@ -274,7 +274,7 @@ namespace AtomosZ.OhBehave.EditorTools
 			List<Vector2> positions = new List<Vector2>();
 			foreach (var child in children)
 			{
-				var childNode = treeBlueprint.GetNodeObject(child);
+				var childNode = treeBlueprint.GetNodeObjectByIndex(child);
 				Vector2 pos = childNode.windowRect.position;
 				positions.Add(pos);
 			}
@@ -345,7 +345,7 @@ namespace AtomosZ.OhBehave.EditorTools
 
 				for (int i = children.Count - 1; i >= 0; --i)
 				{
-					NodeEditorObject child = treeBlueprint.GetNodeObject(children[i]);
+					NodeEditorObject child = treeBlueprint.GetNodeObjectByIndex(children[i]);
 					child.RemoveParent();
 				}
 			}

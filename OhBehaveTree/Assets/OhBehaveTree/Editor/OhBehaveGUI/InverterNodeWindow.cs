@@ -81,7 +81,7 @@ namespace AtomosZ.OhBehave.EditorTools
 				}
 
 				if (nodeObject.HasChildren() && nodeObject.GetChildren().Count == 1)
-					GUILayout.Label("NOT " + treeBlueprint.GetNodeObject(nodeObject.GetChildren()[0]).displayName);
+					GUILayout.Label("NOT " + treeBlueprint.GetNodeObjectByIndex(nodeObject.GetChildren()[0]).displayName);
 				else
 					GUILayout.Label("Dangeling Inverter");
 				if (Event.current.type == EventType.Repaint)

@@ -150,7 +150,7 @@ namespace AtomosZ.OhBehave.EditorTools
 				ReorderableItem[] nodeItems = new ReorderableItem[children.Count];
 				for (int i = 0; i < children.Count; ++i)
 				{
-					var node = treeBlueprint.GetNodeObject(children[i]);
+					var node = treeBlueprint.GetNodeObjectByIndex(children[i]);
 					if (node == null)
 					{
 						Debug.LogError("Missing child error");

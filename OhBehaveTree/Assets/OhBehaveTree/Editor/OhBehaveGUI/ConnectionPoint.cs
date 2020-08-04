@@ -132,13 +132,13 @@ namespace AtomosZ.OhBehave.EditorTools
 					Debug.LogError("WTF: trying to draw a connection to the root.");
 					continue;
 				}
-				if (blueprint.GetNodeObject(nodeIndex) == null)
+				if (blueprint.GetNodeObjectByIndex(nodeIndex) == null)
 				{
 					Debug.LogWarning("Child index " + nodeIndex + " invalid. Delayed removal?");
 					continue;
 				}
 
-				ConnectionPoint otherPoint = blueprint.GetNodeObject(nodeIndex).GetWindow().inPoint;
+				ConnectionPoint otherPoint = blueprint.GetNodeObjectByIndex(nodeIndex).GetWindow().inPoint;
 				otherPoint.isConnected = true;
 
 				Vector2 downLineStart = new Vector2(otherPoint.rect.center.x, lineStart.y);
@@ -232,7 +232,7 @@ namespace AtomosZ.OhBehave.EditorTools
 						disconnectMenu.allowDuplicateNames = true;
 						for (int i = 0; i < children.Count; ++i)
 						{
-							var childNode = blueprint.GetNodeObject(children[i]);
+							var childNode = blueprint.GetNodeObjectByIndex(children[i]);
 							disconnectMenu.AddItem(new GUIContent(
 								"Remove Connection to " + "(" + i + ") " + childNode.displayName),
 								false, () => DisconnectChild(childNode));

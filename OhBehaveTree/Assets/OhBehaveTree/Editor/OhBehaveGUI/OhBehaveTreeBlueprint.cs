@@ -53,7 +53,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		private ConnectionPoint endConnection;
 		private Vector2 savedMousePos;
 		private bool save;
-
+		
 
 		public void ConstructNodes()
 		{
@@ -276,11 +276,11 @@ namespace AtomosZ.OhBehave.EditorTools
 			if (nodeParent.nodeType == NodeType.Inverter && nodeParent.HasChildren())
 			{
 				// orphan the olde child
-				var oldChild = GetNodeObject(nodeParent.GetChildren()[0]);
+				var oldChild = GetNodeObjectByIndex(nodeParent.GetChildren()[0]);
 				NodeEditorObject.DisconnectNodes(nodeParent, oldChild);
 			}
 
-			var oldParent = GetNodeObject(nodeChild.parentIndex);
+			var oldParent = GetNodeObjectByIndex(nodeChild.parentIndex);
 			if (oldParent != null)
 			{
 				// remove from old parent
@@ -337,7 +337,7 @@ namespace AtomosZ.OhBehave.EditorTools
 			genericMenu.ShowAsContext();
 		}
 
-		public NodeEditorObject GetNodeObject(int nodeIndex)
+		public NodeEditorObject GetNodeObjectByIndex(int nodeIndex)
 		{
 			if (nodeIndex <= OhBehaveTreeBlueprint.NO_PARENT_INDEX)
 			{
@@ -464,7 +464,7 @@ namespace AtomosZ.OhBehave.EditorTools
 			{
 				if (parentNode.HasChildren())
 				{
-					DisconnectNodes(parentNode, GetNodeObject(parentNode.GetChildren()[0]));
+					DisconnectNodes(parentNode, GetNodeObjectByIndex(parentNode.GetChildren()[0]));
 				}
 			}
 
