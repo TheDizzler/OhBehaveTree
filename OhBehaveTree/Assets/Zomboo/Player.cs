@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-namespace AtomosZ.OhBehave.Demo.Zomboo
+namespace AtomosZ.OhBehave.Demo
 {
 	public class Player : MonoBehaviour
 	{

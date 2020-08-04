@@ -1,18 +1,24 @@
-﻿using AtomosZ.OhBehave;
+﻿using System.Reflection;
 using UnityEngine;
 
-namespace AtomosZ.Zomboo
+namespace AtomosZ.OhBehave.Demo
 {
-	public class Zomboo : MonoBehaviour
+	public class Zomboo : OhBehaveActions
 	{
-
 		public OhBehaveAI bsm;
+		MethodInfo methInfo;
+
 
 		void Start()
 		{
+
 			SequenceNode rootNode = new SequenceNode();
 			LeafNode countNode = new LeafNode();
-			countNode.action.AddListener(MoveRight);
+
+			/* This is what the invokation would look like....*/
+			var result = methInfo.Invoke(this, new object[] { countNode });
+			
+			countNode.action.AddListener();
 			countNode.initialize.AddListener(MoveRightStart);
 			rootNode.AddNode(countNode);
 
