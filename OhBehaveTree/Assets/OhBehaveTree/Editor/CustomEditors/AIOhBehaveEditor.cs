@@ -46,16 +46,11 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 				}
 
 				// do something here to verify tree is well-formed. If not, display angry button.
+			}
 
-				if (GUILayout.Button("Open AIOhBehaveEditor"))
-				{
-					if (!EditorWindow.GetWindow<OhBehaveEditorWindow>().Open(instance))
-					{
-						// couldn't find jsonfile. Should we save GUID of blueprint?
-						instance.jsonFilepath = "";
-						CreateNewJson();
-					}
-				}
+			if (GUILayout.Button("Create New AI Tree"))
+			{
+				CreateNewJson();
 			}
 
 			serializedObject.ApplyModifiedProperties();
