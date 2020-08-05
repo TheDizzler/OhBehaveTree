@@ -44,7 +44,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		public string jsonGUID;
 		public List<NodeEditorObject> savedNodes;
 		public ZoomerSettings zoomerSettings;
-		public bool childrenMoveWithParent;
+		public bool childrenMoveWithParent = true;
 
 		[SerializeField]
 		private NodeEditorObject selectedNode;

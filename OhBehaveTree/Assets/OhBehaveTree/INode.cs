@@ -14,6 +14,7 @@ namespace AtomosZ.OhBehave
 		public IParentNode parent;
 		/// <summary>
 		/// A descriptive name that represents what this node hopes to accomplish.
+		/// Probably not needed but could help with debugging.
 		/// </summary>
 		public string name;
 		/// <summary>
