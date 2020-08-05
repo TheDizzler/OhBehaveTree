@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 using static AtomosZ.OhBehave.EditorTools.NodeEditorObject;
@@ -27,12 +28,20 @@ namespace AtomosZ.OhBehave.EditorTools
 		public static string blueprintsPath = "Assets/OhBehaveTree/Editor/_Blueprints";
 
 
-		public OhBehaveTreeController ohBehaveTree;
-		/// <summary>
-		/// Goddamn scriptable object LOVE losing data.
-		/// </summary>
-		public string controllerGUID;
+		[Tooltip("Descriptive name. Has no in-game impact.")]
+		public string behaviorTreeName;
+		[Tooltip("Descriptive description. Has no impact in game.")]
+		public string description;
 
+		public OhBehaveActions behaviorSource;
+		public List<MethodInfo> sharedMethods = null;
+		public List<MethodInfo> privateMethods = null;
+		public List<string> sharedMethodNames = null;
+		public List<string> privateMethodNames = null;
+
+		
+		public OhBehaveAI ohBehaveAI;
+		public string jsonGUID;
 		public List<NodeEditorObject> savedNodes;
 		public ZoomerSettings zoomerSettings;
 		public bool childrenMoveWithParent;
@@ -41,6 +50,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		private NodeEditorObject selectedNode;
 
 
+		private BindingFlags flags = BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.Instance;
 
 		private Dictionary<int, NodeEditorObject> nodeObjects;
 		private SerializedObject serializedObject;
@@ -54,7 +64,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		private ConnectionPoint endConnection;
 		private Vector2 savedMousePos;
 		private bool save;
-		
+
 
 		public void ConstructNodes()
 		{
@@ -79,7 +89,7 @@ namespace AtomosZ.OhBehave.EditorTools
 
 				NodeEditorObject newNode = new NodeEditorObject(NodeType.Sequence, ROOT_INDEX)
 				{
-					description = ohBehaveTree.description,
+					description = "The Root Node - where it all begins",
 					displayName = "Root",
 					windowRect = winData,
 				};
@@ -93,6 +103,55 @@ namespace AtomosZ.OhBehave.EditorTools
 			}
 		}
 
+
+		public void EditorNeedsRefresh()
+		{
+			sharedMethods = null;
+			sharedMethodNames = null;
+			GetFunctions();
+		}
+
+		public void GetFunctions()
+		{
+			if (behaviorSource == null)
+			{
+				sharedMethods = null;
+				privateMethods = null;
+				sharedMethodNames = null;
+				privateMethodNames = null;
+				return;
+			}
+
+
+			sharedMethods = new List<MethodInfo>();
+			privateMethods = new List<MethodInfo>();
+			sharedMethodNames = new List<string>();
+			privateMethodNames = new List<string>();
+
+			foreach (MethodInfo element in behaviorSource.GetType().GetMethods(flags))
+			{
+				foreach (var param in element.GetParameters())
+				{
+					if (param.ParameterType == typeof(LeafNode))
+					{ // at least one of the params must be a LeafNode
+						privateMethods.Add(element);
+						privateMethodNames.Add(element.Name);
+						break;
+					}
+				}
+			}
+
+			sharedMethods.Add(null);
+			sharedMethods.AddRange(privateMethods);
+			sharedMethodNames.Add("No action selected");
+			sharedMethodNames.AddRange(privateMethodNames);
+		}
+
+		private void OnEnable()
+		{
+			if (sharedMethods == null)
+				GetFunctions();
+		}
 
 
 		public void OnGui(Event current, EditorZoomer zoomer)
@@ -531,16 +590,10 @@ namespace AtomosZ.OhBehave.EditorTools
 		/// <summary>
 		/// Only called when first constructed.
 		/// </summary>
-		/// <param name="controllerFilepath">Path to new OhBehaveTreeController</param>
-		public void Initialize(string controllerFilepath)
+		/// <param name="behaviourAI"></param>
+		/// <param name="newJsonFilepath"></param>
+		public void Initialize(OhBehaveAI behaviourAI, string jsonFilepath)
 		{
-			if (ohBehaveTree != null)
-			{
-				throw new System.Exception("Initialize() should never be called "
-					+ "on a OhBehaveTreeBlueprint more than once!");
-			}
-
-
 			if (!AssetDatabase.IsValidFolder(blueprintsPath))
 			{
 				string guid = AssetDatabase.CreateFolder(
@@ -552,29 +605,67 @@ namespace AtomosZ.OhBehave.EditorTools
 
 			AssetDatabase.CreateAsset(this,
 				blueprintsPath + "/" + blueprintsPrefix
-					+ Path.GetFileNameWithoutExtension(controllerFilepath)
+					+ Path.GetFileNameWithoutExtension(jsonFilepath)
 					+ GetInstanceID() + ".asset");
 
-			ohBehaveTree = CreateInstance<OhBehaveTreeController>();
-			AssetDatabase.Refresh();
-			ohBehaveTree.Initialize(controllerFilepath);
+			
 			string blueprintGUID = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(this));
-			controllerGUID = AssetDatabase.AssetPathToGUID(controllerFilepath);
-			ohBehaveTree.blueprintGUID = blueprintGUID;
+			
 
+			ohBehaveAI = behaviourAI;
 			savedNodes = new List<NodeEditorObject>();
+
+
+			JsonBehaviourTree data = new JsonBehaviourTree();
+			data.name = Path.GetFileNameWithoutExtension(jsonFilepath);
+			data.blueprintGUID = blueprintGUID;
+			string jsonString = JsonUtility.ToJson(data, true);
+
+			StreamWriter writer = new StreamWriter(jsonFilepath);
+			writer.WriteLine(jsonString);
+			writer.Close();
+
+			ohBehaveAI.jsonFilepath = jsonFilepath;
+			jsonGUID = AssetDatabase.AssetPathToGUID(jsonFilepath);
+			AssetDatabase.Refresh();
+
+
 
 			AssetDatabase.SaveAssets();
 			AssetDatabase.Refresh();
-			EditorUtility.SetDirty(ohBehaveTree);
 			EditorUtility.SetDirty(this);
 		}
 
+		[Obsolete]
 		public void FindYourControllerDumbass()
 		{
-			ohBehaveTree =
-				AssetDatabase.LoadAssetAtPath<OhBehaveTreeController>(
-					AssetDatabase.GUIDToAssetPath(controllerGUID));
+			//ohBehaveTree =
+			//	AssetDatabase.LoadAssetAtPath<OhBehaveTreeController>(
+			//		AssetDatabase.GUIDToAssetPath(controllerGUID));
+		}
+
+		/// <summary>
+		/// A complete, valid behavior tree for an OhBehaveAI actor.
+		/// </summary>
+		[Serializable]
+		public class JsonBehaviourTree
+		{
+			public string name;
+			public string blueprintGUID;
+
+			/// <summary>
+			/// Not sure how this will work with serialization.
+			/// </summary>
+			public OhBehaveActions actionSource;
+			public JsonNodeData rootNode;
+			public JsonNodeData[] tree;
+		}
+
+		[Serializable]
+		public class JsonNodeData
+		{
+			public JsonNodeData parent;
+			public string methodInfoName;
 		}
 	}
 }

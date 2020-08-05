@@ -1,12 +1,17 @@
-﻿using UnityEngine;
+﻿using System.IO;
+using UnityEngine;
 
 namespace AtomosZ.OhBehave
 {
 	public class OhBehaveAI : MonoBehaviour
 	{
-		public OhBehaveTreeController ohBehaveAI;
-
+		/// <summary>
+		/// Filepath relative to Streaming Assets folder.
+		/// </summary>
+		public string jsonFilepath;
 		public ICompositeNode root;
+
+
 		private INode currentNode;
 
 

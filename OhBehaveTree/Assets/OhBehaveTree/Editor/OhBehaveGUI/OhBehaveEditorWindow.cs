@@ -1,5 +1,7 @@
-﻿using UnityEditor;
+﻿using System.IO;
+using UnityEditor;
 using UnityEngine;
+using static AtomosZ.OhBehave.EditorTools.OhBehaveTreeBlueprint;
 
 namespace AtomosZ.OhBehave.EditorTools
 {
@@ -22,8 +24,7 @@ namespace AtomosZ.OhBehave.EditorTools
 
 
 		private OhBehaveEditorWindow window;
-		private OhBehaveTreeController currentTreeController;
-
+		private OhBehaveAI currentAIBehaviour;
 		private Rect zoomRect;
 		private float areaBelowZoomHeight = 50;
 
@@ -60,6 +61,7 @@ namespace AtomosZ.OhBehave.EditorTools
 			}
 		}
 
+
 		private void CreateStyles()
 		{
 			SelectorNodeStyle = new NodeStyle();
@@ -90,22 +92,24 @@ namespace AtomosZ.OhBehave.EditorTools
 			warningTextStyle.normal.textColor = Color.red;
 		}
 
-		public void Open(OhBehaveTreeController ohBehaveController)
+
+		public bool Open(OhBehaveAI ohBehaveAI)
 		{
-			treeBlueprint = GetBlueprintFor(ohBehaveController);
+			treeBlueprint = GetBlueprintFor(ohBehaveAI);
 			if (treeBlueprint == null)
 			{
-				Debug.LogError("Could not find blueprint");
-				return;
+				return false;
 			}
 
-			currentTreeController = ohBehaveController;
+			currentAIBehaviour = ohBehaveAI;
 
 			treeBlueprint.ConstructNodes();
 
 			if (zoomer != null)
 				zoomer.Reset(treeBlueprint.zoomerSettings);
 			window.Show();
+			Repaint();
+			return true;
 		}
 
 
@@ -126,14 +130,11 @@ namespace AtomosZ.OhBehave.EditorTools
 			if (Selection.activeGameObject != null)
 			{
 				OhBehaveAI ohBehaveSM = Selection.activeGameObject.GetComponent<OhBehaveAI>();
-				if (ohBehaveSM != null)
-				{
-					var ohBehaveController = ohBehaveSM.ohBehaveAI;
-					if (ohBehaveController != null && ohBehaveController != currentTreeController)
-					{ // switch to the currently selected gameobjects behavior tree
-						Open(ohBehaveController);
-						return;
-					}
+				if (ohBehaveSM != null && ohBehaveSM != currentAIBehaviour)
+
+				{ // switch to the currently selected gameobjects behavior tree
+					Open(ohBehaveSM);
+					return;
 				}
 			}
 
@@ -150,7 +151,9 @@ namespace AtomosZ.OhBehave.EditorTools
 				}
 			}
 			else
+			{
 				treeBlueprint.PendingDeletes();
+			}
 		}
 
 
@@ -242,42 +245,37 @@ namespace AtomosZ.OhBehave.EditorTools
 		/// Because it's not possible to store editor objects in non-editor objects
 		/// this rigamoral is needed to find the BehaviorTree blueprint.
 		/// </summary>
-		/// <param name="ohBehaveController"></param>
+		/// <param name="ohBehaveAI"></param>
 		/// <returns></returns>
-		private OhBehaveTreeBlueprint GetBlueprintFor(OhBehaveTreeController ohBehaveController)
+		private OhBehaveTreeBlueprint GetBlueprintFor(OhBehaveAI ohBehaveAI)
 		{
-			if (string.IsNullOrEmpty(ohBehaveController.blueprintGUID))
+			//string jsonFilepath = AssetDatabase.GUIDToAssetPath(ohBehaveAI.jsonGUID);
+			if (string.IsNullOrEmpty(ohBehaveAI.jsonFilepath))
 			{
-				Debug.LogError("FFS - Controller lost it's blueprints GUID");
+				return null;
+			}
+
+			if (!File.Exists(ohBehaveAI.jsonFilepath))
+			{
+				return null;
+			}
+
+			StreamReader reader = new StreamReader(ohBehaveAI.jsonFilepath);
+			string fileString = reader.ReadToEnd();
+			reader.Close();
+
+			JsonBehaviourTree tree = JsonUtility.FromJson<JsonBehaviourTree>(fileString);
+
+			if (string.IsNullOrEmpty(tree.blueprintGUID))
+			{
+				Debug.LogError("No blueprints GUID");
 				return null;
 			}
 
 			var blueprint = AssetDatabase.LoadAssetAtPath<OhBehaveTreeBlueprint>(
-					AssetDatabase.GUIDToAssetPath(ohBehaveController.blueprintGUID));
-			if (blueprint.controllerGUID != AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(ohBehaveController)))
-			{
-				Debug.LogError("FFS - Controller and Blueprints GUID don't match :/");
-				return null;
-			}
+					AssetDatabase.GUIDToAssetPath(tree.blueprintGUID));
 
 			return blueprint;
-
-			//string[] guids = AssetDatabase.FindAssets("BTO_", new string[] { OhBehaveTreeBlueprint.blueprintsPath });
-			//for (int i = 0; i < guids.Length; i++)
-			//{
-			//	string path = AssetDatabase.GUIDToAssetPath(guids[i]);
-			//	OhBehaveTreeBlueprint temp = (OhBehaveTreeBlueprint)
-			//		AssetDatabase.LoadAssetAtPath(path, typeof(OhBehaveTreeBlueprint));
-			//	if (temp != null && temp.ohBehaveTree == ohBehaveController)
-			//		return temp;
-			//	else if (temp.ohBehaveTree == null)
-			//	{
-			//		Debug.LogWarning("Why do these POS scriptable objects keep losing track of their assets?");
-
-			//	}
-			//}
-
-			//return null;
 		}
 	}
 }

@@ -9,8 +9,9 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 	{
 		private OhBehaveTreeBlueprint instance;
 		private SerializedProperty nodeList;
-		private OhBehaveActions source;
-		private OhBehaveTreeController treeController;
+		private SerializedProperty treeName;
+		private SerializedProperty treeDesc;
+		private SerializedProperty behaviorSource;
 
 
 
@@ -18,26 +19,22 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 		{
 			instance = (OhBehaveTreeBlueprint)target;
 			nodeList = serializedObject.FindProperty("savedNodes");
-			source = instance.ohBehaveTree.behaviorSource;
-			treeController = instance.ohBehaveTree;
+			treeName = serializedObject.FindProperty("behaviorTreeName");
+			treeDesc = serializedObject.FindProperty("description");
+			behaviorSource = serializedObject.FindProperty("behaviorSource");
 		}
 
 
 		public override void OnInspectorGUI()
 		{
+			serializedObject.Update();
 			if (instance.IsNodeSelected())
 			{
 				DrawSelectedNode();
 			}
 			else
 			{
-				if (instance.ohBehaveTree == null)
-				{
-					Debug.LogWarning("POS blueprint lost track of it's controller");
-					instance.FindYourControllerDumbass();
-				}
-				else
-					DrawBlueprintEditor();
+				DrawBlueprintEditor();
 			}
 
 			serializedObject.ApplyModifiedProperties();
@@ -49,16 +46,31 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 			//base.OnInspectorGUI();
 			GUI.enabled = false;
 			EditorGUILayout.ObjectField("Script", target, typeof(OhBehaveAI), false);
-			EditorGUILayout.ObjectField("OhBehaveTree", instance.ohBehaveTree, typeof(OhBehaveTreeController), false); // put a link here for convenience
 			EditorGUILayout.PropertyField(nodeList, true);
-			EditorGUILayout.ObjectField("Behaviour Source", source, typeof(OhBehaveActions), true);
 			GUI.enabled = true;
+
+			EditorGUILayout.DelayedTextField(treeName);
+			EditorGUILayout.DelayedTextField(treeDesc);
+
+
+			EditorGUI.BeginChangeCheck();
+			EditorGUILayout.PropertyField(behaviorSource);
+			if (EditorGUI.EndChangeCheck())
+			{
+				instance.EditorNeedsRefresh();
+			}
+
+			if (instance.sharedMethods != null && instance.sharedMethods.Count > 0)
+			{
+				// Create the dropdown in the inspector for the found methods
+				EditorGUILayout.Popup("Function List", 0, instance.privateMethodNames.ToArray());
+			}
 
 
 			if (GUILayout.Button("Open In Editor"))
 			{
 				EditorWindow.GetWindow<OhBehaveEditorWindow>().Open(
-					instance.ohBehaveTree);
+					instance.ohBehaveAI);
 			}
 		}
 
@@ -120,7 +132,7 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 					case NodeType.Leaf:
 						EditorGUILayout.LabelField("What do actions?");
 						GUI.enabled = false;
-						EditorGUILayout.ObjectField("Behaviour Source", source, typeof(OhBehaveActions), true);
+						EditorGUILayout.ObjectField("Behaviour Source", instance.behaviorSource, typeof(OhBehaveActions), true);
 						int methodIndex;
 
 						if (string.IsNullOrEmpty(nodeObject.actionName))
@@ -131,21 +143,21 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 						else
 						{
 							EditorGUILayout.TextField(nodeObject.actionName);
-							methodIndex = treeController.sharedMethodNames.IndexOf(nodeObject.actionName);
+							methodIndex = instance.sharedMethodNames.IndexOf(nodeObject.actionName);
 						}
 
 						GUI.enabled = true;
 
-						if (treeController.sharedMethods != null && treeController.sharedMethods.Count > 0)
+						if (instance.sharedMethods != null && instance.sharedMethods.Count > 0)
 						{
 							// Create the dropdown in the inspector for the found methods
-							int newSelection = EditorGUILayout.Popup("Function List", methodIndex, treeController.sharedMethodNames.ToArray());
+							int newSelection = EditorGUILayout.Popup("Function List", methodIndex, instance.sharedMethodNames.ToArray());
 							if (newSelection != methodIndex)
 							{
 								if (newSelection == 0)
 									nodeObject.actionName = "";
-									else
-								nodeObject.actionName = treeController.sharedMethodNames[newSelection];
+								else
+									nodeObject.actionName = instance.sharedMethodNames[newSelection];
 							}
 						}
 
