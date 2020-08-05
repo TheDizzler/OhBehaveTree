@@ -36,7 +36,7 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 			EditorGUILayout.ObjectField("Script", target, typeof(OhBehaveAI), false);
 			EditorGUILayout.DelayedTextField("Tree file", Path.GetFileName(instance.jsonFilepath));
 			GUI.enabled = true;
-			
+
 
 			if (!string.IsNullOrEmpty(instance.jsonFilepath))
 			{
@@ -48,9 +48,18 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 				// do something here to verify tree is well-formed. If not, display angry button.
 			}
 
-			if (GUILayout.Button("Create New AI Tree"))
+			var windows = Resources.FindObjectsOfTypeAll<OhBehaveEditorWindow>();
+			if (windows == null || windows.Length == 0)
 			{
-				CreateNewJson();
+				if (GUILayout.Button("Open AIOhBehaveEditor"))
+					EditorWindow.GetWindow<OhBehaveEditorWindow>().Open(instance);
+			}
+			else
+			{
+				if (GUILayout.Button("Create New AI Tree"))
+				{
+					CreateNewJson();
+				}
 			}
 
 			serializedObject.ApplyModifiedProperties();
