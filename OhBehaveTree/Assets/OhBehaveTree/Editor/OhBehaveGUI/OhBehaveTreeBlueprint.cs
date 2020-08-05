@@ -39,7 +39,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		public List<string> sharedMethodNames = null;
 		public List<string> privateMethodNames = null;
 
-		
+
 		public OhBehaveAI ohBehaveAI;
 		public string jsonGUID;
 		public List<NodeEditorObject> savedNodes;
@@ -48,6 +48,8 @@ namespace AtomosZ.OhBehave.EditorTools
 
 		[SerializeField]
 		private NodeEditorObject selectedNode;
+		[SerializeField]
+		private JsonBehaviourTree jsonTreeData;
 
 
 		private BindingFlags flags = BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.Instance;
@@ -64,13 +66,12 @@ namespace AtomosZ.OhBehave.EditorTools
 		private ConnectionPoint endConnection;
 		private Vector2 savedMousePos;
 		private bool save;
-
+		private bool saveJsonData;
 
 		public void ConstructNodes()
 		{
 			if (nodeObjects == null)
 			{
-				//LoadFromJson();
 				InitializeNodeDictionary();
 			}
 
@@ -95,6 +96,7 @@ namespace AtomosZ.OhBehave.EditorTools
 				};
 
 				AddNewNode(newNode, 0);
+				jsonTreeData.rootNode = new JsonNodeData { nodeType = NodeType.Sequence };
 
 				zoomerSettings = new ZoomerSettings();
 				AssetDatabase.Refresh();
@@ -191,7 +193,6 @@ namespace AtomosZ.OhBehave.EditorTools
 
 			if (startConnection != null)
 			{// we want to draw the line on-top of everything else
-
 				Handles.DrawAAPolyLine(ConnectionControls.lineThickness,
 					startConnection.rect.center,
 					current.mousePosition);
@@ -237,11 +238,10 @@ namespace AtomosZ.OhBehave.EditorTools
 
 			if (save)
 			{
-				Save();
+				Save(isValidTree);
 				save = false;
 			}
 		}
-
 
 
 		public void SelectNode(NodeEditorObject nodeObject)
@@ -419,13 +419,44 @@ namespace AtomosZ.OhBehave.EditorTools
 			deleteTasks.Add(node);
 		}
 
-		private void Save()
+		private void Save(bool isValidTree)
 		{
+			//if (isValidTree)
+			{
+				List<JsonNodeData> tree = new List<JsonNodeData>();
+				AddNodeToTreeWithChildren(GetNodeObjectByIndex(ROOT_INDEX), null, ref tree);
+
+				jsonTreeData.tree = tree.ToArray();
+				StreamWriter writer = new StreamWriter(ohBehaveAI.jsonFilepath);
+				writer.WriteLine(JsonUtility.ToJson(jsonTreeData, true));
+				writer.Close();
+			}
+
 			AssetDatabase.SaveAssets();
 			AssetDatabase.Refresh();
 			EditorUtility.SetDirty(this);
 		}
 
+		private void AddNodeToTreeWithChildren(NodeEditorObject node, JsonNodeData parentData, ref List<JsonNodeData> tree)
+		{
+			JsonNodeData nodeData = new JsonNodeData
+			{
+				nodeType = node.nodeType,
+				methodInfoName = node.actionName,
+				parent = parentData,
+			};
+
+			tree.Add(nodeData);
+
+			if (!node.HasChildren())
+				return;
+
+			foreach (var nodeIndex in node.GetChildren())
+			{
+				NodeEditorObject childNode = GetNodeObjectByIndex(nodeIndex);
+				AddNodeToTreeWithChildren(childNode, nodeData, ref tree);
+			}
+		}
 
 		public void PendingDeletes()
 		{
@@ -608,18 +639,18 @@ namespace AtomosZ.OhBehave.EditorTools
 					+ Path.GetFileNameWithoutExtension(jsonFilepath)
 					+ GetInstanceID() + ".asset");
 
-			
+
 			string blueprintGUID = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(this));
-			
+
 
 			ohBehaveAI = behaviourAI;
 			savedNodes = new List<NodeEditorObject>();
 
 
-			JsonBehaviourTree data = new JsonBehaviourTree();
-			data.name = Path.GetFileNameWithoutExtension(jsonFilepath);
-			data.blueprintGUID = blueprintGUID;
-			string jsonString = JsonUtility.ToJson(data, true);
+			jsonTreeData = new JsonBehaviourTree();
+			jsonTreeData.name = Path.GetFileNameWithoutExtension(jsonFilepath);
+			jsonTreeData.blueprintGUID = blueprintGUID;
+			string jsonString = JsonUtility.ToJson(jsonTreeData, true);
 
 			StreamWriter writer = new StreamWriter(jsonFilepath);
 			writer.WriteLine(jsonString);
@@ -665,6 +696,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		public class JsonNodeData
 		{
 			public JsonNodeData parent;
+			public NodeType nodeType;
 			public string methodInfoName;
 		}
 	}
