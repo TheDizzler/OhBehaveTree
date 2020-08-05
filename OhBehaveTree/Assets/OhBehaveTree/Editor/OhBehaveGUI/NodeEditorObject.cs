@@ -31,6 +31,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		/// LeafNode Only.
 		/// </summary>
 		public string actionName;
+		public bool isExpanded;
 
 
 		/// <summary>
@@ -50,6 +51,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		/// </summary>
 		private NodeEditorObject parent;
 		private bool isConnectedToRoot;
+		
 
 		public NodeEditorObject Parent
 		{

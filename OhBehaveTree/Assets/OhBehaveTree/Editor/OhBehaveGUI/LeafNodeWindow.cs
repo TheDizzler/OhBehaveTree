@@ -5,7 +5,6 @@ namespace AtomosZ.OhBehave.EditorTools
 {
 	public class LeafNodeWindow : NodeWindow
 	{
-		private bool isExpanded;
 		private GUIStyle foldoutStyle;
 
 		public LeafNodeWindow(NodeEditorObject node) : base(node) { }
@@ -86,13 +85,15 @@ namespace AtomosZ.OhBehave.EditorTools
 				else
 					foldoutStyle = OhBehaveEditorWindow.normalFoldoutStyle;
 
-				bool wasExpanded = isExpanded;
-
-				isExpanded = EditorGUILayout.Foldout(isExpanded, new GUIContent("Actions"), true, foldoutStyle);
-				if (wasExpanded != isExpanded)
+				bool newExpanded = EditorGUILayout.Foldout(nodeObject.isExpanded, new GUIContent("Actions"), true, foldoutStyle);
+				if (newExpanded != nodeObject.isExpanded)
+				{
 					GUI.changed = true;
+					nodeObject.isExpanded = newExpanded;
+				}
 
-				if (isExpanded)
+
+				if (newExpanded)
 				{
 					GUIStyle labelStyle = new GUIStyle(EditorStyles.label);
 					if (!isValid)
