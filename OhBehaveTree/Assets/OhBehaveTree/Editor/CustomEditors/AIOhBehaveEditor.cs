@@ -30,12 +30,13 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 
 		public override void OnInspectorGUI()
 		{
+			serializedObject.Update();
 			GUI.enabled = false;
 			EditorGUILayout.ObjectField("Script", target, typeof(OhBehaveAI), false);
 			EditorGUILayout.DelayedTextField("Tree file", Path.GetFileName(instance.jsonFilepath));
 			GUI.enabled = true;
 
-			
+
 			if (string.IsNullOrEmpty(instance.jsonFilepath))
 			{
 				if (GUILayout.Button("Create AI Tree"))
@@ -47,7 +48,13 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 			{
 				if (GUILayout.Button("Change json file"))
 				{
-					Debug.Log("not yet implemented");
+					string path = EditorUtility.OpenFilePanelWithFilters("Choose new OhBehave file",
+						"Assets/StreamingAssets/" + userNodeFolder, new string[] { "OhBehaveTree Json file", "OhJson" });
+					if (!string.IsNullOrEmpty(path))
+					{
+						instance.jsonFilepath = path;
+						EditorWindow.GetWindow<OhBehaveEditorWindow>().Open(instance);
+					}
 				}
 
 				// do something here to verify tree is well-formed. If not, display angry button.
@@ -56,7 +63,7 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 				{
 					if (!EditorWindow.GetWindow<OhBehaveEditorWindow>().Open(instance))
 					{
-						// couldn't find jsonfile
+						// couldn't find jsonfile. Should we save GUID of blueprint?
 						instance.jsonFilepath = "";
 						CreateNewJson();
 					}
@@ -87,7 +94,7 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 			}
 
 			var path = EditorUtility.SaveFilePanelInProject(
-				"Create New Json Behavior State Machine", nodename, "json",
+				"Create New Json Behavior State Machine", nodename, "OhJson",
 				"Where to save json file?", "Assets/StreamingAssets/" + userNodeFolder);
 			if (path.Length != 0)
 			{
