@@ -36,4 +36,5 @@ sysinfo.txt
 *.apk
 *.unitypackage
 OhBehaveTree/Assets/OhBehaveTree/Editor/_Blueprints/
-OhBehaveTree/Assets/OhBehaveNodes/
+OhBehaveTree/Assets/StreamingAssets/OhBehaveNodes/
+OhBehaveTree/Assets/StreamingAssets/OhBehaveNodes.meta
