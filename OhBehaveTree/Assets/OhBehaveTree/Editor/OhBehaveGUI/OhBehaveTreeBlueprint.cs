@@ -39,8 +39,14 @@ namespace AtomosZ.OhBehave.EditorTools
 		public List<string> sharedMethodNames = null;
 		public List<string> privateMethodNames = null;
 
-
+		/// <summary>
+		/// The current OhBehaveAI observing this blueprint.
+		/// Note: multiple OhBehaveAIs may use the same blueprint.
+		/// </summary>
 		public OhBehaveAI ohBehaveAI;
+		/// <summary>
+		/// Blueprint and OhJson are 1:1.
+		/// </summary>
 		public string jsonGUID;
 		public List<NodeEditorObject> savedNodes;
 		public ZoomerSettings zoomerSettings;
@@ -67,6 +73,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		private Vector2 savedMousePos;
 		private bool save;
 		private bool saveJsonData;
+
 
 		public void ConstructNodes()
 		{

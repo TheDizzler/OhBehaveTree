@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using AtomosZ.OhBehave.EditorTools.CustomEditors;
 using UnityEditor;
 using UnityEngine;
 using static AtomosZ.OhBehave.EditorTools.OhBehaveTreeBlueprint;
@@ -22,6 +23,10 @@ namespace AtomosZ.OhBehave.EditorTools
 		public OhBehaveTreeBlueprint treeBlueprint;
 		public EditorZoomer zoomer;
 
+		/// <summary>
+		/// Delayed FileChooser open to avoid EditorGUILayout error.
+		/// </summary>
+		public bool openFileChooser;
 
 		private OhBehaveEditorWindow window;
 		private OhBehaveAI currentAIBehaviour;
@@ -104,6 +109,7 @@ namespace AtomosZ.OhBehave.EditorTools
 				return false;
 			}
 
+			treeBlueprint.ohBehaveAI = ohBehaveAI;
 			treeBlueprint.ConstructNodes();
 
 			if (zoomer != null)
@@ -153,6 +159,21 @@ namespace AtomosZ.OhBehave.EditorTools
 			else
 			{
 				treeBlueprint.PendingDeletes();
+				if (openFileChooser)
+				{
+					string path = EditorUtility.OpenFilePanelWithFilters(
+						"Choose new OhBehave file",
+						"Assets/StreamingAssets/" + AIOhBehaveEditor.userNodeFolder, 
+						new string[] { "OhBehaveTree Json file", "OhJson" });
+
+					if (!string.IsNullOrEmpty(path))
+					{
+						treeBlueprint.ohBehaveAI.jsonFilepath = path;
+						EditorWindow.GetWindow<OhBehaveEditorWindow>().Open(treeBlueprint.ohBehaveAI);
+					}
+
+					openFileChooser = false;
+				}
 			}
 		}
 

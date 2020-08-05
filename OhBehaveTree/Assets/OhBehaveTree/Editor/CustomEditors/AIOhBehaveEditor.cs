@@ -8,10 +8,11 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 	[CanEditMultipleObjects]
 	public class AIOhBehaveEditor : Editor
 	{
+		public static string userNodeFolder;
+
 		private const string DefaultNodeFolder = "OhBehaveNodes";
 		private const string UserNodeFolderKey = "UserNodeFolder";
 
-		private string userNodeFolder;
 		private OhBehaveAI instance;
 
 
@@ -35,26 +36,13 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 			EditorGUILayout.ObjectField("Script", target, typeof(OhBehaveAI), false);
 			EditorGUILayout.DelayedTextField("Tree file", Path.GetFileName(instance.jsonFilepath));
 			GUI.enabled = true;
+			
 
-
-			if (string.IsNullOrEmpty(instance.jsonFilepath))
-			{
-				if (GUILayout.Button("Create AI Tree"))
-				{
-					CreateNewJson();
-				}
-			}
-			else
+			if (!string.IsNullOrEmpty(instance.jsonFilepath))
 			{
 				if (GUILayout.Button("Change json file"))
-				{
-					string path = EditorUtility.OpenFilePanelWithFilters("Choose new OhBehave file",
-						"Assets/StreamingAssets/" + userNodeFolder, new string[] { "OhBehaveTree Json file", "OhJson" });
-					if (!string.IsNullOrEmpty(path))
-					{
-						instance.jsonFilepath = path;
-						EditorWindow.GetWindow<OhBehaveEditorWindow>().Open(instance);
-					}
+				{ // If FileChooser is opened here, will get EditorLayout Error.
+					EditorWindow.GetWindow<OhBehaveEditorWindow>().openFileChooser = true;
 				}
 
 				// do something here to verify tree is well-formed. If not, display angry button.
