@@ -95,13 +95,14 @@ namespace AtomosZ.OhBehave.EditorTools
 
 		public bool Open(OhBehaveAI ohBehaveAI)
 		{
+			currentAIBehaviour = ohBehaveAI;
+
 			treeBlueprint = GetBlueprintFor(ohBehaveAI);
 			if (treeBlueprint == null)
 			{
+				Repaint();
 				return false;
 			}
-
-			currentAIBehaviour = ohBehaveAI;
 
 			treeBlueprint.ConstructNodes();
 
@@ -131,7 +132,6 @@ namespace AtomosZ.OhBehave.EditorTools
 			{
 				OhBehaveAI ohBehaveSM = Selection.activeGameObject.GetComponent<OhBehaveAI>();
 				if (ohBehaveSM != null && ohBehaveSM != currentAIBehaviour)
-
 				{ // switch to the currently selected gameobjects behavior tree
 					Open(ohBehaveSM);
 					return;
