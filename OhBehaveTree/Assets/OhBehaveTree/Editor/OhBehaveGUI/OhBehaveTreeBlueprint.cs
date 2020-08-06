@@ -431,7 +431,7 @@ namespace AtomosZ.OhBehave.EditorTools
 			//if (isValidTree)
 			{
 				List<JsonNodeData> tree = new List<JsonNodeData>();
-				AddNodeToTreeWithChildren(GetNodeObjectByIndex(ROOT_INDEX), null, ref tree);
+				jsonTreeData.rootNode = AddNodeToTreeWithChildren(GetNodeObjectByIndex(ROOT_INDEX), null, ref tree);
 
 				jsonTreeData.tree = tree.ToArray();
 				StreamWriter writer = new StreamWriter(ohBehaveAI.jsonFilepath);
@@ -444,25 +444,32 @@ namespace AtomosZ.OhBehave.EditorTools
 			EditorUtility.SetDirty(this);
 		}
 
-		private void AddNodeToTreeWithChildren(NodeEditorObject node, JsonNodeData parentData, ref List<JsonNodeData> tree)
+		private JsonNodeData AddNodeToTreeWithChildren(NodeEditorObject node, JsonNodeData parentData, ref List<JsonNodeData> tree)
 		{
 			JsonNodeData nodeData = new JsonNodeData
 			{
+				index = node.index,
 				nodeType = node.nodeType,
 				methodInfoName = node.actionName,
-				parent = parentData,
 			};
+
+			if (parentData != null)
+				nodeData.parentIndex = parentData.index;
 
 			tree.Add(nodeData);
 
 			if (!node.HasChildren())
-				return;
+				return nodeData;
 
+			List<JsonNodeData> childrenData = new List<JsonNodeData>();
 			foreach (var nodeIndex in node.GetChildren())
 			{
 				NodeEditorObject childNode = GetNodeObjectByIndex(nodeIndex);
-				AddNodeToTreeWithChildren(childNode, nodeData, ref tree);
+				childrenData.Add(AddNodeToTreeWithChildren(childNode, nodeData, ref tree));
 			}
+
+			nodeData.childrenIndices = node.GetChildren().ToArray();
+			return nodeData;
 		}
 
 		public void PendingDeletes()
@@ -665,9 +672,6 @@ namespace AtomosZ.OhBehave.EditorTools
 
 			ohBehaveAI.jsonFilepath = jsonFilepath;
 			jsonGUID = AssetDatabase.AssetPathToGUID(jsonFilepath);
-			AssetDatabase.Refresh();
-
-
 
 			AssetDatabase.SaveAssets();
 			AssetDatabase.Refresh();
