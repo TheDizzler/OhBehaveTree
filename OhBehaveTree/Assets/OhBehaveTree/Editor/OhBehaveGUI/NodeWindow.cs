@@ -11,8 +11,10 @@ namespace AtomosZ.OhBehave.EditorTools
 	public abstract class NodeWindow
 	{
 		protected const float TITLEBAR_OFFSET = 15;
-		public static Texture brokenBranchImage = EditorGUIUtility.FindTexture("Assets/OhBehaveTree/Editor/Node Broken Branch.png");
-		public static Texture disconnectedBranchImage = EditorGUIUtility.FindTexture("Assets/OhBehaveTree/Editor/Node Disconnected Branch.png");
+		public static Texture brokenBranchImage = EditorGUIUtility.FindTexture(
+			OhBehaveEditorWindow.ImageFolder + "Node Broken Branch.png");
+		public static Texture disconnectedBranchImage = EditorGUIUtility.FindTexture(
+			OhBehaveEditorWindow.ImageFolder + "Node Disconnected Branch.png");
 		public static float DoubleClickTime = .3f;
 
 		/// <summary>

@@ -8,6 +8,8 @@ namespace AtomosZ.OhBehave.EditorTools
 {
 	public class OhBehaveEditorWindow : EditorWindow
 	{
+		public static readonly string ImageFolder = "Assets/OhBehaveTree/Editor/OhBehaveGUI/Images/";
+
 		private const float ZOOM_BORDER = 10;
 
 		public static NodeStyle SelectorNodeStyle;
@@ -80,9 +82,9 @@ namespace AtomosZ.OhBehave.EditorTools
 
 			InPointStyle = new GUIStyle();
 			InPointStyle.normal.background =
-				EditorGUIUtility.FindTexture("Assets/OhBehaveTree/Editor/NodeInOut normal.png");
+				EditorGUIUtility.FindTexture(ImageFolder + "NodeInOut normal.png");
 			InPointStyle.hover.background =
-				EditorGUIUtility.FindTexture("Assets/OhBehaveTree/Editor/NodeInOut hover.png");
+				EditorGUIUtility.FindTexture(ImageFolder + "NodeInOut hover.png");
 
 			OutPointStyle = new GUIStyle();
 			OutPointStyle.normal.background = InPointStyle.normal.background;

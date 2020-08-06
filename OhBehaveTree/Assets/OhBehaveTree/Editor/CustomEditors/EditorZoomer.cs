@@ -24,7 +24,11 @@ namespace AtomosZ.OhBehave.EditorTools
 		private Vector2 lastMouse = Vector2.zero;
 		private Matrix4x4 prevGUIMatrix;
 		private bool zoomToCenter;
-		private Texture2D bgTexture = EditorGUIUtility.FindTexture("Assets/OhBehaveTree/Editor/zoomerBG.jpg");
+		/// <summary>
+		/// Optional BG image.
+		/// TODO(?): have way to turn on/off and customize.
+		/// </summary>
+		private Texture2D bgTexture = EditorGUIUtility.FindTexture(OhBehaveEditorWindow.ImageFolder + "zoomerBG.jpg");
 		/// <summary>
 		/// Prevents zoom area from jumping around when left mouse button was clicked in a different context.
 		/// </summary>
