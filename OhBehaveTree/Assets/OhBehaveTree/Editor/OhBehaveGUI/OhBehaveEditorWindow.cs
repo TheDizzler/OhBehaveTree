@@ -34,7 +34,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		private OhBehaveAI currentAIBehaviour;
 		private Rect zoomRect;
 		private float areaBelowZoomHeight = 50;
-
+		
 
 		private void OnEnable()
 		{

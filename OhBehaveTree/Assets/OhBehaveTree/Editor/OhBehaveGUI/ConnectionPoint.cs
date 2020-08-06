@@ -44,7 +44,6 @@ namespace AtomosZ.OhBehave.EditorTools
 			connectedStyle.normal.background = unConnectedstyle.hover.background;
 
 			rect = new Rect(0, 0, unConnectedstyle.normal.background.width, unConnectedstyle.normal.background.height);
-
 		}
 
 		public void ProcessEvents(Event e)

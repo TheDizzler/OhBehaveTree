@@ -69,8 +69,7 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 
 			if (GUILayout.Button("Open In Editor"))
 			{
-				EditorWindow.GetWindow<OhBehaveEditorWindow>().Open(
-					instance.ohBehaveAI);
+				EditorWindow.GetWindow<OhBehaveEditorWindow>().Open(instance.ohBehaveAI);
 			}
 		}
 

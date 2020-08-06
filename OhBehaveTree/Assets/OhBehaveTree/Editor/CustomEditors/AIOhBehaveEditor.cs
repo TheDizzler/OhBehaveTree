@@ -10,7 +10,7 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 	{
 		public static string userNodeFolder;
 
-		private const string DefaultNodeFolder = "OhBehaveNodes";
+		private const string DefaultNodeFolder = "OhBehaveTrees";
 		private const string UserNodeFolderKey = "UserNodeFolder";
 
 		private OhBehaveAI instance;
