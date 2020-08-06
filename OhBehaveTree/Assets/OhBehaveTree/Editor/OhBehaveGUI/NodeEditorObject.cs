@@ -385,6 +385,7 @@ namespace AtomosZ.OhBehave.EditorTools
 					break;
 				case NodeType.Leaf:
 					window = new LeafNodeWindow(this);
+					children = null;
 					break;
 				case NodeType.Inverter:
 					window = new InverterNodeWindow(this);

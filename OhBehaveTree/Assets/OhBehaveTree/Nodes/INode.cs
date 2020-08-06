@@ -3,8 +3,7 @@
 namespace AtomosZ.OhBehave
 {
 	/// <summary>
-	/// Used for the Editor.
-	/// Otherwise this is probably not needed and just increases amount of bookkeeping required.
+	/// Used for the construction.
 	/// </summary>
 	public enum NodeType { Selector, Sequence, Inverter, Leaf }
 	public enum NodeState { Failure, Success, Running }
