@@ -673,38 +673,5 @@ namespace AtomosZ.OhBehave.EditorTools
 			AssetDatabase.Refresh();
 			EditorUtility.SetDirty(this);
 		}
-
-		[Obsolete]
-		public void FindYourControllerDumbass()
-		{
-			//ohBehaveTree =
-			//	AssetDatabase.LoadAssetAtPath<OhBehaveTreeController>(
-			//		AssetDatabase.GUIDToAssetPath(controllerGUID));
-		}
-
-		/// <summary>
-		/// A complete, valid behavior tree for an OhBehaveAI actor.
-		/// </summary>
-		[Serializable]
-		public class JsonBehaviourTree
-		{
-			public string name;
-			public string blueprintGUID;
-
-			/// <summary>
-			/// Not sure how this will work with serialization.
-			/// </summary>
-			public OhBehaveActions actionSource;
-			public JsonNodeData rootNode;
-			public JsonNodeData[] tree;
-		}
-
-		[Serializable]
-		public class JsonNodeData
-		{
-			public JsonNodeData parent;
-			public NodeType nodeType;
-			public string methodInfoName;
-		}
 	}
 }
