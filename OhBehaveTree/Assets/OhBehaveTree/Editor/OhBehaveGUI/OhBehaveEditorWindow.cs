@@ -161,6 +161,7 @@ namespace AtomosZ.OhBehave.EditorTools
 			else
 			{
 				treeBlueprint.PendingDeletes();
+				Repaint();
 				if (openFileChooser)
 				{
 					string path = EditorUtility.OpenFilePanelWithFilters(
