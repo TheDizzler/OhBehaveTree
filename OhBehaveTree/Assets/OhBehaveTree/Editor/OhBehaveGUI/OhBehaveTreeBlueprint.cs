@@ -33,7 +33,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		[Tooltip("Descriptive description. Has no impact in game.")]
 		public string description;
 
-		public OhBehaveActions behaviorSource;
+		public OhBehaveActions behaviourSource;
 		public List<MethodInfo> sharedMethods = null;
 		public List<MethodInfo> privateMethods = null;
 		public List<string> sharedMethodNames = null;
@@ -46,6 +46,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		public OhBehaveAI ohBehaveAI;
 		/// <summary>
 		/// Blueprint and OhJson are 1:1.
+		/// Not currently used.
 		/// </summary>
 		public string jsonGUID;
 		public List<NodeEditorObject> savedNodes;
@@ -122,13 +123,20 @@ namespace AtomosZ.OhBehave.EditorTools
 
 		public void GetFunctions()
 		{
-			if (behaviorSource == null)
+			if (behaviourSource == null)
 			{
-				sharedMethods = null;
-				privateMethods = null;
-				sharedMethodNames = null;
-				privateMethodNames = null;
-				return;
+				if (ohBehaveAI != null)
+				{
+					behaviourSource = ohBehaveAI.GetComponent<OhBehaveActions>();
+				}
+				else
+				{
+					sharedMethods = null;
+					privateMethods = null;
+					sharedMethodNames = null;
+					privateMethodNames = null;
+					return;
+				}
 			}
 
 
@@ -137,7 +145,7 @@ namespace AtomosZ.OhBehave.EditorTools
 			sharedMethodNames = new List<string>();
 			privateMethodNames = new List<string>();
 
-			foreach (MethodInfo element in behaviorSource.GetType().GetMethods(flags))
+			foreach (MethodInfo element in behaviourSource.GetType().GetMethods(flags))
 			{
 				foreach (var param in element.GetParameters())
 				{
@@ -431,6 +439,7 @@ namespace AtomosZ.OhBehave.EditorTools
 			//if (isValidTree)
 			{
 				List<JsonNodeData> tree = new List<JsonNodeData>();
+				jsonTreeData.actionSource = behaviourSource;
 				jsonTreeData.rootNode = AddNodeToTreeWithChildren(GetNodeObjectByIndex(ROOT_INDEX), null, ref tree);
 
 				jsonTreeData.tree = tree.ToArray();

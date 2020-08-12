@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+#if UNITY_EDITOR
+using System.Reflection;
+#endif
 
 namespace AtomosZ.OhBehave
 {
@@ -104,5 +107,32 @@ namespace AtomosZ.OhBehave
 				currentNode = nextNode;
 			}
 		}
+
+
+
+#if UNITY_EDITOR
+		/// <summary>
+		/// This refreshes every gui update. Could def make more efficient.
+		/// </summary>
+		/// <returns></returns>
+		public string[] GetMethodNames()
+		{
+			List<string> sharedMethodNames = new List<string>();
+			foreach (MethodInfo element in GetComponent<OhBehaveActions>().GetType().GetMethods(
+				BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.Instance))
+			{
+				foreach (var param in element.GetParameters())
+				{
+					if (param.ParameterType == typeof(LeafNode))
+					{ // at least one of the params must be a LeafNode
+						sharedMethodNames.Add(element.Name);
+						break;
+					}
+				}
+			}
+
+			return sharedMethodNames.ToArray();
+		}
+#endif
 	}
 }

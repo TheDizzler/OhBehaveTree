@@ -11,7 +11,7 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 		private SerializedProperty nodeList;
 		private SerializedProperty treeName;
 		private SerializedProperty treeDesc;
-		private SerializedProperty behaviorSource;
+		private SerializedProperty behaviourSource;
 
 
 
@@ -21,7 +21,7 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 			nodeList = serializedObject.FindProperty("savedNodes");
 			treeName = serializedObject.FindProperty("behaviorTreeName");
 			treeDesc = serializedObject.FindProperty("description");
-			behaviorSource = serializedObject.FindProperty("behaviorSource");
+			behaviourSource = serializedObject.FindProperty("behaviourSource");
 		}
 
 
@@ -54,7 +54,10 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 
 
 			EditorGUI.BeginChangeCheck();
-			EditorGUILayout.PropertyField(behaviorSource);
+			EditorGUILayout.PropertyField(serializedObject.FindProperty("behaviourSource"));
+			var newSource = (OhBehaveActions)serializedObject.FindProperty("behaviourSource").objectReferenceValue;
+			instance.behaviourSource = newSource;
+
 			if (EditorGUI.EndChangeCheck())
 			{
 				instance.EditorNeedsRefresh();
@@ -131,7 +134,7 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 					case NodeType.Leaf:
 						EditorGUILayout.LabelField("What do actions?");
 						GUI.enabled = false;
-						EditorGUILayout.ObjectField("Behaviour Source", instance.behaviorSource, typeof(OhBehaveActions), true);
+						EditorGUILayout.ObjectField("Behaviour Source", instance.behaviourSource, typeof(OhBehaveActions), true);
 						int methodIndex;
 
 						if (string.IsNullOrEmpty(nodeObject.actionName))
