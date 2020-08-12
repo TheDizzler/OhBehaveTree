@@ -23,6 +23,7 @@
 		public int index;
 		public int parentIndex;
 		public int[] childrenIndices;
+		public bool isRandom;
 		public NodeType nodeType;
 		public string methodInfoName;
 	}

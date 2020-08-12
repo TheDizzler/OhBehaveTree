@@ -33,6 +33,10 @@ namespace AtomosZ.OhBehave.EditorTools
 		public string actionName;
 		public bool isExpanded;
 
+		/// <summary>
+		/// Composite Node only.
+		/// </summary>
+		public bool isRandom;
 
 		/// <summary>
 		/// Non-LeafNode Only.

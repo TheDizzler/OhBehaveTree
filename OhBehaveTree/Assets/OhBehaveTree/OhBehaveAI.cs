@@ -49,10 +49,16 @@ namespace AtomosZ.OhBehave
 						((LeafNode)newNode).actionInfo = sourceType.GetMethod(nodeData.methodInfoName);
 						break;
 					case NodeType.Selector:
-						newNode = new SelectorNode();
+						if (nodeData.isRandom)
+							newNode = new RandomSelectorNode();
+						else
+							newNode = new SelectorNode();
 						break;
 					case NodeType.Sequence:
-						newNode = new SequenceNode();
+						if (nodeData.isRandom)
+							newNode = new RandomSequenceNode();
+						else
+							newNode = new SequenceNode();
 						break;
 					default:
 						throw new System.Exception("Node has no type!");

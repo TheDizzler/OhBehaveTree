@@ -52,6 +52,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		public List<NodeEditorObject> savedNodes;
 		public ZoomerSettings zoomerSettings;
 		public bool childrenMoveWithParent = true;
+		public bool save;
 
 		[SerializeField]
 		private NodeEditorObject selectedNode;
@@ -72,7 +73,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		private ConnectionPoint startConnection;
 		private ConnectionPoint endConnection;
 		private Vector2 savedMousePos;
-		private bool save;
+
 		private bool saveJsonData;
 
 
@@ -440,7 +441,8 @@ namespace AtomosZ.OhBehave.EditorTools
 			{
 				List<JsonNodeData> tree = new List<JsonNodeData>();
 				jsonTreeData.actionSource = behaviourSource;
-				jsonTreeData.rootNode = AddNodeToTreeWithChildren(GetNodeObjectByIndex(ROOT_INDEX), null, ref tree);
+				jsonTreeData.rootNode = AddNodeToTreeWithChildren(
+					GetNodeObjectByIndex(ROOT_INDEX), ROOT_NODE_PARENT_INDEX, ref tree);
 
 				jsonTreeData.tree = tree.ToArray();
 				StreamWriter writer = new StreamWriter(Application.streamingAssetsPath + ohBehaveAI.jsonFilepath);
@@ -453,19 +455,17 @@ namespace AtomosZ.OhBehave.EditorTools
 			EditorUtility.SetDirty(this);
 		}
 
-		private JsonNodeData AddNodeToTreeWithChildren(NodeEditorObject node, JsonNodeData parentData, ref List<JsonNodeData> tree)
+		private JsonNodeData AddNodeToTreeWithChildren(NodeEditorObject node, int parentIndex, ref List<JsonNodeData> tree)
 		{
 			JsonNodeData nodeData = new JsonNodeData
 			{
 				index = node.index,
 				nodeType = node.nodeType,
+				isRandom = node.isRandom,
 				methodInfoName = node.actionName,
 			};
 
-			if (parentData != null)
-				nodeData.parentIndex = parentData.index;
-			else
-				nodeData.parentIndex = ROOT_NODE_PARENT_INDEX;
+			nodeData.parentIndex = parentIndex;
 
 			tree.Add(nodeData);
 
@@ -476,7 +476,7 @@ namespace AtomosZ.OhBehave.EditorTools
 			foreach (var nodeIndex in node.GetChildren())
 			{
 				NodeEditorObject childNode = GetNodeObjectByIndex(nodeIndex);
-				childrenData.Add(AddNodeToTreeWithChildren(childNode, nodeData, ref tree));
+				childrenData.Add(AddNodeToTreeWithChildren(childNode, nodeData.index, ref tree));
 			}
 
 			nodeData.childrenIndices = node.GetChildren().ToArray();

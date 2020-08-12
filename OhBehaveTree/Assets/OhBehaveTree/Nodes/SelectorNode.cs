@@ -29,16 +29,9 @@ namespace AtomosZ.OhBehave
 			return null;
 		}
 
-
-		//public override NodeState Evaluate()
-		//{
-		//	return nodeState;
-		//}
-
 		/// <summary>
 		/// If any child reports a success, then this node returns a success.
 		/// Otherwise, returns failure.
-		/// TODO: implement random.
 		/// </summary>
 		/// <returns></returns>
 		public override INode ChildFinished(NodeState childNodeState)
