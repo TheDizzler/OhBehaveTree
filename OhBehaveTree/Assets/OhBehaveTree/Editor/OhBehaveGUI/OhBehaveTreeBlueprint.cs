@@ -443,7 +443,7 @@ namespace AtomosZ.OhBehave.EditorTools
 				jsonTreeData.rootNode = AddNodeToTreeWithChildren(GetNodeObjectByIndex(ROOT_INDEX), null, ref tree);
 
 				jsonTreeData.tree = tree.ToArray();
-				StreamWriter writer = new StreamWriter(ohBehaveAI.jsonFilepath);
+				StreamWriter writer = new StreamWriter(Application.streamingAssetsPath + ohBehaveAI.jsonFilepath);
 				writer.WriteLine(JsonUtility.ToJson(jsonTreeData, true));
 				writer.Close();
 			}
@@ -464,6 +464,8 @@ namespace AtomosZ.OhBehave.EditorTools
 
 			if (parentData != null)
 				nodeData.parentIndex = parentData.index;
+			else
+				nodeData.parentIndex = ROOT_NODE_PARENT_INDEX;
 
 			tree.Add(nodeData);
 
@@ -678,8 +680,11 @@ namespace AtomosZ.OhBehave.EditorTools
 			StreamWriter writer = new StreamWriter(jsonFilepath);
 			writer.WriteLine(jsonString);
 			writer.Close();
+			AssetDatabase.SaveAssets();
+			AssetDatabase.Refresh();
 
-			ohBehaveAI.jsonFilepath = jsonFilepath;
+			string relativePath = jsonFilepath.Replace("Assets/StreamingAssets", "");
+			ohBehaveAI.jsonFilepath = relativePath;
 			jsonGUID = AssetDatabase.AssetPathToGUID(jsonFilepath);
 
 			AssetDatabase.SaveAssets();

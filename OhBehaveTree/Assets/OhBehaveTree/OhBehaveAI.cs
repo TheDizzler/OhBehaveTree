@@ -8,6 +8,7 @@ using System.Reflection;
 
 namespace AtomosZ.OhBehave
 {
+	[RequireComponent(typeof(OhBehaveActions))]
 	public class OhBehaveAI : MonoBehaviour
 	{
 		/// <summary>
@@ -31,6 +32,7 @@ namespace AtomosZ.OhBehave
 			Dictionary<int, INode> nodeDict = new Dictionary<int, INode>();
 			List<INode> nodes = new List<INode>();
 
+			var behaviourSource = GetComponent<OhBehaveActions>();
 			foreach (JsonNodeData nodeData in tree.tree)
 			{
 				INode newNode;
@@ -40,7 +42,7 @@ namespace AtomosZ.OhBehave
 						newNode = new InverterNode();
 						break;
 					case NodeType.Leaf:
-						newNode = new LeafNode();
+						newNode = new LeafNode(behaviourSource);
 						Type sourceType = tree.actionSource.GetType();
 						if (sourceType.GetMethod(nodeData.methodInfoName) == null)
 							throw new Exception("Could not find method by name " + nodeData.methodInfoName);
@@ -61,7 +63,7 @@ namespace AtomosZ.OhBehave
 
 			foreach (JsonNodeData nodeData in tree.tree)
 			{
-				if (nodeData.childrenIndices != null)
+				if (nodeData.childrenIndices != null && nodeData.childrenIndices.Length > 0)
 				{
 					ICompositeNode node = (ICompositeNode)nodeDict[nodeData.index];
 					node.children = new List<INode>();
@@ -72,7 +74,7 @@ namespace AtomosZ.OhBehave
 					}
 				}
 
-				if (nodeData.parentIndex == -1)
+				if (nodeData.parentIndex == -69)
 				{ // I am root!
 					root = (ICompositeNode)nodeDict[nodeData.index];
 					currentNode = root.Init();
@@ -80,6 +82,7 @@ namespace AtomosZ.OhBehave
 			}
 
 		}
+
 
 
 		public void Evaluate()

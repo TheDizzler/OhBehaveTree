@@ -35,9 +35,9 @@ namespace AtomosZ.OhBehave.EditorTools
 		private OhBehaveAI currentAIBehaviour;
 		private Rect zoomRect;
 		private float areaBelowZoomHeight = 50;
-		
 
-		private void OnEnable()
+
+		void OnEnable()
 		{
 			if (window != null)
 			{ // no need to reconstruct everything
@@ -68,7 +68,6 @@ namespace AtomosZ.OhBehave.EditorTools
 				zoomer.Reset(treeBlueprint.zoomerSettings);
 			}
 		}
-
 
 		private void CreateStyles()
 		{
@@ -127,18 +126,6 @@ namespace AtomosZ.OhBehave.EditorTools
 			window.Show();
 			Repaint();
 			return true;
-		}
-
-
-		private void OnLostFocus()
-		{
-#pragma warning disable CS0618 // Type or member is obsolete
-			if (mouseOverWindow != null && mouseOverWindow.title == "Inspector")
-#pragma warning restore CS0618 // Type or member is obsolete
-				return;
-			if (treeBlueprint != null)
-				treeBlueprint.DeselectNode();
-			Repaint();
 		}
 
 
@@ -250,7 +237,16 @@ namespace AtomosZ.OhBehave.EditorTools
 				Repaint();
 		}
 
-
+		void OnLostFocus()
+		{
+#pragma warning disable CS0618 // Type or member is obsolete
+			if (mouseOverWindow != null && mouseOverWindow.title == "Inspector")
+#pragma warning restore CS0618 // Type or member is obsolete
+				return;
+			if (treeBlueprint != null)
+				treeBlueprint.DeselectNode();
+			Repaint();
+		}
 
 
 
@@ -284,18 +280,17 @@ namespace AtomosZ.OhBehave.EditorTools
 		/// <returns></returns>
 		private OhBehaveTreeBlueprint GetBlueprintFor(OhBehaveAI ohBehaveAI)
 		{
-			//string jsonFilepath = AssetDatabase.GUIDToAssetPath(ohBehaveAI.jsonGUID);
 			if (string.IsNullOrEmpty(ohBehaveAI.jsonFilepath))
 			{
 				return null;
 			}
 
-			if (!File.Exists(ohBehaveAI.jsonFilepath))
+			if (!File.Exists(Application.streamingAssetsPath + ohBehaveAI.jsonFilepath))
 			{
 				return null;
 			}
 
-			StreamReader reader = new StreamReader(ohBehaveAI.jsonFilepath);
+			StreamReader reader = new StreamReader(Application.streamingAssetsPath + ohBehaveAI.jsonFilepath);
 			string fileString = reader.ReadToEnd();
 			reader.Close();
 
