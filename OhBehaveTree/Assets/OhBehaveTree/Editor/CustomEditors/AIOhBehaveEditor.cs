@@ -38,15 +38,12 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 			GUI.enabled = true;
 
 
-			if (!string.IsNullOrEmpty(instance.jsonFilepath))
-			{
-				if (GUILayout.Button("Change json file"))
-				{ // If FileChooser is opened here, will get EditorLayout Error.
-					EditorWindow.GetWindow<OhBehaveEditorWindow>().openFileChooser = true;
-				}
-
-				// do something here to verify tree is well-formed. If not, display angry button.
+			if (GUILayout.Button("Choose json file"))
+			{ // If FileChooser is opened here, will get EditorLayout Error.
+				EditorWindow.GetWindow<OhBehaveEditorWindow>().OpenFileChooser(instance);
 			}
+
+			// do something here to verify tree is well-formed. If not, display angry button.
 
 			var windows = Resources.FindObjectsOfTypeAll<OhBehaveEditorWindow>();
 			if (windows == null || windows.Length == 0)
@@ -60,6 +57,14 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 				{
 					CreateNewJson();
 				}
+			}
+
+			var actionSource = instance.GetComponent<OhBehaveActions>();
+			//if (instance.sharedMethods != null && instance.sharedMethods.Count > 0)
+
+			{
+				// Create the dropdown in the inspector for the found methods
+				EditorGUILayout.Popup("Action List", 0, instance.GetMethodNames());
 			}
 
 			serializedObject.ApplyModifiedProperties();

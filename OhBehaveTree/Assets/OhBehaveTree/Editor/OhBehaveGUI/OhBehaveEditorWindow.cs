@@ -1,8 +1,8 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using AtomosZ.OhBehave.EditorTools.CustomEditors;
 using UnityEditor;
 using UnityEngine;
-using static AtomosZ.OhBehave.EditorTools.OhBehaveTreeBlueprint;
 
 namespace AtomosZ.OhBehave.EditorTools
 {
@@ -28,7 +28,8 @@ namespace AtomosZ.OhBehave.EditorTools
 		/// <summary>
 		/// Delayed FileChooser open to avoid EditorGUILayout error.
 		/// </summary>
-		public bool openFileChooser;
+		private bool openFileChooser;
+		private OhBehaveAI chooseNewJsonFor;
 
 		private OhBehaveEditorWindow window;
 		private OhBehaveAI currentAIBehaviour;
@@ -100,6 +101,13 @@ namespace AtomosZ.OhBehave.EditorTools
 		}
 
 
+		public void OpenFileChooser(OhBehaveAI ohBehave)
+		{
+			openFileChooser = true;
+			chooseNewJsonFor = ohBehave;
+		}
+
+
 		public bool Open(OhBehaveAI ohBehaveAI)
 		{
 			currentAIBehaviour = ohBehaveAI;
@@ -146,6 +154,24 @@ namespace AtomosZ.OhBehave.EditorTools
 				}
 			}
 
+			if (openFileChooser)
+			{
+				openFileChooser = false;
+				string path = EditorUtility.OpenFilePanelWithFilters(
+					"Choose new OhBehave file",
+					"Assets/StreamingAssets/" + AIOhBehaveEditor.userNodeFolder,
+					new string[] { "OhBehaveTree Json file", "OhJson" });
+
+				if (!string.IsNullOrEmpty(path))
+				{
+					string relativePath = path.Replace(Application.streamingAssetsPath, "");
+					chooseNewJsonFor.jsonFilepath = relativePath;
+					EditorWindow.GetWindow<OhBehaveEditorWindow>().Open(chooseNewJsonFor);
+				}
+
+				chooseNewJsonFor = null;
+			}
+
 			if (treeBlueprint == null)
 			{
 				if (Selection.activeObject != null)
@@ -162,21 +188,6 @@ namespace AtomosZ.OhBehave.EditorTools
 			{
 				treeBlueprint.PendingDeletes();
 				Repaint();
-				if (openFileChooser)
-				{
-					string path = EditorUtility.OpenFilePanelWithFilters(
-						"Choose new OhBehave file",
-						"Assets/StreamingAssets/" + AIOhBehaveEditor.userNodeFolder, 
-						new string[] { "OhBehaveTree Json file", "OhJson" });
-
-					if (!string.IsNullOrEmpty(path))
-					{
-						treeBlueprint.ohBehaveAI.jsonFilepath = path;
-						EditorWindow.GetWindow<OhBehaveEditorWindow>().Open(treeBlueprint.ohBehaveAI);
-					}
-
-					openFileChooser = false;
-				}
 			}
 		}
 
