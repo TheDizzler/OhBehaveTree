@@ -129,7 +129,6 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 				switch (nodeObject.nodeType)
 				{
 					case NodeType.Leaf:
-						EditorGUILayout.LabelField("What do actions?");
 						GUI.enabled = false;
 						EditorGUILayout.ObjectField("Behaviour Source", instance.behaviorSource, typeof(OhBehaveActions), true);
 						int methodIndex;

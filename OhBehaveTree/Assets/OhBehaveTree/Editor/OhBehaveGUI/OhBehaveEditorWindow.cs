@@ -174,6 +174,8 @@ namespace AtomosZ.OhBehave.EditorTools
 						treeBlueprint = testIfTree;
 						Repaint();
 					}
+
+					openFileChooser = false;
 				}
 			}
 			else
