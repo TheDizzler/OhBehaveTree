@@ -1,5 +1,4 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace AtomosZ.OhBehave
 {
@@ -25,11 +24,6 @@ namespace AtomosZ.OhBehave
 			return children[currentChildIndex].Init();
 		}
 
-
-		//public override NodeState Evaluate()
-		//{
-		//	return nodeState;
-		//}
 
 		/// <summary>
 		/// If any child returns a failure, then this node returns a failure.

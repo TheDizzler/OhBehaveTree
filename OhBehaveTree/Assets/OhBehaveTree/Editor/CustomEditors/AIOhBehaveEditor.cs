@@ -52,6 +52,13 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 				}
 			}
 
+			var actionSource = instance.GetComponent<OhBehaveActions>();
+			//if (instance.sharedMethods != null && instance.sharedMethods.Count > 0)
+			{
+				// Create the dropdown in the inspector for the found methods
+				EditorGUILayout.Popup("Action List", 0, instance.GetMethodNames());
+			}
+
 			serializedObject.ApplyModifiedProperties();
 		}
 

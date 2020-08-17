@@ -1,11 +1,15 @@
-﻿using UnityEngine;
-
-namespace AtomosZ.OhBehave
+﻿namespace AtomosZ.OhBehave
 {
 	/// <summary>
 	/// Used for the construction.
 	/// </summary>
-	public enum NodeType { Selector, Sequence, Inverter, Leaf }
+	public enum NodeType
+	{
+		Selector, Sequence,
+		Inverter, Succeeder, Repeater, ConditionalRepeater,
+		Leaf,
+	}
+
 	public enum NodeState { Failure, Success, Running }
 
 	public abstract class INode

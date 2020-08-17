@@ -79,11 +79,23 @@ namespace AtomosZ.OhBehave.EditorTools
 			{
 				CreateTitleBar();
 
-				NodeType newType = (NodeType)EditorGUILayout.EnumPopup(nodeObject.nodeType);
-				if (newType != nodeObject.nodeType)
+				EditorGUILayout.BeginHorizontal();
 				{
-					nodeObject.ChangeNodeType(newType);
+					NodeType newType = (NodeType)EditorGUILayout.EnumPopup(nodeObject.nodeType);
+					if (newType != nodeObject.nodeType)
+					{
+						nodeObject.ChangeNodeType(newType);
+					}
+
+					bool newRandom = GUILayout.Toggle(nodeObject.isRandom, "Random");
+					if (newRandom != nodeObject.isRandom)
+					{
+						treeBlueprint.save = true;
+						nodeObject.isRandom = newRandom;
+					}
 				}
+				EditorGUILayout.EndHorizontal();
+
 
 				if (childNodesReorderable != null)
 				{

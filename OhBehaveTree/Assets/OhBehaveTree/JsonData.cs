@@ -9,9 +9,6 @@
 		public string name;
 		public string blueprintGUID;
 
-		/// <summary>
-		/// Not sure how this will work with serialization.
-		/// </summary>
 		public OhBehaveActions actionSource;
 		public JsonNodeData rootNode;
 		public JsonNodeData[] tree;
@@ -23,6 +20,7 @@
 		public int index;
 		public int parentIndex;
 		public int[] childrenIndices;
+		public bool isRandom;
 		public NodeType nodeType;
 		public string methodInfoName;
 	}

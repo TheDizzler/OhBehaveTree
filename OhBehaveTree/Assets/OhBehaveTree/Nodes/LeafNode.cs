@@ -7,11 +7,13 @@ namespace AtomosZ.OhBehave
 	public class LeafNode : INode
 	{
 		public MethodInfo actionInfo;
+		private OhBehaveActions ownerActions;
 
 
-		public LeafNode()
+		public LeafNode(OhBehaveActions owner)
 		{
 			nodeType = NodeType.Leaf;
+			ownerActions = owner;
 		}
 
 
@@ -29,7 +31,7 @@ namespace AtomosZ.OhBehave
 		public override NodeState Evaluate()
 		{
 			/* This is what the invokation would look like....*/
-			var result = actionInfo.Invoke(this, new object[] { this });
+			var result = actionInfo.Invoke(ownerActions, new object[] { this });
 
 			return nodeState;
 		}

@@ -10,7 +10,10 @@ namespace AtomosZ.OhBehave.Demo
 			if (transform.position.x <= -3)
 				node.nodeState = NodeState.Running;
 			else
+			{
+				Debug.Log("More right done");
 				node.nodeState = NodeState.Success;
+			}
 		}
 
 		public void MoveLeft(LeafNode node)
@@ -19,7 +22,10 @@ namespace AtomosZ.OhBehave.Demo
 			if (transform.position.x >= -6)
 				node.nodeState = NodeState.Running;
 			else
+			{
+				Debug.Log("More left done");
 				node.nodeState = NodeState.Success;
+			}
 		}
 
 
@@ -29,8 +35,8 @@ namespace AtomosZ.OhBehave.Demo
 			time += Time.deltaTime;
 			if (time >= 2)
 			{
-				Debug.Log("2 second count down");
-				node.nodeState = NodeState.Failure;
+				Debug.Log("counted up");
+				node.nodeState = NodeState.Success;
 				return;
 			}
 
@@ -43,7 +49,7 @@ namespace AtomosZ.OhBehave.Demo
 			time -= Time.deltaTime;
 			if (time <= 0)
 			{
-				Debug.Log("counted off");
+				Debug.Log("counted down");
 				node.nodeState = NodeState.Success;
 				return;
 			}

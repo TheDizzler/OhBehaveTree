@@ -33,7 +33,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		[Tooltip("Descriptive description. Has no impact in game.")]
 		public string description;
 
-		public OhBehaveActions behaviorSource;
+		public OhBehaveActions behaviourSource;
 		public List<MethodInfo> sharedMethods = null;
 		public List<MethodInfo> privateMethods = null;
 		public List<string> sharedMethodNames = null;
@@ -46,11 +46,13 @@ namespace AtomosZ.OhBehave.EditorTools
 		public OhBehaveAI ohBehaveAI;
 		/// <summary>
 		/// Blueprint and OhJson are 1:1.
+		/// Not currently used.
 		/// </summary>
 		public string jsonGUID;
 		public List<NodeEditorObject> savedNodes;
 		public ZoomerSettings zoomerSettings;
 		public bool childrenMoveWithParent = true;
+		public bool save;
 
 		[SerializeField]
 		private NodeEditorObject selectedNode;
@@ -71,7 +73,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		private ConnectionPoint startConnection;
 		private ConnectionPoint endConnection;
 		private Vector2 savedMousePos;
-		private bool save;
+
 		private bool saveJsonData;
 
 
@@ -122,13 +124,20 @@ namespace AtomosZ.OhBehave.EditorTools
 
 		public void GetFunctions()
 		{
-			if (behaviorSource == null)
+			if (behaviourSource == null)
 			{
-				sharedMethods = null;
-				privateMethods = null;
-				sharedMethodNames = null;
-				privateMethodNames = null;
-				return;
+				if (ohBehaveAI != null)
+				{
+					behaviourSource = ohBehaveAI.GetComponent<OhBehaveActions>();
+				}
+				else
+				{
+					sharedMethods = null;
+					privateMethods = null;
+					sharedMethodNames = null;
+					privateMethodNames = null;
+					return;
+				}
 			}
 
 
@@ -137,7 +146,7 @@ namespace AtomosZ.OhBehave.EditorTools
 			sharedMethodNames = new List<string>();
 			privateMethodNames = new List<string>();
 
-			foreach (MethodInfo element in behaviorSource.GetType().GetMethods(flags))
+			foreach (MethodInfo element in behaviourSource.GetType().GetMethods(flags))
 			{
 				foreach (var param in element.GetParameters())
 				{
@@ -431,10 +440,12 @@ namespace AtomosZ.OhBehave.EditorTools
 			//if (isValidTree)
 			{
 				List<JsonNodeData> tree = new List<JsonNodeData>();
-				jsonTreeData.rootNode = AddNodeToTreeWithChildren(GetNodeObjectByIndex(ROOT_INDEX), null, ref tree);
+				jsonTreeData.actionSource = behaviourSource;
+				jsonTreeData.rootNode = AddNodeToTreeWithChildren(
+					GetNodeObjectByIndex(ROOT_INDEX), ROOT_NODE_PARENT_INDEX, ref tree);
 
 				jsonTreeData.tree = tree.ToArray();
-				StreamWriter writer = new StreamWriter(ohBehaveAI.jsonFilepath);
+				StreamWriter writer = new StreamWriter(Application.streamingAssetsPath + ohBehaveAI.jsonFilepath);
 				writer.WriteLine(JsonUtility.ToJson(jsonTreeData, true));
 				writer.Close();
 			}
@@ -444,17 +455,17 @@ namespace AtomosZ.OhBehave.EditorTools
 			EditorUtility.SetDirty(this);
 		}
 
-		private JsonNodeData AddNodeToTreeWithChildren(NodeEditorObject node, JsonNodeData parentData, ref List<JsonNodeData> tree)
+		private JsonNodeData AddNodeToTreeWithChildren(NodeEditorObject node, int parentIndex, ref List<JsonNodeData> tree)
 		{
 			JsonNodeData nodeData = new JsonNodeData
 			{
 				index = node.index,
 				nodeType = node.nodeType,
+				isRandom = node.isRandom,
 				methodInfoName = node.actionName,
 			};
 
-			if (parentData != null)
-				nodeData.parentIndex = parentData.index;
+			nodeData.parentIndex = parentIndex;
 
 			tree.Add(nodeData);
 
@@ -465,7 +476,7 @@ namespace AtomosZ.OhBehave.EditorTools
 			foreach (var nodeIndex in node.GetChildren())
 			{
 				NodeEditorObject childNode = GetNodeObjectByIndex(nodeIndex);
-				childrenData.Add(AddNodeToTreeWithChildren(childNode, nodeData, ref tree));
+				childrenData.Add(AddNodeToTreeWithChildren(childNode, nodeData.index, ref tree));
 			}
 
 			nodeData.childrenIndices = node.GetChildren().ToArray();
@@ -672,8 +683,11 @@ namespace AtomosZ.OhBehave.EditorTools
 			StreamWriter writer = new StreamWriter(jsonFilepath);
 			writer.WriteLine(jsonString);
 			writer.Close();
+			AssetDatabase.SaveAssets();
+			AssetDatabase.Refresh();
 
-			ohBehaveAI.jsonFilepath = jsonFilepath;
+			string relativePath = jsonFilepath.Replace("Assets/StreamingAssets", "");
+			ohBehaveAI.jsonFilepath = relativePath;
 			jsonGUID = AssetDatabase.AssetPathToGUID(jsonFilepath);
 
 			AssetDatabase.SaveAssets();
