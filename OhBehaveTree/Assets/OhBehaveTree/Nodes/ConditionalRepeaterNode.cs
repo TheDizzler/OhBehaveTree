@@ -9,7 +9,7 @@
 	{
 		public ConditionalRepeaterNode()
 		{
-			nodeType = NodeType.Repeater;
+			nodeType = NodeType.ConditionalRepeater;
 		}
 
 		public override INode Init()
