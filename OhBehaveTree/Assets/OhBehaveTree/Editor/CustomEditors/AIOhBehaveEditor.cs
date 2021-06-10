@@ -23,7 +23,10 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 			serializedObject.Update();
 			GUI.enabled = false;
 			EditorGUILayout.ObjectField("Script", target, typeof(OhBehaveAI), false);
-			EditorGUILayout.DelayedTextField("Tree file", Path.GetFileName(instance.jsonFilepath));
+			if (string.IsNullOrEmpty(instance.jsonFilepath))
+				EditorGUILayout.DelayedTextField("Tree file", "!NO FILE SELECTED!");
+			else
+				EditorGUILayout.DelayedTextField("Tree file", Path.GetFileName(instance.jsonFilepath));
 			GUI.enabled = true;
 
 
@@ -31,11 +34,18 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 			{
 				if (GUILayout.Button("Change json file"))
 				{ // If FileChooser is opened here, will get EditorLayout Error.
-					EditorWindow.GetWindow<OhBehaveEditorWindow>().Open(instance); // make sure the right target is in focus (might not be necessary)
-					EditorWindow.GetWindow<OhBehaveEditorWindow>().openFileChooser = true;
+					// make sure the right target is in focus? (might not be necessary)
+					EditorWindow.GetWindow<OhBehaveEditorWindow>().OpenFileChooser(instance);
 				}
 
 				// do something here to verify tree is well-formed. If not, display angry button.
+			}
+			else
+			{
+				if (GUILayout.Button("No json file loaded"))
+				{
+					Debug.LogError("Not yet implemented");
+				}
 			}
 
 			var windows = Resources.FindObjectsOfTypeAll<OhBehaveEditorWindow>();

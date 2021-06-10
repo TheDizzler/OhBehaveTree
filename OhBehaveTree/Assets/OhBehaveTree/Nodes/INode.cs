@@ -6,7 +6,20 @@
 	public enum NodeType
 	{
 		Selector, Sequence,
-		Inverter, Succeeder, Repeater, ConditionalRepeater,
+		Inverter, 
+		/// <summary>
+		/// Not yet implemented.
+		/// </summary>
+		Succeeder,
+		/// <summary>
+		/// Not yet implemented.
+		/// </summary>
+		Repeater,
+		/// <summary>
+		/// Not yet implemented.
+		/// </summary>
+		ConditionalRepeater,
+
 		Leaf,
 	}
 

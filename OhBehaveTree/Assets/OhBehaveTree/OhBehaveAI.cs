@@ -23,6 +23,13 @@ namespace AtomosZ.OhBehave
 
 		void Start()
 		{
+			if (!File.Exists(Application.streamingAssetsPath + jsonFilepath))
+			{
+				Debug.LogError("ERROR: OhBehaveFile does not exist: "
+					+ Application.streamingAssetsPath + jsonFilepath);
+				return;
+			}
+
 			StreamReader reader = new StreamReader(Application.streamingAssetsPath + jsonFilepath);
 			string fileString = reader.ReadToEnd();
 			reader.Close();

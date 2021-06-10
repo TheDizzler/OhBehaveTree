@@ -1,6 +1,4 @@
-﻿using System;
-using System.IO;
-using AtomosZ.OhBehave.EditorTools.CustomEditors;
+﻿using System.IO;
 using UnityEditor;
 using UnityEngine;
 
@@ -8,9 +6,13 @@ namespace AtomosZ.OhBehave.EditorTools
 {
 	public class OhBehaveEditorWindow : EditorWindow
 	{
-		public static readonly string ImageFolder = "Assets/OhBehaveTree/Editor/OhBehaveGUI/Images/";
+		public const string UserNodeFolderKey = "UserNodeFolder";
+		public static readonly string ImageFolder =
+			"Assets/OhBehaveTree/Editor/OhBehaveGUI/Images/";
 
 		private const float ZOOM_BORDER = 10;
+		private const float AREA_BELOW_ZOOM_HEIGHT = 50;
+		private const string DefaultNodeFolder = "OhBehaveTrees";
 
 		public static NodeStyle SelectorNodeStyle;
 		public static NodeStyle SequenceNodeStyle;
@@ -22,23 +24,33 @@ namespace AtomosZ.OhBehave.EditorTools
 		public static GUIStyle invalidFoldoutStyle;
 		public static GUIStyle warningTextStyle;
 
+		private static string userNodeFolder;
+
 		public OhBehaveTreeBlueprint treeBlueprint;
 		public EditorZoomer zoomer;
 
 		/// <summary>
 		/// Delayed FileChooser open to avoid EditorGUILayout error.
 		/// </summary>
-		private bool openFileChooser;
-		private OhBehaveAI chooseNewJsonFor;
+		public bool openFileChooser;
 
+		private OhBehaveAI chooseNewJsonFor;
 		private OhBehaveEditorWindow window;
 		private OhBehaveAI currentAIBehaviour;
+		private OhBehaveAI aiRequestingNewBlueprint;
 		private Rect zoomRect;
-		private float areaBelowZoomHeight = 50;
+		private bool openSaveFileChooser;
+
 
 
 		void OnEnable()
 		{
+			userNodeFolder = EditorPrefs.GetString(UserNodeFolderKey, "");
+			if (userNodeFolder == "")
+			{
+				userNodeFolder = DefaultNodeFolder;
+			}
+
 			if (window != null)
 			{ // no need to reconstruct everything
 				return;
@@ -129,7 +141,7 @@ namespace AtomosZ.OhBehave.EditorTools
 		}
 
 
-		public void Update()
+		void Update()
 		{
 			if (Selection.activeGameObject != null)
 			{
@@ -146,14 +158,14 @@ namespace AtomosZ.OhBehave.EditorTools
 				openFileChooser = false;
 				string path = EditorUtility.OpenFilePanelWithFilters(
 					"Choose new OhBehave file",
-					"Assets/StreamingAssets/" + AIOhBehaveEditor.userNodeFolder,
+					"Assets/StreamingAssets/" + userNodeFolder,
 					new string[] { "OhBehaveTree Json file", "OhJson" });
 
 				if (!string.IsNullOrEmpty(path))
 				{
 					string relativePath = path.Replace(Application.streamingAssetsPath, "");
 					chooseNewJsonFor.jsonFilepath = relativePath;
-					EditorWindow.GetWindow<OhBehaveEditorWindow>().Open(chooseNewJsonFor);
+					Open(chooseNewJsonFor);
 				}
 
 				chooseNewJsonFor = null;
@@ -163,7 +175,8 @@ namespace AtomosZ.OhBehave.EditorTools
 			{
 				if (Selection.activeObject != null)
 				{
-					OhBehaveTreeBlueprint testIfTree = Selection.activeObject as OhBehaveTreeBlueprint;
+					OhBehaveTreeBlueprint testIfTree =
+						Selection.activeObject as OhBehaveTreeBlueprint;
 					if (testIfTree != null)
 					{
 						treeBlueprint = testIfTree;
@@ -175,6 +188,48 @@ namespace AtomosZ.OhBehave.EditorTools
 			{
 				treeBlueprint.PendingDeletes();
 				Repaint();
+			}
+
+			if (openSaveFileChooser)
+			{
+				if (!AssetDatabase.IsValidFolder("Assets/StreamingAssets/" + userNodeFolder))
+				{
+					if (!AssetDatabase.IsValidFolder("Assets/StreamingAssets/"))
+						AssetDatabase.CreateFolder("Assets", "StreamingAssets");
+					if (!AssetDatabase.IsValidFolder("Assets/StreamingAssets/" + DefaultNodeFolder))
+						AssetDatabase.CreateFolder("Assets/StreamingAssets", DefaultNodeFolder);
+					userNodeFolder = DefaultNodeFolder;
+					EditorPrefs.SetString(UserNodeFolderKey, userNodeFolder);
+				}
+
+				string nodename = "NewOhBehaveTree";
+				int num = AssetDatabase.FindAssets(nodename,
+					new string[] { "Assets/StreamingAssets/" + userNodeFolder }).Length;
+				if (num != 0)
+				{
+					nodename += " (" + num + ")";
+				}
+
+				var path = EditorUtility.SaveFilePanelInProject(
+					"Create New Json Behavior State Machine", nodename, "OhJson",
+					"Where to save json file?", "Assets/StreamingAssets/" + userNodeFolder);
+				if (path.Length != 0)
+				{
+					// check if user is using a folder that isn't the default
+					if (Path.GetFileName(Path.GetDirectoryName(path)) != userNodeFolder)
+					{
+						userNodeFolder = Path.GetFileName(Path.GetDirectoryName(path));
+						EditorPrefs.SetString(UserNodeFolderKey, userNodeFolder);
+					}
+
+					var machineBlueprint = CreateInstance<OhBehaveTreeBlueprint>();
+					machineBlueprint.Initialize(aiRequestingNewBlueprint, path);
+
+					Open(aiRequestingNewBlueprint);
+				}
+
+				aiRequestingNewBlueprint = null;
+				openSaveFileChooser = false;
 			}
 		}
 
@@ -218,7 +273,8 @@ namespace AtomosZ.OhBehave.EditorTools
 					lastRect.yMax + lastRect.height + ZOOM_BORDER);
 				zoomRect.size = new Vector2(
 					window.position.width - ZOOM_BORDER * 2,
-					window.position.height - (lastRect.yMax + ZOOM_BORDER * 2 + areaBelowZoomHeight));
+					window.position.height
+						- (lastRect.yMax + ZOOM_BORDER * 2 + AREA_BELOW_ZOOM_HEIGHT));
 			}
 
 
@@ -226,16 +282,28 @@ namespace AtomosZ.OhBehave.EditorTools
 			{
 				treeBlueprint.OnGui(Event.current, zoomer);
 			}
-			zoomer.End(new Rect(0, zoomRect.yMax + zoomRect.position.y - 50, window.position.width, window.position.height));
+			zoomer.End(new Rect(
+				0, zoomRect.yMax + zoomRect.position.y - 50,
+				window.position.width, window.position.height));
 
 
-			treeBlueprint.childrenMoveWithParent = EditorGUILayout.ToggleLeft("Reposition children with Parent", treeBlueprint.childrenMoveWithParent);
+			treeBlueprint.childrenMoveWithParent =
+				EditorGUILayout.ToggleLeft("Reposition children with Parent",
+					treeBlueprint.childrenMoveWithParent);
 			EditorGUILayout.Vector2Field("mouse", Event.current.mousePosition);
 
 
 			if (GUI.changed)
 				Repaint();
 		}
+
+
+		public void OpenSaveFilePanel(OhBehaveAI instance)
+		{
+			openSaveFileChooser = true;
+			aiRequestingNewBlueprint = instance;
+		}
+
 
 		void OnLostFocus()
 		{
@@ -290,7 +358,8 @@ namespace AtomosZ.OhBehave.EditorTools
 				return null;
 			}
 
-			StreamReader reader = new StreamReader(Application.streamingAssetsPath + ohBehaveAI.jsonFilepath);
+			StreamReader reader = new StreamReader(
+				Application.streamingAssetsPath + ohBehaveAI.jsonFilepath);
 			string fileString = reader.ReadToEnd();
 			reader.Close();
 

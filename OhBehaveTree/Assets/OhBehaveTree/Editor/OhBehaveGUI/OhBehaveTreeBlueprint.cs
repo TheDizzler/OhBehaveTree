@@ -669,7 +669,7 @@ namespace AtomosZ.OhBehave.EditorTools
 
 
 			ohBehaveAI = behaviourAI;
-			behaviorSource = ohBehaveAI.GetComponent<OhBehaveActions>();
+			behaviourSource = ohBehaveAI.GetComponent<OhBehaveActions>();
 
 
 			savedNodes = new List<NodeEditorObject>();
