@@ -437,6 +437,24 @@ namespace AtomosZ.OhBehave.EditorTools
 
 		private void Save(bool isValidTree)
 		{
+			if (ohBehaveAI == null)
+			{
+				if (behaviourSource != null)
+				{
+					ohBehaveAI = behaviourSource.bsm;
+				}
+				else
+				{
+					Debug.LogError("ohBehaveAI could not be found - Behaviour source invalid");
+				}
+
+				if (ohBehaveAI == null)
+				{
+					Debug.LogError("ohBehaveAI could not be found");
+					return;
+				}
+			}
+
 			//if (isValidTree)
 			{
 				List<JsonNodeData> tree = new List<JsonNodeData>();
