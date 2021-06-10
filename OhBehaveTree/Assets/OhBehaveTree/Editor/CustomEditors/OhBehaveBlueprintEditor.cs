@@ -129,49 +129,65 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 				EditorGUIUtility.labelWidth = 0;
 
 				var selectedNodeProperty = serializedObject.FindProperty("selectedNode");
-				switch (nodeObject.nodeType)
-				{
-					case NodeType.Leaf:
-						GUI.enabled = false;
-						EditorGUILayout.ObjectField("Behaviour Source", instance.behaviourSource, typeof(OhBehaveActions), true);
-						int methodIndex;
-
-						if (string.IsNullOrEmpty(nodeObject.actionName))
-						{
-							EditorGUILayout.TextField("No method selected");
-							methodIndex = 0;
-						}
-						else
-						{
-							EditorGUILayout.TextField(nodeObject.actionName);
-							methodIndex = instance.sharedMethodNames.IndexOf(nodeObject.actionName);
-						}
-
-						GUI.enabled = true;
-
-						if (instance.sharedMethods != null && instance.sharedMethods.Count > 0)
-						{
-							// Create the dropdown in the inspector for the found methods
-							int newSelection = EditorGUILayout.Popup("Function List", methodIndex, instance.sharedMethodNames.ToArray());
-							if (newSelection != methodIndex)
-							{
-								if (newSelection == 0)
-									nodeObject.actionName = "";
-								else
-									nodeObject.actionName = instance.sharedMethodNames[newSelection];
-							}
-						}
-
-						break;
-					case NodeType.Selector:
-					case NodeType.Sequence:
-						GUI.enabled = false;
-						EditorGUILayout.PropertyField(selectedNodeProperty.FindPropertyRelative("children"), true);
-						GUI.enabled = true;
-						break;
-				}
+				DrawNode(nodeObject, selectedNodeProperty);
 			}
 			GUILayout.EndVertical();
+		}
+
+
+		private void DrawNode(NodeEditorObject nodeObject,
+			SerializedProperty selectedNodeProperty)
+		{
+			switch (nodeObject.nodeType)
+			{
+				case NodeType.Leaf:
+					GUI.enabled = false;
+					EditorGUILayout.ObjectField(
+						"Behaviour Source",
+						instance.behaviourSource,
+						typeof(OhBehaveActions), true);
+					int methodIndex;
+
+					if (string.IsNullOrEmpty(nodeObject.actionName))
+					{
+						EditorGUILayout.TextField("No method selected");
+						methodIndex = 0;
+					}
+					else
+					{
+						EditorGUILayout.TextField(nodeObject.actionName);
+						methodIndex = instance.sharedMethodNames
+							.IndexOf(nodeObject.actionName);
+					}
+
+					GUI.enabled = true;
+
+					if (instance.sharedMethods != null
+						&& instance.sharedMethods.Count > 0)
+					{
+						// Create the dropdown in the inspector for the found methods
+						int newSelection = EditorGUILayout.Popup(
+							"Function List", methodIndex,
+							instance.sharedMethodNames.ToArray());
+						if (newSelection != methodIndex)
+						{
+							if (newSelection == 0)
+								nodeObject.actionName = "";
+							else
+								nodeObject.actionName =
+									instance.sharedMethodNames[newSelection];
+						}
+					}
+
+					break;
+				case NodeType.Selector:
+				case NodeType.Sequence:
+					GUI.enabled = false;
+					EditorGUILayout.PropertyField(
+						selectedNodeProperty.FindPropertyRelative("children"), true);
+					GUI.enabled = true;
+					break;
+			}
 		}
 	}
 }

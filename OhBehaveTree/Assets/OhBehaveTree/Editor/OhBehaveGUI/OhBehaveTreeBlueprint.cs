@@ -473,7 +473,8 @@ namespace AtomosZ.OhBehave.EditorTools
 			EditorUtility.SetDirty(this);
 		}
 
-		private JsonNodeData AddNodeToTreeWithChildren(NodeEditorObject node, int parentIndex, ref List<JsonNodeData> tree)
+		private JsonNodeData AddNodeToTreeWithChildren(
+			NodeEditorObject node, int parentIndex, ref List<JsonNodeData> tree)
 		{
 			JsonNodeData nodeData = new JsonNodeData
 			{
