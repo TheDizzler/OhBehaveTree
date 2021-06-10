@@ -29,37 +29,19 @@ namespace AtomosZ.OhBehave.EditorTools.CustomEditors
 				EditorGUILayout.DelayedTextField("Tree file", Path.GetFileName(instance.jsonFilepath));
 			GUI.enabled = true;
 
-
-			if (!string.IsNullOrEmpty(instance.jsonFilepath))
-			{
-				if (GUILayout.Button("Change json file"))
-				{ // If FileChooser is opened here, will get EditorLayout Error.
-					// make sure the right target is in focus? (might not be necessary)
-					EditorWindow.GetWindow<OhBehaveEditorWindow>().OpenFileChooser(instance);
-				}
-
-				// do something here to verify tree is well-formed. If not, display angry button.
+			if (GUILayout.Button("Change json file"))
+			{ // If FileChooser is opened here, will get EditorLayout Error.
+			  // make sure the right target is in focus? (might not be necessary)
+				EditorWindow.GetWindow<OhBehaveEditorWindow>().OpenFileChooser(instance);
 			}
-			else
-			{
-				if (GUILayout.Button("No json file loaded"))
-				{
-					Debug.LogError("Not yet implemented");
-				}
-			}
+			// do something here to verify tree is well-formed. If not, display angry button.
 
-			var windows = Resources.FindObjectsOfTypeAll<OhBehaveEditorWindow>();
-			if (windows == null || windows.Length == 0)
+			if (GUILayout.Button("Open in AIOhBehaveEditor"))
+				EditorWindow.GetWindow<OhBehaveEditorWindow>().Open(instance);
+
+			if (GUILayout.Button("Create New AI Tree"))
 			{
-				if (GUILayout.Button("Open AIOhBehaveEditor"))
-					EditorWindow.GetWindow<OhBehaveEditorWindow>().Open(instance);
-			}
-			else
-			{
-				if (GUILayout.Button("Create New AI Tree"))
-				{
-					CreateNewJson();
-				}
+				CreateNewJson();
 			}
 
 			var actionSource = instance.GetComponent<OhBehaveActions>();
