@@ -199,6 +199,14 @@ namespace AtomosZ.OhBehave.EditorTools
 				return;
 			}
 
+			if (newType == NodeType.ConditionalRepeater
+				|| newType == NodeType.Repeater
+				|| newType == NodeType.Succeeder)
+			{
+				Debug.LogWarning(newType + " not yet implemented");
+				return;
+			}
+
 			if (HasChildren() && (newType == NodeType.Leaf || (newType == NodeType.Inverter && children.Count > 1)))
 			{
 				for (int i = children.Count - 1; i >= 0; --i)

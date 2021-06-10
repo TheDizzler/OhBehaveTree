@@ -68,7 +68,8 @@ namespace AtomosZ.OhBehave
 							newNode = new SequenceNode();
 						break;
 					default:
-						throw new System.Exception("Node has no type!");
+						Debug.LogError(nodeData.nodeType + " not yet implemented!");
+						continue;
 				}
 
 				nodeDict[nodeData.index] = newNode;
